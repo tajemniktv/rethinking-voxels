@@ -25,13 +25,13 @@ uniform sampler2D colortex0;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 
-#if defined BLOOM_FOG || LIGHTSHAFT_QUALITY > 0 && (defined OVERWORLD || defined END)
+#if defined BLOOM_FOG || LIGHTSHAFT_QUALITY > 0
 	uniform vec3 cameraPosition;
-	
 	uniform mat4 gbufferProjectionInverse;
 #endif
 
-#if LIGHTSHAFT_QUALITY > 0 && (defined OVERWORLD || defined END)
+#if LIGHTSHAFT_QUALITY > 0
+	#define OCCLUSION_FILTER 0;
 	uniform int frameCounter;
 
 	uniform float viewWidth, viewHeight;
@@ -43,8 +43,10 @@ uniform sampler2D depthtex1;
 	uniform float frameTimeSmooth;
 
 	uniform ivec2 eyeBrightness;
+	uniform ivec2 atlasSize;
 
 	uniform vec3 skyColor;
+	uniform vec3 previousCameraPosition;
 
 	uniform mat4 gbufferProjection;
 	uniform mat4 gbufferModelViewInverse;
@@ -53,9 +55,6 @@ uniform sampler2D depthtex1;
 
 	uniform sampler2D colortex3;
 	uniform sampler2D noisetex;
-	uniform sampler2DShadow shadowtex0;
-	uniform sampler2DShadow shadowtex1;
-	uniform sampler2D shadowcolor1;
 #endif
 
 //Pipeline Constants//
@@ -91,7 +90,7 @@ uniform sampler2D depthtex1;
 	#include "/lib/atmospherics/fog/bloomFog.glsl"
 #endif
 
-#if LIGHTSHAFT_QUALITY > 0 && (defined OVERWORLD || defined END)
+#if LIGHTSHAFT_QUALITY > 0
 	#ifdef END
 		#include "/lib/atmospherics/enderBeams.glsl"
 	#endif

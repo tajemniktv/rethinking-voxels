@@ -50,10 +50,6 @@ uniform mat4 shadowProjection;
 
 uniform sampler2D texture;
 
-#if defined GENERATED_NORMALS || defined COATED_TEXTURES
-	uniform ivec2 atlasSize;
-#endif
-
 #ifdef COATED_TEXTURES
 	uniform sampler2D noisetex;
 #endif

@@ -68,7 +68,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
                 float shadowLength = shadowDistance * 0.9166667 - length(vec4(playerPos.x, playerPos.y, playerPos.y, playerPos.z));
 
                 if (shadowLength > 0.000001) {
-                    float offset = 0.0009765;
+/*                    float offset = 0.0009765;
 
                     vec3 playerPosM = playerPos;
                     
@@ -100,7 +100,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
                         vec3 centerplayerPos = floor(playerPosM + cameraPosition) - cameraPosition + 0.5;
                         playerPosM = mix(centerplayerPos, playerPosM + vec3(0.0, 0.02, 0.0), lightmapYM);
                     #endif
-                        
+*/            
 //                    vec3 shadowPos = calculateShadowPos(playerPosM);
 
 /*                    #ifdef TAA
@@ -269,7 +269,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     #endif
 
     // Combine Lighting
-    vec3 blockLighting = getBlockLight(vxPos, worldNormal);
+    vec3 blockLighting = isInRange(vxPos) ? getBlockLight(vxPos, worldNormal) : lightmapXM * blocklightCol;
     vec3 sceneLighting = shadowLighting * shadowMult + ambientColor * ambientMult;
     float dotSceneLighting = dot(sceneLighting, sceneLighting);
     

@@ -105,7 +105,7 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal) {
         vec3 occlusionData = getOcclusion(vxPosOld, normal);
         for (int k = 0; k < 3; k++) lightCol += lightCols[k] * occlusionData[k] * pow(lights[k].w * BLOCKLIGHT_STRENGTH / 20.0, BLOCKLIGHT_STEEPNESS) * ndotls[k];
         return lightCol;
-    } else return vec3(lmCoord.x);
+    } else return vec3(0);
 }
 
 vec3 getBlockLight(vec3 vxPos) {

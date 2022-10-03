@@ -36,7 +36,7 @@ emissive = (
     mat == 10076 ||
     mat == 10216 ||
     mat == 10224 ||
-#ifdef EMISSIVE_ORES
+#if GLOWING_ORES > 0
     mat == 10272 ||
     mat == 10276 ||
     mat == 10284 ||
@@ -44,6 +44,7 @@ emissive = (
     mat == 10300 ||
     mat == 10304 ||
     mat == 10320 ||
+    mat == 10324 ||
     mat == 10340 ||
     mat == 10344 ||
     mat == 10612 ||
