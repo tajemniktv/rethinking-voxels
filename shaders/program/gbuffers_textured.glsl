@@ -35,6 +35,7 @@ uniform ivec2 atlasSize;
 uniform vec3 fogColor;
 uniform vec3 skyColor;
 uniform vec3 cameraPosition;
+uniform vec3 previousCameraPosition;
 
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;

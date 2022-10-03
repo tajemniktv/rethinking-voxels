@@ -8,6 +8,9 @@
 //////////Fragment Shader//////////Fragment Shader//////////Fragment Shader//////////
 #ifdef FRAGMENT_SHADER
 
+flat in int blockId;
+int blockEntityId = blockId;
+
 in vec2 texCoord;
 in vec2 lmCoord;
 
@@ -26,7 +29,6 @@ in vec4 glColor;
 
 //Uniforms//
 uniform int isEyeInWater;
-uniform int blockEntityId;
 uniform int frameCounter;
 
 uniform float viewWidth;
@@ -34,9 +36,12 @@ uniform float viewHeight;
 uniform float nightVision;
 uniform float frameTimeCounter;
 
+uniform ivec2 atlasSize;
+
 uniform vec3 fogColor;
 uniform vec3 skyColor;
 uniform vec3 cameraPosition;
+uniform vec3 previousCameraPosition;
 
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;
@@ -159,6 +164,8 @@ void main() {
 out vec2 texCoord;
 out vec2 lmCoord;
 
+flat out int blockId;
+
 flat out vec3 normal, upVec, sunVec, northVec, eastVec;
 
 out vec4 glColor;
@@ -177,8 +184,9 @@ out vec4 glColor;
 	uniform float viewWidth, viewHeight;
 #endif
 
+uniform int blockEntityId;
+
 #if defined GENERATED_NORMALS || defined COATED_TEXTURES
-	uniform int blockEntityId;
 
 	uniform vec3 cameraPosition;
 
@@ -215,6 +223,8 @@ void main() {
 	lmCoord  = GetLightMapCoordinates();
 
 	glColor = gl_Color;
+
+	blockId = 10000 * (blockEntityId / 10000) + + 4 * ((blockEntityId % 2000) / 4);
 
 	normal = normalize(gl_NormalMatrix * gl_Normal);
 

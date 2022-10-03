@@ -30,6 +30,12 @@ const int colortex5Format = RGB8_SNORM;		//normalM & scene image for water refle
 #ifdef TEMPORAL_FILTER
 const int colortex6Format = RGBA16F;		//temporal filter
 #endif
+// voxel data
+const int shadowcolor0Format = RGBA16;
+const int shadowcolor1Format = RGBA16;
+const int colortex8Format = RGBA16;
+const int colortex9Format = RGBA16;
+const int colortex10Format = RGBA16;
 //colortex7
 */
 
@@ -39,6 +45,10 @@ const bool colortex2Clear = false;
 const bool colortex3Clear = true;
 const bool colortex4Clear = false;
 const bool colortex5Clear = false;
+// temporal voxel data such as flood fill
+const bool colortex8Clear = false;
+const bool colortex9Clear = false;
+const bool colortex10Clear = false;
 #ifdef TEMPORAL_FILTER
 const bool colortex6Clear = false;
 #endif

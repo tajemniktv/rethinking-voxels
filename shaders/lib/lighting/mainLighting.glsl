@@ -10,13 +10,12 @@ uniform float darknessLightFactor;
 #include "/lib/colors/lightAndAmbientColors.glsl"
 #include "/lib/lighting/ggx.glsl"
 
-#if defined OVERWORLD || defined END
-    #include "/lib/lighting/shadowSampling.glsl"
-#endif
-
 #ifdef CLOUD_SHADOWS
     #include "/lib/atmospherics/cloudCoord.glsl"
 #endif
+
+#include "/lib/vx/getLighting.glsl"
+#include "/lib/vx/voxelMapping.glsl"
 
 //Lighting Variables//
 float eyeBrightnessM2 = eyeBrightnessM * eyeBrightnessM;
@@ -34,6 +33,8 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     vec3 ambientMult = vec3(1.0);
     vec3 shadowLighting = lightColor;
     vec3 nViewPos = normalize(viewPos);
+    vec3 vxPos = getVxPos(playerPos);
+    vec3 previousVxPos = getPreviousVxPos(playerPos);
 
     #if defined PERPENDICULAR_TWEAKS && defined SIDE_SHADOWING || defined DIRECTIONAL_SHADING
         float NdotN = dot(normalM, northVec);
@@ -61,7 +62,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
         #else
             NdotLM = 1.0;
         #endif
-
+        vec3 worldNormal = normalize(ViewToPlayer(normal*1000.0));
         if (shadowMult.r > 0.00001) {
             if (NdotLM > 0.0001) {
                 float shadowLength = shadowDistance * 0.9166667 - length(vec4(playerPos.x, playerPos.y, playerPos.y, playerPos.z));
@@ -74,10 +75,8 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
                     #if PIXEL_SHADOW > 0 && !defined GBUFFERS_HAND
                         playerPosM = floor((playerPosM + cameraPosition) * PIXEL_SHADOW + 0.001) / PIXEL_SHADOW - cameraPosition + 0.5 / PIXEL_SHADOW;
                     #endif
-
                     #ifndef GBUFFERS_TEXTURED
                         // Shadow bias without peter-panning
-                        vec3 worldNormal = normalize(ViewToPlayer(normal*1000.0));
                         vec3 bias = worldNormal * min(0.12 + length(playerPos) / 200.0, 0.5) * (2.0 - NdotLmax0);
 
                         // Fix light leaking in caves
@@ -102,13 +101,13 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
                         playerPosM = mix(centerplayerPos, playerPosM + vec3(0.0, 0.02, 0.0), lightmapYM);
                     #endif
                         
-                    vec3 shadowPos = calculateShadowPos(playerPosM);
+//                    vec3 shadowPos = calculateShadowPos(playerPosM);
 
-                    #ifdef TAA
+/*                    #ifdef TAA
                         float gradientNoise = InterleavedGradientNoise();
                     #else
-                        float gradientNoise = 0.5;
-                    #endif
+*/                        float gradientNoise = 0.5;
+/*                    #endif
 
                     bool leaves = false;
                     #ifdef GBUFFERS_TERRAIN
@@ -137,8 +136,8 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
                             }
                         }
                     #endif
-
-                    shadowMult *= GetShadow(shadowPos, offset, gradientNoise, leaves);
+*/
+                    shadowMult *= getSunLight(previousVxPos);
                 }
 
                 float shadowSmooth = 16.0;
@@ -270,7 +269,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     #endif
 
     // Combine Lighting
-    vec3 blockLighting = lightmapXM * blocklightCol;
+    vec3 blockLighting = getBlockLight(vxPos, worldNormal);
     vec3 sceneLighting = shadowLighting * shadowMult + ambientColor * ambientMult;
     float dotSceneLighting = dot(sceneLighting, sceneLighting);
     

@@ -1,7 +1,3 @@
-#version 130 
+#version 330 compatibility 
 
-#define VERTEX_SHADER
-#define END
-#define SHADOW
-
-#include "/program/shadow.glsl"
+#include "/program/shadow_vsh.glsl"

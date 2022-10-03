@@ -32,9 +32,12 @@ uniform float viewHeight;
 uniform float nightVision;
 uniform float frameTimeCounter;
 
+uniform ivec2 atlasSize;
+
 uniform vec3 fogColor;
 uniform vec3 skyColor;
 uniform vec3 cameraPosition;
+uniform vec3 previousCameraPosition;
 
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;
@@ -45,10 +48,6 @@ uniform sampler2D texture;
 
 #if defined NETHER || defined COATED_TEXTURES
 	uniform sampler2D noisetex;
-#endif
-
-#if defined GENERATED_NORMALS || defined COATED_TEXTURES
-	uniform ivec2 atlasSize;
 #endif
 
 #ifdef CLOUD_SHADOWS
@@ -276,6 +275,7 @@ void main() {
 	absMidCoordPos  = abs(texMinMidCoord);
 
 	mat = int(mc_Entity.x + 0.5);
+	mat = 10000 * (mat / 10000) + 4 * ((mat % 2000) / 4);
 
 	#if WAVING_BLOCKS >= 1
 		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;

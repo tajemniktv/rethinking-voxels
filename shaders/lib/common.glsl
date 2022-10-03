@@ -11,6 +11,79 @@
 ---------------------------------------------------------------------*/
 
 //User Settings//
+
+//voxel settings//
+
+    const int shadowMapResolution = 512; //[512 1024 2048 4096]
+
+    #define VXHEIGHT 8 //[4 6 8 12 16]
+
+    #define OCCLUSION_CASCADE_COUNT 5 //[1 2 3 4 5]
+
+    #define BLOCKLIGHT_STRENGTH 1.0 //[0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.5 1.7 2.0]
+    #define BLOCKLIGHT_STEEPNESS 2.0 //[1.0 1.3 1.5 1.7 2.0]
+
+    #define OCCLUSION_FILTER 1 //[0 1 2]
+    #ifndef NETHER
+        #define SUN_SHADOWS
+    #endif
+    #define SUN_ANGLE 0.5 //[-0.5 0 0.5]
+    #define SUN_CHECK_SPREAD 3 //[2 3]
+    #define SUN_CHECK_INTERVAL 20 //[5 7 10 15 20 30]
+    #define BLOCKLIGHT_CHECK_INTERVAL 17 //[4 5 7 10 15 17 20 30]
+
+    #if (shadowMapResolution == 512)
+        #if (VXHEIGHT == 4)
+            const float shadowDistance = 64;
+        #elif (VXHEIGHT == 6)
+            const float shadowDistance = 42;
+        #elif (VXHEIGHT == 8)
+            const float shadowDistance = 32;
+        #elif (VXHEIGHT == 12)
+            const float shadowDistance = 21;
+        #elif (VXHEIGHT == 16)
+            const float shadowDistance = 16;
+        #endif
+    #elif (shadowMapResolution == 1024)
+        #if (VXHEIGHT == 4)
+            const float shadowDistance = 128;
+        #elif (VXHEIGHT == 6)
+            const float shadowDistance = 85;
+        #elif (VXHEIGHT == 8)
+            const float shadowDistance = 64;
+        #elif (VXHEIGHT == 12)
+            const float shadowDistance = 42;
+        #elif (VXHEIGHT == 16)
+            const float shadowDistance = 32;
+        #endif
+    #elif (shadowMapResolution == 2048)
+        #if (VXHEIGHT == 4)
+            const float shadowDistance = 256;
+        #elif (VXHEIGHT == 6)
+            const float shadowDistance = 170;
+        #elif (VXHEIGHT == 8)
+            const float shadowDistance = 128;
+        #elif (VXHEIGHT == 12)
+            const float shadowDistance = 85;
+        #elif (VXHEIGHT == 16)
+            const float shadowDistance = 64;
+        #endif
+    #elif (shadowMapResolution == 4096)
+        #if (VXHEIGHT == 4)
+            const float shadowDistance = 512;
+        #elif (VXHEIGHT == 6)
+            const float shadowDistance = 341;
+        #elif (VXHEIGHT == 8)
+            const float shadowDistance = 256;
+        #elif (VXHEIGHT == 12)
+            const float shadowDistance = 170;
+        #elif (VXHEIGHT == 16)
+            const float shadowDistance = 128;
+        #endif
+    #endif
+
+//regular settings//
+
     #define CMPR 3 //[0 1 2 3 4 5]
 
     #define RP_MODE 1 //[0 1]
@@ -22,6 +95,7 @@
     #endif
 
     #define SHADOW_QUALITY 2 //[1 2 3 4]
+
     const float shadowDistance = 192.0; //[64.0 80.0 96.0 112.0 128.0 160.0 192.0 224.0 256.0 320.0 384.0 512.0 768.0 1024.0]
     //#define ENTITY_SHADOWS
     #define SSAO
@@ -72,7 +146,6 @@
     #define TRANSLUCENT_BLEND_FALLOFF_MULT 0.01
     
     #define SHADOW_FILTERING
-    const int shadowMapResolution = 2048;
 
     // Disable PERPENDICULAR_TWEAKS if you change sunPathRotation to anything but 0.0 or else you will get incorrect lighting
     const float sunPathRotation = 0.0;
