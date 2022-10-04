@@ -107,26 +107,24 @@ void main() {
 		vec4 volumetricLight = vec4(0.0);
 		float vlFactorM = vlFactor;
 
+		vec3 translucentMult = texelFetch(colortex3, texelCoord, 0).rgb;
+		if (translucentMult == vec3(0.0)) translucentMult = vec3(1.0);
+
+		vec4 screenPos = vec4(texCoord, z1, 1.0);
+		vec4 viewPos = gbufferProjectionInverse * (screenPos * 2.0 - 1.0);
+		viewPos /= viewPos.w;
+		float lViewPos = length(viewPos.xyz);
+		vec3 nViewPos = normalize(viewPos.xyz);
 		#if defined OVERWORLD || defined END
-			vec3 translucentMult = texelFetch(colortex3, texelCoord, 0).rgb;
-			if (translucentMult == vec3(0.0)) translucentMult = vec3(1.0);
-
-			vec4 screenPos = vec4(texCoord, z1, 1.0);
-			vec4 viewPos = gbufferProjectionInverse * (screenPos * 2.0 - 1.0);
-			viewPos /= viewPos.w;
-			float lViewPos = length(viewPos.xyz);
-			vec3 nViewPos = normalize(viewPos.xyz);
-
-			float VdotL = dot(nViewPos, lightVec);
-			float VdotU = dot(nViewPos, upVec);
-
-			float dither = texture2D(noisetex, texCoord * vec2(viewWidth, viewHeight) / 128.0).b;
-			#ifdef TAA
-				dither = fract(dither + 1.61803398875 * mod(float(frameCounter), 3600.0));
-			#endif
-
-			volumetricLight = GetVolumetricLight(vlFactorM, translucentMult, lViewPos, nViewPos, VdotL, VdotU, texCoord, z0, z1, dither);
+		float VdotL = dot(nViewPos, lightVec);
+		float VdotU = dot(nViewPos, upVec);
 		#endif
+		float dither = texture2D(noisetex, texCoord * vec2(viewWidth, viewHeight) / 128.0).b;
+		#ifdef TAA
+			dither = fract(dither + 1.61803398875 * mod(float(frameCounter), 3600.0));
+		#endif
+
+		volumetricLight = GetVolumetricLight(vlFactorM, translucentMult, lViewPos, nViewPos, 0.0, 0.0, texCoord, z0, z1, dither);
 	#endif
 
 	if (isEyeInWater == 1) {

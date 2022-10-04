@@ -36,7 +36,7 @@ emissive = (
     mat == 10076 ||
     mat == 10216 ||
     mat == 10224 ||
-#if GLOWING_ORES > 0
+#ifdef EMISSIVE_ORES
     mat == 10272 ||
     mat == 10276 ||
     mat == 10284 ||
@@ -44,7 +44,6 @@ emissive = (
     mat == 10300 ||
     mat == 10304 ||
     mat == 10320 ||
-    mat == 10324 ||
     mat == 10340 ||
     mat == 10344 ||
     mat == 10612 ||
@@ -113,6 +112,7 @@ if (emissive) {
         case 10656:
         case 10496:
         case 10528:
+        case 10648:
             lightlevel = 20;
             break;
         case 12604:

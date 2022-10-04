@@ -108,17 +108,25 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 			sampleMult /= sampleCount;
 		#endif
 
+		#ifndef NETHER
 		float shadowSample = 1.0;
 		vec3 vlSample = vec3(1.0);
+		#endif
 		vec3 blSample = vec3(0.0);
 		vec3 vxPos = getVxPos(wpos.xyz);
 		if (isInRange(vxPos)) {
+			#ifndef NETHER
 			shadowSample = getSunLight(getPreviousVxPos(wpos.xyz));//shadow2D(shadowtex0, shadowPosition.xyz).z;
 			vlSample = vec3(shadowSample);
+			#endif
 			blSample = getBlockLight(vxPos);
 		}
-		
-		if (currentDist > depth0) vlSample *= translucentMult;
+		if (currentDist > depth0) {
+			#ifndef NETHER
+			vlSample *= translucentMult;
+			#endif
+			blSample *= translucentMult;
+		}
 		volumetricBlockLight += blSample;
 		#ifdef OVERWORLD
 			volumetricLight += vec4(vlSample, shadowSample) * sampleMult;
@@ -142,11 +150,10 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 
 	#ifdef OVERWORLD
 		volumetricLight.rgb *= vlMult * pow(lightColor, vec3(0.5 + 0.5 * max(invNoonFactor, (1.0 + sunFactor) * rainFactor)));
-		volumetricLight.rgb += 0.7 * volumetricBlockLight / sampleCount;
 	#else
 		//if (gl_FragCoord.x > 960) volumetricLight.rgb = max(volumetricLight.rgb - dither / 255.0, vec3(0.0));
 	#endif
-	
+	volumetricLight.rgb += 0.7 * volumetricBlockLight / sampleCount;	
 	volumetricLight = clamp(volumetricLight, vec4(0.0), vec4(1.0));
 
 	return volumetricLight;
