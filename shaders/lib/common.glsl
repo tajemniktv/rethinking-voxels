@@ -24,8 +24,10 @@
     #define BLOCKLIGHT_STEEPNESS 2.0 //[1.0 1.3 1.5 1.7 2.0]
 
     #define OCCLUSION_FILTER 1 //[0 1 2]
-    #ifndef NETHER
-        #define SUN_SHADOWS
+    #define SMOOTH_LIGHTING 2 //[0 1 2]
+    #define SUN_SHADOWS
+    #ifdef NETHER
+        #undef SUN_SHADOWS
     #endif
     #define SUN_ANGLE 0.5 //[-0.5 0 0.5]
     #define SUN_CHECK_SPREAD 3 //[2 3]

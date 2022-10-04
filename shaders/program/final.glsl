@@ -56,7 +56,7 @@ const bool colortex6Clear = false;
 
 const bool shadowHardwareFiltering = true;
 const float shadowDistanceRenderMul = 1.0;
-const float entityShadowDistanceMul = 0.125; // Iris devs may bless us with their power
+const float entityShadowDistanceMul = 1.0; // Iris devs may bless us with their power
 
 const int noiseTextureResolution = 128;
 

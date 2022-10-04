@@ -33,6 +33,8 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     vec3 ambientMult = vec3(1.0);
     vec3 shadowLighting = lightColor;
     vec3 nViewPos = normalize(viewPos);
+    vec3 worldNormal = normalize(ViewToPlayer(normal*1000.0));
+    playerPos += 0.01 * normal;
     vec3 vxPos = getVxPos(playerPos);
     vec3 previousVxPos = getPreviousVxPos(playerPos);
 
@@ -62,7 +64,6 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
         #else
             NdotLM = 1.0;
         #endif
-        vec3 worldNormal = normalize(ViewToPlayer(normal*1000.0));
         if (shadowMult.r > 0.00001) {
             if (NdotLM > 0.0001) {
                 float shadowLength = shadowDistance * 0.9166667 - length(vec4(playerPos.x, playerPos.y, playerPos.y, playerPos.z));

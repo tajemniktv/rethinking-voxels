@@ -23,6 +23,7 @@ vec3 getOcclusion(vec3 vxPos, vec3 normal) {
         vxPos *= 2;
     }
     vec3 occlusion = vec3(0);
+    #if OCCLUSION_FILTER > 0
     vxPos += normal - 0.5;
     vec3 floorPos = floor(vxPos);
     float totalInt = 1; // total intensity (calculating weighted average of surrounding occlusion data)
@@ -36,10 +37,16 @@ vec3 getOcclusion(vec3 vxPos, vec3 normal) {
             totalInt -= intMult;
             continue;
         }
+        #else
+        vec3 cornerPos = vxPos;
+        float intMult = 1.0;
+        #endif
         ivec4 lightData = ivec4(texelFetch(colortex8, getVxPixelCoords(cornerPos + 0.5), 0) * 65535 + 0.5);
         for (int i = 0; i < 3; i++) occlusion[i] += ((lightData.y >> 3 * k + i) % 2) * intMult;
+    #if OCCLUSION_FILTER > 0
     }
     occlusion /= totalInt;
+    #endif
     return occlusion;
 }
 // get the blocklight value at a given position. optionally supply a normal vector to account for dot product shading
@@ -119,6 +126,7 @@ float getSunOcclusion(vec3 vxPos) {
         vxPos *= 2;
     }
     float occlusion = 0;
+    #if OCCLUSION_FILTER > 0
     vxPos -= 0.5;
     vec3 floorPos = floor(vxPos);
     float totalInt = 1; // track total intensity
@@ -132,10 +140,16 @@ float getSunOcclusion(vec3 vxPos) {
             totalInt -= intMult;
             continue;
         }
+        #else
+        vec3 cornerPos = vxPos;
+        float intMult = 1.0;
+        #endif
         ivec4 sunData = ivec4(texelFetch(colortex10, getVxPixelCoords(cornerPos + 0.5), 0) * 65535 + 0.5);
         occlusion += ((k == 0) ? (sunData.x % 4 == SUN_CHECK_SPREAD ? 1 : 0) : ((sunData.x >> k + 3) % 2)) * intMult;
+    #if OCCLUSION_FILTER > 0
     }
     occlusion /= totalInt;
+    #endif
     return occlusion;
 }
 vec3 GetWorldSunVector() {
