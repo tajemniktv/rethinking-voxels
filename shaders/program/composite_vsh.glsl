@@ -1,5 +1,7 @@
 out vec2 texCoord;
 
+#include "/lib/common.glsl"
+
 uniform sampler2D colortex8;
 
 void main() {
