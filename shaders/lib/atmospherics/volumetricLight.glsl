@@ -153,7 +153,7 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 	#else
 		//if (gl_FragCoord.x > 960) volumetricLight.rgb = max(volumetricLight.rgb - dither / 255.0, vec3(0.0));
 	#endif
-	volumetricLight.rgb += 0.7 * volumetricBlockLight / sampleCount;	
+	volumetricLight.rgb += BLOCKLIGHT_SHAFT_STRENGTH * volumetricBlockLight / sampleCount;	
 	volumetricLight = clamp(volumetricLight, vec4(0.0), vec4(1.0));
 
 	return volumetricLight;
