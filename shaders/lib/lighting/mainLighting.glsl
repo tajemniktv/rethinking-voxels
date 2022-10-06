@@ -66,7 +66,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
         #endif
         if (shadowMult.r > 0.00001) {
             if (NdotLM > 0.0001) {
-                float shadowLength = shadowDistance * 0.9166667 - length(vec4(playerPos.x, playerPos.y, playerPos.y, playerPos.z));
+                float shadowLength = min(vxRange / 2.0 - abs(vxPos.x), min(VXHEIGHT * VXHEIGHT - 2.0 * abs(vxPos.y), vxRange / 2.0 - abs(vxPos.z)));
 
                 if (shadowLength > 0.000001) {
 /*                    float offset = 0.0009765;
@@ -101,14 +101,14 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
                         vec3 centerplayerPos = floor(playerPosM + cameraPosition) - cameraPosition + 0.5;
                         playerPosM = mix(centerplayerPos, playerPosM + vec3(0.0, 0.02, 0.0), lightmapYM);
                     #endif
-*/            
-//                    vec3 shadowPos = calculateShadowPos(playerPosM);
+            
+                    vec3 shadowPos = calculateShadowPos(playerPosM);
 
-/*                    #ifdef TAA
+                    #ifdef TAA
                         float gradientNoise = InterleavedGradientNoise();
                     #else
-*/                        float gradientNoise = 0.5;
-/*                    #endif
+                        float gradientNoise = 0.5;
+                    #endif
 
                     bool leaves = false;
                     #ifdef GBUFFERS_TERRAIN

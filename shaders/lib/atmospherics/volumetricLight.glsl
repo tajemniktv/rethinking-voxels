@@ -116,7 +116,8 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 		vec3 vxPos = getVxPos(wpos.xyz);
 		if (isInRange(vxPos)) {
 			#ifndef NETHER
-			vlSample = getSunLight(getPreviousVxPos(wpos.xyz));//shadow2D(shadowtex0, shadowPosition.xyz).z;
+			vlSample = getSunLight(getPreviousVxPos(wpos.xyz), isEyeInWater == 1);//shadow2D(shadowtex0, shadowPosition.xyz).z;
+			vlSample *= vlSample + 0.1;
 			shadowSample = length(vlSample) > 0.3 ? 1.0 : 0.0;
 			#endif
 			blSample = getBlockLight(vxPos);
@@ -127,7 +128,7 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 			#endif
 			blSample *= translucentMult;
 		}
-		volumetricBlockLight += blSample;
+		volumetricBlockLight += blSample * sampleMult;
 		#ifdef OVERWORLD
 			volumetricLight += vec4(vlSample, shadowSample) * sampleMult;
 		#elif defined END

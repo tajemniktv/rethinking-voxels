@@ -189,7 +189,7 @@ vec3 getWorldSunVector() {
     #endif
 }
 
-vec3 getSunLight(vec3 vxPos) {
+vec3 getSunLight(vec3 vxPos, bool causticMult) {
     vec3 sunDir = getWorldSunVector();
     vec2 tex8size0 = vec2(textureSize(colortex8, 0));
     vec3 shadowPos = getShadowPos(vxPos, sunDir);
@@ -202,7 +202,7 @@ vec3 getSunLight(vec3 vxPos) {
         vec4 sunData = texture2D(colortex10, (shadowPos.xy * shadowMapResolution + shadowoffsets[k] * 0.9) / tex8size0);
         sunData.yz = (sunData.yz - 0.5) * 1.5 * vxRange;
         int sunColor0 = int(texelFetch(colortex10, ivec2(shadowPos.xy * shadowMapResolution + shadowoffsets[k] * 0.9), 0).r * 65535 + 0.5);
-        vec3 sunColor1 = vec3(sunColor0 % 16, (sunColor0 >> 4) % 16, (sunColor0 >> 8) % 16) / 16.0;
+        vec3 sunColor1 = vec3(sunColor0 % 16, (sunColor0 >> 4) % 16, (sunColor0 >> 8) % 16) * (causticMult ? (sunColor0 >> 12) : 4.0) / 64.0;
         sunColor += shadowPos.z > sunData.y ? (shadowPos.z > sunData.z ? vec3(1) : sunColor1) : vec3(0.0);
     #if OCCLUSION_FILTER > 0
     }
@@ -210,6 +210,9 @@ vec3 getSunLight(vec3 vxPos) {
     #endif
     return sunColor;
     //return shadowPos;
+}
+vec3 getSunLight(vec3 vxPos) {
+    return getSunLight(vxPos, false);
 }
 #endif
 #endif
