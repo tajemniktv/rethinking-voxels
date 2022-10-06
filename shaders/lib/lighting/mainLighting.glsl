@@ -34,7 +34,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     vec3 shadowLighting = lightColor;
     vec3 nViewPos = normalize(viewPos);
     vec3 worldNormal = normalize(ViewToPlayer(normal*1000.0));
-    playerPos += 0.01 * normal;
+    playerPos += 0.01 * worldNormal;
     vec3 vxPos = getVxPos(playerPos);
     vec3 previousVxPos = getPreviousVxPos(playerPos);
 
