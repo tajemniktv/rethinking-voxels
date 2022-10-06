@@ -116,8 +116,8 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 		vec3 vxPos = getVxPos(wpos.xyz);
 		if (isInRange(vxPos)) {
 			#ifndef NETHER
-			shadowSample = getSunLight(getPreviousVxPos(wpos.xyz));//shadow2D(shadowtex0, shadowPosition.xyz).z;
-			vlSample = vec3(shadowSample);
+			vlSample = getSunLight(getPreviousVxPos(wpos.xyz));//shadow2D(shadowtex0, shadowPosition.xyz).z;
+			shadowSample = length(vlSample) > 0.3 ? 1.0 : 0.0;
 			#endif
 			blSample = getBlockLight(vxPos);
 		}
@@ -141,7 +141,7 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 				vec4 wpos = vec4(shadowModelView[3][0], shadowModelView[3][1], shadowModelView[3][2], shadowModelView[3][3]);
 				wpos = shadowProjection * wpos;
 				wpos /= wpos.w;
-				float shadowSample = getSunLight(getPreviousVxPos(wpos.xyz));
+				float shadowSample = length(getSunLight(getPreviousVxPos(wpos.xyz))) > 0.3 ? 1.0 : 0.0;
 				if (shadowSample > 0.5 || eyeBrightness.y > 180) vlFactor = max(vlFactor - OSIEBCA*3, 0.0);
 				else                                             vlFactor = min(vlFactor + OSIEBCA*2, 1.0);
 			}

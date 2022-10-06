@@ -240,6 +240,9 @@
     #endif
 
 //Very Common Variables//
+    //infinite... almost
+    #define INF 100000.0
+
     const float shadowMapBias = 1.0 - 25.6 / shadowDistance;
     float timeAngle = worldTime / 24000.0;
     float noonFactor = sqrt(max(sin(timeAngle*6.28318530718),0.0));

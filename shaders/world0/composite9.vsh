@@ -1,5 +1,5 @@
 #version 330 compatibility
 
-#define END
+#define OVERWORLD
 
 #include "/program/composite_occlusionchecks_vsh.glsl"

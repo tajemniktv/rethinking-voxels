@@ -164,14 +164,52 @@ float getSunOcclusion(vec3 vxPos) {
     return occlusion;
 }
 
-float getSunLight(vec3 vxPos) {//, vec3 normal) {
-/*    float dayTime = (worldTime % 24000) * 0.0002618;
-    vec3 sunDir = GetWorldSunVector();
-    sunDir *= sign(sunDir.y);
-    float ndotl = dot(normal, sunDir); // angle based sun intensity multiplier
-    if (ndotl <= 0) return 0.0;*/
-    if (!isInRange(vxPos)) return 1.0;
-    return getSunOcclusion(vxPos);
+vec2[9] shadowoffsets = vec2[9](
+    vec2( 0.0       ,  0.0),
+    vec2( 0.47942554,  0.87758256),
+    vec2( 0.95954963,  0.28153953),
+    vec2( 0.87758256, -0.47942554),
+    vec2( 0.28153953, -0.95954963),
+    vec2(-0.47942554, -0.87758256),
+    vec2(-0.95954963, -0.28153953),
+    vec2(-0.87758256,  0.47942554),
+    vec2(-0.28153953,  0.95954963)
+);
+
+vec3 getWorldSunVector() {
+    const vec2 sunRotationData = vec2(cos(sunPathRotation * 0.01745329251994), -sin(sunPathRotation * 0.01745329251994));
+    #ifdef OVERWORLD
+        float ang = fract(timeAngle - 0.25);
+        ang = (ang + (cos(ang * 3.14159265358979) * -0.5 + 0.5 - ang) / 3.0) * 6.28318530717959;
+        return vec3(-sin(ang), cos(ang) * sunRotationData);
+    #elif defined END
+        return vec3(0.0, sunRotationData);
+    #else
+        return vec3(0.0);
+    #endif
+}
+
+vec3 getSunLight(vec3 vxPos) {
+    vec3 sunDir = getWorldSunVector();
+    vec2 tex8size0 = vec2(textureSize(colortex8, 0));
+    vec3 shadowPos = getShadowPos(vxPos, sunDir);
+    vec3 sunColor = vec3(0);
+    #if OCCLUSION_FILTER > 0
+    for (int k = 0; k < 9; k++) {
+    #else
+    int k = 0;
+    #endif
+        vec4 sunData = texture2D(colortex10, (shadowPos.xy * shadowMapResolution + shadowoffsets[k] * 0.9) / tex8size0);
+        sunData.yz = (sunData.yz - 0.5) * 1.5 * vxRange;
+        int sunColor0 = int(texelFetch(colortex10, ivec2(shadowPos.xy * shadowMapResolution + shadowoffsets[k] * 0.9), 0).r * 65535 + 0.5);
+        vec3 sunColor1 = vec3(sunColor0 % 16, (sunColor0 >> 4) % 16, (sunColor0 >> 8) % 16) / 16.0;
+        sunColor += shadowPos.z > sunData.y ? (shadowPos.z > sunData.z ? vec3(1) : sunColor1) : vec3(0.0);
+    #if OCCLUSION_FILTER > 0
+    }
+    sunColor *= 0.2;
+    #endif
+    return sunColor;
+    //return shadowPos;
 }
 #endif
 #endif
