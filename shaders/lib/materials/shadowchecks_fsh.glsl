@@ -88,6 +88,7 @@ emissive = (
     mat == 10704 ||
     mat == 10708 ||
     mat == 10739 ||
+    mat == 12740 ||
     mat == 30020 ||
     mat == 31016 ||
     mat == 60000 ||
@@ -123,6 +124,10 @@ if (emissive) {
             lightlevel = 20;
             lightcol = vec3(1.0, 0.1, 0.05);
             break;
+        case 12740:
+            lightlevel = 15;
+            lightcol = vec3(1.0, 0.7, 0.4);
+            break;
         case 10548:
             lightlevel = 15;
             lightcol = vec3(0.3, 0.5, 1.0);
@@ -140,10 +145,10 @@ if (emissive) {
             lightcol = vec3(0.5, 0.95, 1.0);
             break;
         case 30020:
+        case 10584:
         case 10616:
         case 10624:
         case 10704:
-        case 10584:
             lightlevel = 15;
             break;
         default:
@@ -353,6 +358,7 @@ cuboid = (
     mat == 10669 ||
     (mat >= 10720 && mat < 10724) ||
     mat == 10728 ||
+    (mat >= 10740 && mat < 10749) ||
     mat == 31000 ||
     mat == 31016 ||
     mat == 60008 ||
@@ -432,6 +438,35 @@ if (cuboid) {
         case 10728:
             bounds[0] = ivec3(5, 0, 5);
             bounds[1] = ivec3(11, 6, 11);
+            break;
+        case 10740:
+        case 12740:
+            bounds[0] = ivec3(1, 0, 1);
+            bounds[1] = ivec3(15, 8, 15);
+            break;
+        case 10741:
+            bounds[0] = ivec3(3, 0, 1);
+            bounds[1] = ivec3(15, 8, 15);
+            break;
+        case 10742:
+            bounds[0] = ivec3(5, 0, 1);
+            bounds[1] = ivec3(15, 8, 15);
+            break;
+        case 10743:
+            bounds[0] = ivec3(7, 0, 1);
+            bounds[1] = ivec3(15, 8, 15);
+            break;
+        case 10744:
+            bounds[0] = ivec3(9, 0, 1);
+            bounds[1] = ivec3(15, 8, 15);
+            break;
+        case 10745:
+            bounds[0] = ivec3(11, 0, 1);
+            bounds[1] = ivec3(15, 8, 15);
+            break;
+        case 10746:
+            bounds[0] = ivec3(13, 0, 1);
+            bounds[1] = ivec3(15, 8, 15);
             break;
         case 31016:
             bounds[0] = ivec3(2, 0, 2);
