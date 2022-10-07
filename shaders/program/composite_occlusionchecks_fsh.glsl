@@ -43,6 +43,7 @@ void main() {
         vec3 offset0 = floor(cameraPosition) - floor(previousCameraPosition);
         vec3 offset = offset0;
         vec3 oldPos = pos + offset;
+        // calculate a shadow map
         #ifdef SUN_SHADOWS
             vec3 sunMoonDir = sunDir * (sunDir.y > 0.0 ? 1.0 : -1.0);
             vec3 topDownPos = 1.5 * vec3((pixelCoord.x + 0.5) / shadowMapResolution - 0.5, (pixelCoord.y + 0.5) / shadowMapResolution - 0.5, 0) * vxRange;
@@ -54,9 +55,11 @@ void main() {
             // 31000 is water
             sunRayColor.a = sqrt(sunRayColor.a);
             sunRayColor.rgb = sunRayColor.rgb * sunRayColor.a + 1.0 - sunRayColor.a;
+            // if the material is water, do caustics
             float causticFactor = clamp(transMat == 31000 ? getCaustics(transPos + floor(cameraPosition)) * 5.0 : 1, 0.0, 3.9);
             sunRayColor.rgb *= sunRayColor.rgb / max(sunRayColor.r, max(sunRayColor.g, sunRayColor.b));
             sunRayColor.rgb = clamp(sunRayColor.rgb, vec3(0), vec3(1));
+            // pack shadow map data
             dataToWrite1.r = int(sunRayColor.r * 15.5) + (int(sunRayColor.g * 15.5) << 4) + (int(sunRayColor.b * 15.5) << 8) + (int(causticFactor * 4.0) << 12);
             dataToWrite1.g = int((0.5 + dot(sunPos, sunMoonDir) / (1.5  * vxRange)) * 65535 + 0.5);
             dataToWrite1.b = int((0.5 + dot(transPos.y > -9999 ? transPos : sunPos, sunMoonDir) / (1.5  * vxRange)) * 65535 + 0.5);
@@ -75,6 +78,7 @@ void main() {
                 int changed = isInRange(oldPos0) ? lightData0.x % 256 : 1;
                 if (changed > 0) {
                     occlusionData = 0;
+                    // unpack light sources
                     vec3[3] lights = vec3[3](
                         vec3(lightData0.z % 256, lightData0.z >> 8, lightData0.w % 256),
                         vec3(lightData1.x % 256, lightData1.x >> 8, lightData1.y % 256),
@@ -83,7 +87,10 @@ void main() {
                     ivec3 intensities = ivec3(lightData0.w >> 8, lightData1.y >> 8, lightData1.w >> 8);
                     // check for each light source if it is occluded
                     for (int i = 0; i < 3; i++) {
-                        if (intensities[i] == 0) continue;
+                        if (intensities[i] == 0) {
+                            occlusionData += 1 << i;
+                            continue;
+                        }
                         vec3 lightDir = lights[i] - 127.5 - fract(pos);
                         vec3 endPos = pos;
                         vec3 goalPos = pos + lightDir;
