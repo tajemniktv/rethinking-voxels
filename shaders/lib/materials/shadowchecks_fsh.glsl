@@ -107,6 +107,7 @@ if (emissive) {
         case 10396:
         case 10412:
         case 10448:
+        case 10500:
         case 10640:
         case 10652:
         case 10656:
