@@ -89,7 +89,7 @@ void main() {
                         vec3 goalPos = pos + lightDir;
                         float rayAlpha = raytrace(endPos, lightDir + 0.01 * randomOffsets[frameCounter % 6], colortex15, true).w;
                         float dist = max(max(abs(endPos.x - goalPos.x), abs(endPos.y - goalPos.y)), abs(endPos.z - goalPos.z));
-                        if (dist < 0.505 && rayAlpha < 0.5) {
+                        if (dist < 0.512 && rayAlpha < 0.5) {
                             occlusionData += 1 << i;
                         }
                     }
