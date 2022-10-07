@@ -72,7 +72,7 @@ void main() {
             int occlusionData = (length(offset) < 0.5) ? dataToWrite0.y : int(texelFetch(colortex8, getVxPixelCoords(oldPos0), 0).g * 65535 + 0.5);
             occlusionData = (occlusionData >> 3 * k) % 8;
             bool doBlockLight = (int(pos.y) % BLOCKLIGHT_CHECK_INTERVAL == frameCounter % BLOCKLIGHT_CHECK_INTERVAL);
-            if (doBlockLight || !isInRange(oldPos0)) {
+            if (k == 0 || doBlockLight || !isInRange(oldPos0)) {
                 ivec4 lightData0 = ivec4(texelFetch(colortex8, getVxPixelCoords(pos), 0) * 65535 + 0.5);
                 ivec4 lightData1 = ivec4(texelFetch(colortex9, getVxPixelCoords(pos), 0) * 65535 + 0.5);
                 int changed = isInRange(oldPos0) ? lightData0.x % 256 : 1;
@@ -94,14 +94,16 @@ void main() {
                         vec3 lightDir = lights[i] - 127.5 - fract(pos);
                         vec3 endPos = pos;
                         vec3 goalPos = pos + lightDir;
-                        float rayAlpha = raytrace(endPos, lightDir + 0.01 * randomOffsets[frameCounter % 6], colortex15, true).w;
+                        float rayAlpha = raytrace(k == 0, endPos, lightDir + 0.01 * randomOffsets[frameCounter % 6], colortex15, true).w;
+                        vxData endBlock = readVxMap(getVxPixelCoords(endPos));
+                        vxData goalBlock = readVxMap(getVxPixelCoords(goalPos));
                         float dist = max(max(abs(endPos.x - goalPos.x), abs(endPos.y - goalPos.y)), abs(endPos.z - goalPos.z));
-                        if (dist < 0.512 && rayAlpha < 0.5) {
+                        if (dist < 0.512  + ((goalBlock.mat == endBlock.mat) ? 2.0 : 0.0) && rayAlpha < 0.9) {
                             occlusionData += 1 << i;
                         }
                     }
-                    if (k == 0 && changed == 1) {
-                        dataToWrite0.x = (dataToWrite0.x >> 8) << 8;
+                    if (k == 0 && changed == 1 && doBlockLight) {
+                        dataToWrite0.x = ((dataToWrite0.x >> 8) << 8);
                     }
                 }
             }

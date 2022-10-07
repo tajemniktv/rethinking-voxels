@@ -75,7 +75,7 @@ vec4 handledata(vxData data, sampler2D atlas, inout vec3 pos, vec3 dir, int n) {
     return (w0 < w1) ? (vec4(color0.xyz * color0.a, color0.a) + (1 - color0.a) * vec4(color1.xyz * color1.a, color1.a)) : (vec4(color1.xyz * color1.a, color1.a) + (1 - color1.a) * vec4(color0.xyz * color0.a, color0.a));
 }
 // voxel ray tracer
-vec4 raytrace(inout vec3 pos0, vec3 dir, inout vec3 translucentHit, sampler2D atlas, bool translucentData) {
+vec4 raytrace(bool lowDetail, inout vec3 pos0, vec3 dir, inout vec3 translucentHit, sampler2D atlas, bool translucentData) {
     vec3 progress;
     for (int i = 0; i < 3; i++) {
         //set starting position in each direction
@@ -118,7 +118,12 @@ vec4 raytrace(inout vec3 pos0, vec3 dir, inout vec3 translucentHit, sampler2D at
         // read voxel data at new position and update ray colour accordingly
         if (isInRange(pos)) {
             voxeldata = readVxMap(getVxPixelCoords(pos));
-            if (voxeldata.trace) {
+            if (lowDetail) {
+                if (voxeldata.full && !voxeldata.alphatest) {
+                    pos0 = pos;
+                    return vec4(0, 0, 0, translucentData ? 0 : 1);
+                }
+            } else if (voxeldata.trace) {
                 vec4 newcolor = handledata(voxeldata, atlas, pos, dir, i);
                 if (voxeldata.mat == mat) newcolor.a = clamp(10.0 * newcolor.a - 9.0, 0.0, 1.0);
                 mat = (newcolor.a > 0.1) ? voxeldata.mat : 0;
@@ -142,6 +147,17 @@ vec4 raytrace(inout vec3 pos0, vec3 dir, inout vec3 translucentHit, sampler2D at
     pos0 = pos;
     raycolor = (k == 2000 ? vec4(1, 0, 0, 1) : raycolor);
     return translucentData ? oldRayColor : raycolor;
+}
+vec4 raytrace(inout vec3 pos0, vec3 dir, inout vec3 translucentHit, sampler2D atlas, bool translucentData) {
+    return raytrace(false, pos0, dir, translucentHit, atlas, translucentData);
+}
+vec4 raytrace(bool lowDetail, inout vec3 pos0, vec3 dir, sampler2D atlas) {
+    vec3 translucentHit = vec3(0);
+    return raytrace(lowDetail, pos0, dir, translucentHit, atlas, false);
+}
+vec4 raytrace(bool lowDetail, inout vec3 pos0, vec3 dir, sampler2D atlas, bool translucentData) {
+    vec3 translucentHit = vec3(0);
+    return raytrace(lowDetail, pos0, dir, translucentHit, atlas, translucentData);
 }
 vec4 raytrace(inout vec3 pos0, vec3 dir, sampler2D atlas, bool translucentData) {
     vec3 translucentHit = vec3(0);

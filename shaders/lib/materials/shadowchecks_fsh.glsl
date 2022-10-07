@@ -374,6 +374,9 @@ cuboid = (
 );
 if (cuboid) {
     switch (mat) {
+        case 10041:
+            bounds[1].y = 2;
+            break;
         case 10060:
             bounds[0] = ivec3(7, 0, 7);
             bounds[1] = ivec3(9, 16, 9);
