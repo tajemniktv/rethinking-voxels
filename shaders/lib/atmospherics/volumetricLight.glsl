@@ -106,7 +106,10 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 			float sampleMult = mix(percentComplete * 3.0, sampleMultIntense, max(rainFactor, vlSceneIntensity));
 			if (currentDist < 5.0) sampleMult *= smoothstep1(clamp(currentDist / 5.0, 0.0, 1.0));
 			sampleMult /= sampleCount;
+		#else
+			float sampleMult = 1.0 / sampleCount;
 		#endif
+		float blSampleMult = 1.0 / sampleCount;
 
 		#ifndef NETHER
 		float shadowSample = 1.0;
@@ -115,7 +118,7 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 		vec3 blSample = vec3(0.0);
 		vec3 vxPos = getVxPos(wpos.xyz);
 		if (isInRange(vxPos)) {
-			#ifndef NETHER
+			#if !defined NETHER && defined SUN_SHADOWS
 			vlSample = getSunLight(getPreviousVxPos(wpos.xyz), isEyeInWater == 1);//shadow2D(shadowtex0, shadowPosition.xyz).z;
 			vlSample *= vlSample + 0.1;
 			shadowSample = length(vlSample) > 0.3 ? 1.0 : 0.0;
@@ -128,7 +131,7 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 			#endif
 			blSample *= translucentMult;
 		}
-		volumetricBlockLight += blSample * sampleMult;
+		volumetricBlockLight += blSample * blSampleMult;
 		#ifdef OVERWORLD
 			volumetricLight += vec4(vlSample, shadowSample) * sampleMult;
 		#elif defined END
@@ -136,7 +139,7 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 		#endif
 	}
 
-	#if defined OVERWORLD && defined SCENE_AWARE_LIGHT_SHAFTS
+	#if defined OVERWORLD && defined SCENE_AWARE_LIGHT_SHAFTS && defined SUN_SHADOWS
 		if (viewWidth + viewHeight - gl_FragCoord.x - gl_FragCoord.y < 1.5) {
 			if (frameCounter % int(0.06666 / frameTimeSmooth + 0.5) == 0) { // Change speed is not too different above 10 fps
 				vec4 wpos = vec4(shadowModelView[3][0], shadowModelView[3][1], shadowModelView[3][2], shadowModelView[3][3]);
@@ -154,7 +157,7 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 	#else
 		//if (gl_FragCoord.x > 960) volumetricLight.rgb = max(volumetricLight.rgb - dither / 255.0, vec3(0.0));
 	#endif
-	volumetricLight.rgb += BLOCKLIGHT_SHAFT_STRENGTH * volumetricBlockLight / sampleCount;	
+	volumetricLight.rgb += BLOCKLIGHT_SHAFT_STRENGTH * volumetricBlockLight;	
 	volumetricLight = clamp(volumetricLight, vec4(0.0), vec4(1.0));
 
 	return volumetricLight;

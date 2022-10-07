@@ -66,6 +66,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
         #endif
         if (shadowMult.r > 0.00001) {
             if (NdotLM > 0.0001) {
+                #ifdef SUN_SHADOWS
                 float shadowLength = min(vxRange / 2.0 - abs(vxPos.x), min(VXHEIGHT * VXHEIGHT - 2.0 * abs(vxPos.y), vxRange / 2.0 - abs(vxPos.z)));
 
                 if (shadowLength > 0.000001) {
@@ -140,7 +141,9 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
 */
                     shadowMult *= getSunLight(previousVxPos);
                 }
-
+                #else
+                float shadowLength = 0;
+                #endif
                 float shadowSmooth = 16.0;
                 if (shadowLength < shadowSmooth) {
                     float shadowMixer = max(shadowLength / shadowSmooth, 0.0);
