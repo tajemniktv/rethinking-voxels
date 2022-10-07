@@ -191,6 +191,7 @@ vec3 getWorldSunVector() {
 
 vec3 getSunLight(vec3 vxPos, bool causticMult) {
     vec3 sunDir = getWorldSunVector();
+    sunDir *= sign(sunDir.y);
     vec2 tex8size0 = vec2(textureSize(colortex8, 0));
     vec3 shadowPos = getShadowPos(vxPos, sunDir);
     vec3 sunColor = vec3(0);
