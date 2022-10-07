@@ -64,8 +64,8 @@ vec4 handledata(vxData data, sampler2D atlas, inout vec3 pos, vec3 dir, int n) {
     float w1 = (blockInnerPos.x - blockInnerPos.z) / (dir.z - dir.x);
     vec3 p0 = blockInnerPos + w0 * dir;
     vec3 p1 = blockInnerPos + w1 * dir;
-    bool valid0 = (max(max(abs(p0.x - 0.5), abs(p0.y - 0.5)), abs(p0.z - 0.5)) < 0.48);
-    bool valid1 = (max(max(abs(p1.x - 0.5), abs(p1.y - 0.5)), abs(p1.z - 0.5)) < 0.48);
+    bool valid0 = (max(max(abs(p0.x - 0.5), 0.8 * abs(p0.y - 0.5)), abs(p0.z - 0.5)) < 0.4);
+    bool valid1 = (max(max(abs(p1.x - 0.5), 0.8 * abs(p1.y - 0.5)), abs(p1.z - 0.5)) < 0.4);
     vec4 color0 = valid0 ? texelFetch(atlas, ivec2(data.texcoord * atlasSize + (data.spritesize - 0.5) * (1 - p0.xy * 2)), 0) : vec4(0);
     vec4 color1 = valid1 ? texelFetch(atlas, ivec2(data.texcoord * atlasSize + (data.spritesize - 0.5) * (1 - p1.xy * 2)), 0) : vec4(0);
     color0.xyz *= data.emissive ? vec3(1) : data.lightcol;

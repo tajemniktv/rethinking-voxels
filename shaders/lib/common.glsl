@@ -14,10 +14,9 @@
 
 //voxel settings//
 
-    const int shadowMapResolution = 512; //[512 1024 2048 4096]
-
+    #define SHADOWRES 512 //[512 1024 2048 4096]
+    const int shadowMapResolution = SHADOWRES;
     #define VXHEIGHT 8 //[4 6 8 12 16]
-
     #define OCCLUSION_CASCADE_COUNT 5 //[1 2 3 4 5]
 
     #define BLOCKLIGHT_STRENGTH 1.0 //[0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.5 1.7 2.0]
@@ -34,55 +33,66 @@
     #define SUN_CHECK_SPREAD 3 //[2 3]
     #define SUN_CHECK_INTERVAL 20 //[5 7 10 15 20 30]
     #define BLOCKLIGHT_CHECK_INTERVAL 17 //[4 5 7 10 15 17 20 30]
-
-    #if (shadowMapResolution == 512)
+    #define VBL_NETHER_MULT 2.0 //[1.0 1.2 1.5 1.7 2.0 2.5 3.0 4.0]
+    #define VBL_END_MULT 2.0 //[1.0 1.2 1.5 1.7 2.0 2.5 3.0 4.0]
+    #if SHADOWRES == 512
         #if (VXHEIGHT == 4)
-            const float shadowDistance = 64;
+            const float shadowDistance = 64.0;
         #elif (VXHEIGHT == 6)
-            const float shadowDistance = 42;
+            const float shadowDistance = 42.0;
         #elif (VXHEIGHT == 8)
-            const float shadowDistance = 32;
+            const float shadowDistance = 32.0;
         #elif (VXHEIGHT == 12)
-            const float shadowDistance = 21;
+            const float shadowDistance = 21.0;
         #elif (VXHEIGHT == 16)
-            const float shadowDistance = 16;
+            const float shadowDistance = 16.0;
+        #else
+            const float shadowDistance = 50.0;
         #endif
-    #elif (shadowMapResolution == 1024)
+    #elif SHADOWRES == 1024
         #if (VXHEIGHT == 4)
-            const float shadowDistance = 128;
+            const float shadowDistance = 128.0;
         #elif (VXHEIGHT == 6)
-            const float shadowDistance = 85;
+            const float shadowDistance = 85.0;
         #elif (VXHEIGHT == 8)
-            const float shadowDistance = 64;
+            const float shadowDistance = 64.0;
         #elif (VXHEIGHT == 12)
-            const float shadowDistance = 42;
+            const float shadowDistance = 42.0;
         #elif (VXHEIGHT == 16)
-            const float shadowDistance = 32;
+            const float shadowDistance = 32.0;
+        #else
+            const float shadowDistance = 70.0;
         #endif
-    #elif (shadowMapResolution == 2048)
+    #elif SHADOWRES == 2048
         #if (VXHEIGHT == 4)
-            const float shadowDistance = 256;
+            const float shadowDistance = 256.0;
         #elif (VXHEIGHT == 6)
-            const float shadowDistance = 170;
+            const float shadowDistance = 170.0;
         #elif (VXHEIGHT == 8)
-            const float shadowDistance = 128;
+            const float shadowDistance = 128.0;
         #elif (VXHEIGHT == 12)
-            const float shadowDistance = 85;
+            const float shadowDistance = 85.0;
         #elif (VXHEIGHT == 16)
-            const float shadowDistance = 64;
+            const float shadowDistance = 64.0;
+        #else
+            const float shadowDistance = 120.0;
         #endif
-    #elif (shadowMapResolution == 4096)
+    #elif SHADOWRES == 4096
         #if (VXHEIGHT == 4)
-            const float shadowDistance = 512;
+            const float shadowDistance = 512.0;
         #elif (VXHEIGHT == 6)
-            const float shadowDistance = 341;
+            const float shadowDistance = 341.0;
         #elif (VXHEIGHT == 8)
-            const float shadowDistance = 256;
+            const float shadowDistance = 256.0;
         #elif (VXHEIGHT == 12)
-            const float shadowDistance = 170;
+            const float shadowDistance = 170.0;
         #elif (VXHEIGHT == 16)
-            const float shadowDistance = 128;
+            const float shadowDistance = 128.0;
+        #else
+            const float shadowDistance = 200.0;
         #endif
+    #else
+        const float shadowDistance = 100.0;
     #endif
 
 //regular settings//
@@ -99,7 +109,6 @@
 
     #define SHADOW_QUALITY 2 //[1 2 3 4]
 
-    const float shadowDistance = 192.0; //[64.0 80.0 96.0 112.0 128.0 160.0 192.0 224.0 256.0 320.0 384.0 512.0 768.0 1024.0]
     //#define ENTITY_SHADOWS
     #define SSAO
     #define CLOUD_QUALITY 3 //[0 1 2 3 4]

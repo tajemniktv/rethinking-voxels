@@ -55,7 +55,7 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 			sampleCount *= 2;
 		#endif
 	#else
-		int sampleCount = 16;
+		int sampleCount = 32;
 	#endif
 	float addition = 1.0;
 	float maxDist = mix(max(far, 96.0) * 0.55, 80.0, vlSceneIntensity);
@@ -89,8 +89,8 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 		vec4 viewPos = gbufferProjectionInverse * (vec4(texCoord, GetDistX(currentDist), 1.0) * 2.0 - 1.0);
 		viewPos /= viewPos.w;
 		vec4 wpos = gbufferModelViewInverse * viewPos;
+		vec3 playerPos = wpos.xyz / wpos.w;
 		#ifdef END
-			vec3 playerPos = wpos.xyz / wpos.w;
 			vec4 enderBeamSample = vec4(DrawEnderBeams(VdotU, playerPos), 1.0) / sampleCount;
 		#endif
 		//wpos = shadowModelView * wpos;
@@ -100,26 +100,27 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 		float distortFactor = 1.0 - shadowMapBias + distb * shadowMapBias;
 		vec4 shadowPosition = DistortShadow(wpos,distortFactor);
 		shadowPosition.z += 0.0001;*/
-		
+		float blSampleMult = 1.0 / sampleCount;
 		#ifdef OVERWORLD
 			float percentComplete = currentDist / maxDist;
 			float sampleMult = mix(percentComplete * 3.0, sampleMultIntense, max(rainFactor, vlSceneIntensity));
 			if (currentDist < 5.0) sampleMult *= smoothstep1(clamp(currentDist / 5.0, 0.0, 1.0));
 			sampleMult /= sampleCount;
+		#elif defined NETHER
+			blSampleMult *= VBL_NETHER_MULT;
 		#else
-			float sampleMult = 1.0 / sampleCount;
+			blSampleMult *= VBL_END_MULT;
 		#endif
-		float blSampleMult = 1.0 / sampleCount;
 
 		#ifndef NETHER
 		float shadowSample = 1.0;
 		vec3 vlSample = vec3(1.0);
 		#endif
 		vec3 blSample = vec3(0.0);
-		vec3 vxPos = getVxPos(wpos.xyz);
-		if (isInRange(vxPos)) {
+		vec3 vxPos = getVxPos(playerPos);
+		if (isInRange(playerPos)) {
 			#if !defined NETHER && defined SUN_SHADOWS
-			vlSample = getSunLight(getPreviousVxPos(wpos.xyz), isEyeInWater == 1);//shadow2D(shadowtex0, shadowPosition.xyz).z;
+			vlSample = getSunLight(getPreviousVxPos(playerPos), isEyeInWater == 1);//shadow2D(shadowtex0, shadowPosition.xyz).z;
 			vlSample *= vlSample + 0.1;
 			shadowSample = length(vlSample) > 0.3 ? 1.0 : 0.0;
 			#endif

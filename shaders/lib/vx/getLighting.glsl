@@ -207,7 +207,7 @@ vec3 getSunLight(vec3 vxPos, bool causticMult) {
         sunColor += shadowPos.z > sunData.y ? (shadowPos.z > sunData.z ? vec3(1) : sunColor1) : vec3(0.0);
     #if OCCLUSION_FILTER > 0
     }
-    sunColor *= 0.2;
+    sunColor = min(0.2 * sunColor, vec3(1.0));
     #endif
     return sunColor;
     //return shadowPos;

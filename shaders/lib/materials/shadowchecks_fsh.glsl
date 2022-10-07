@@ -57,6 +57,7 @@ emissive = (
     mat == 10388 ||
     mat == 10396 ||
     mat == 10400 ||
+    mat == 10401 ||
     mat == 10412 ||
     mat == 10448 ||
     mat == 10452 ||
@@ -108,6 +109,7 @@ if (emissive) {
         case 10072:
         case 10076:
         case 10396:
+        case 10401:
         case 10412:
         case 10448:
         case 10452:
@@ -145,6 +147,7 @@ if (emissive) {
             lightcol = vec3(0.5, 0.95, 1.0);
             break;
         case 30020:
+        case 10400:
         case 10584:
         case 10616:
         case 10624:
@@ -337,6 +340,10 @@ cuboid = (
     (mat > 10364 && mat < 10368) ||
     (mat > 10376 && mat < 10380) ||
     mat == 10381 ||
+    mat == 10400 ||
+    mat == 10401 ||
+    mat == 10402 ||
+    mat == 10403 ||
     (mat > 10416 && mat < 10420) ||
     (mat > 10420 && mat < 10424) ||
     (mat > 10428 && mat < 10432) ||
@@ -380,13 +387,23 @@ if (cuboid) {
         case 31000:
             bounds[1].y = int(16*fract(pos.y + 0.03125));
             break;
-        case 10488:
-            bounds[0] = ivec3(3, 0, 3);
-            bounds[1] = ivec3(13, 1, 13);
-            break;
         case 10313:
             bounds[0] = ivec3(5, 3, 5);
             bounds[1] = ivec3(11, 13, 11);
+            break;
+        case 10400:
+        case 10402:
+            bounds[0] = ivec3(6, 0, 6);
+            bounds[1] = ivec3(10, 6, 10);
+            break;
+        case 10401:
+            bounds[0] = ivec3(3, 0, 3);
+            bounds[1] = ivec3(13, 6, 13);
+        case 10403:
+            break;
+        case 10488:
+            bounds[0] = ivec3(3, 0, 3);
+            bounds[1] = ivec3(13, 1, 13);
             break;
         case 10560:
         case 10564:
