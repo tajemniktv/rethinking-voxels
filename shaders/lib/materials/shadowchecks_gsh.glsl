@@ -27,8 +27,10 @@ switch (matV[0]) {
         if (cnormal.y < 0.5) tracemat = false;
         //avgPos += vec3(0.0, 0.1, 0.0);
         break;
+    case 0:
     case 50016:
     case 50996:
+    case 60004:
         tracemat = false;
         break;
     default:

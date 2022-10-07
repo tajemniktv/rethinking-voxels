@@ -87,6 +87,7 @@ emissive = (
     mat == 10688 ||
     mat == 10704 ||
     mat == 10708 ||
+    mat == 10739 ||
     mat == 30020 ||
     mat == 31016 ||
     mat == 60000 ||
@@ -126,6 +127,10 @@ if (emissive) {
             lightlevel = 15;
             lightcol = vec3(0.3, 0.5, 1.0);
             break;
+        case 10739:
+            lightlevel = 17;
+            lightcol = vec3(1.0, 0.65, 0.05);
+            break;
         case 10560:
             lightlevel = 20;
             lightcol = vec3(1.0, 0.8, 0.5);
@@ -138,6 +143,7 @@ if (emissive) {
         case 10616:
         case 10624:
         case 10704:
+        case 10584:
             lightlevel = 15;
             break;
         default:
@@ -321,6 +327,7 @@ cuboid = (
     mat == 12265 ||
     (mat >= 14264 && mat < 14268) ||
     (mat > 10292 && mat < 10296) ||
+    mat == 10313 ||
     mat == 10350 ||
     (mat > 10364 && mat < 10368) ||
     (mat > 10376 && mat < 10380) ||
@@ -337,6 +344,8 @@ cuboid = (
     mat == 10560 ||
     mat == 10564 ||
     (mat > 10564 && mat < 10568) ||
+    mat == 10584 ||
+    mat == 11584 ||
     mat == 10604 ||
     mat == 12604 ||
     mat == 10656 ||
@@ -346,7 +355,9 @@ cuboid = (
     mat == 10728 ||
     mat == 31000 ||
     mat == 31016 ||
-    mat == 60017
+    mat == 60008 ||
+    mat == 60012 ||
+    mat == 60017 
 );
 if (cuboid) {
     switch (mat) {
@@ -366,6 +377,10 @@ if (cuboid) {
         case 10488:
             bounds[0] = ivec3(3, 0, 3);
             bounds[1] = ivec3(13, 1, 13);
+            break;
+        case 10313:
+            bounds[0] = ivec3(5, 3, 5);
+            bounds[1] = ivec3(11, 13, 11);
             break;
         case 10560:
         case 10564:
@@ -387,6 +402,11 @@ if (cuboid) {
         case 10656:
         case 10660:
             bounds[1].y = 8;
+            break;
+        case 10584:
+        case 11584:
+            bounds[0] = ivec3(6, 0, 6);
+            bounds[1] = ivec3(10, 6, 10);
             break;
         case 10496:
         case 10528:
@@ -417,6 +437,10 @@ if (cuboid) {
             bounds[0] = ivec3(2, 0, 2);
             bounds[1] = ivec3(14, 14, 14);
             break;
+        case 60008:
+        case 60012:
+            bounds[0] = ivec3(1, 0, 1);
+            bounds[0] = ivec3(15, 14, 15);
         case 61017:
             bounds[0].y = 3;
             bounds[1].y = 9;
