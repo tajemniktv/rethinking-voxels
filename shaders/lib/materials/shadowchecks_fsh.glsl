@@ -7,7 +7,23 @@ notrace = (
     entity ||
     mat == 10072 ||
     mat == 10076 ||
-    mat == 10012
+    mat == 10012 ||
+    mat == 10083 ||
+    mat == 12152 ||
+    mat == 12156 ||
+    mat == 12164 ||
+    mat == 12172 ||
+    mat == 12180 ||
+    mat == 12188 ||
+    mat == 12196 ||
+    mat == 12204 ||
+    mat == 12212 ||
+    mat == 12220 ||
+    mat == 12264 ||
+    mat == 12312 ||
+    mat == 12480 ||
+    mat == 12696 ||
+    mat == 10732
 );
 //translucent / alpha cutout blocks:
 alphatest = (
@@ -51,7 +67,7 @@ emissive = (
     mat == 10620 ||
     mat == 10624 ||
 #endif
-    mat == 10328 ||
+//    mat == 10328 ||
     mat == 10332 ||
     mat == 10356 ||
     mat == 10388 ||
@@ -65,6 +81,9 @@ emissive = (
     mat == 10476 ||
     mat == 10496 ||
     mat == 10500 ||
+    mat == 10501 ||
+    mat == 10502 ||
+    mat == 10508 ||
     mat == 10516 ||
     mat == 10528 ||
     mat == 10544 ||
@@ -72,7 +91,7 @@ emissive = (
     mat == 10556 ||
     mat == 10560 ||
     mat == 10564 ||
-    (mat > 10571 && mat < 10588) ||
+    (mat >= 10572 && mat < 10588) ||
     mat == 10592 ||
     mat == 10596 ||
     mat == 12604 ||
@@ -82,7 +101,7 @@ emissive = (
     mat == 10624 ||
     mat == 10632 ||
     mat == 10640 ||
-    (mat > 10647 && mat < 10660) ||
+    (mat >= 10648 && mat < 10660) ||
     mat == 10680 ||
     mat == 10684 ||
     mat == 10688 ||
@@ -138,6 +157,10 @@ if (emissive) {
             lightlevel = 17;
             lightcol = vec3(1.0, 0.65, 0.05);
             break;
+        case 10508:
+            lightlevel = 16;
+            lightcol = vec3(1.0, 0.7, 0.9);
+            break;
         case 10560:
             lightlevel = 20;
             lightcol = vec3(1.0, 0.8, 0.5);
@@ -155,7 +178,7 @@ if (emissive) {
             lightlevel = 15;
             break;
         default:
-            lightlevel = 10;
+            lightlevel = 13;
             break;
     }
 }
@@ -234,6 +257,8 @@ full = (
     mat == 10428 ||
     mat == 10432 ||
     mat == 10436 ||
+    mat == 10440 ||
+    mat == 10444 ||
     mat == 10448 ||
     mat == 10452 ||
     mat == 10456 ||
@@ -241,6 +266,7 @@ full = (
     mat == 10464 ||
     mat == 10468 ||
     mat == 10476 ||
+    mat == 10480 ||
     mat == 10484 ||
     mat == 10516 ||
     mat == 10524 ||
@@ -257,7 +283,8 @@ full = (
     mat == 10648 ||
     mat == 10664 ||
     mat == 10668 ||
-    (mat > 10671 && mat < 10692) ||
+    (mat >= 10672 && mat < 10697) ||
+    mat == 10700 ||
     mat == 10708 ||
     mat == 10712 ||
     mat == 10716 ||
@@ -330,11 +357,13 @@ cuboid = (
     (mat > 14220 && mat < 14224) ||
     (mat > 10240 || mat < 10244) ||
     (mat > 10244 || mat < 10248) ||
+    mat == 10256 ||
     (mat >= 14260 && mat < 14264) ||
     mat == 10265 ||
     mat == 12265 ||
     (mat >= 14264 && mat < 14268) ||
     (mat > 10292 && mat < 10296) ||
+    (mat >= 12292 && mat < 12296) ||
     mat == 10313 ||
     mat == 10350 ||
     (mat > 10364 && mat < 10368) ||
@@ -352,17 +381,31 @@ cuboid = (
     (mat > 10480 && mat < 10484) ||
     mat == 10488 ||
     mat == 10496 ||
+    mat == 10500 ||
+    mat == 10501 ||
+    mat == 10502 ||
+    mat == 10504 ||
+    mat == 10508 ||
+    mat == 10512 ||
+    mat == 10520 ||
     mat == 10528 ||
     mat == 10560 ||
     mat == 10564 ||
     (mat > 10564 && mat < 10568) ||
+    mat == 10568 ||
+    mat == 10569 ||
     mat == 10584 ||
     mat == 11584 ||
+    mat == 10596 ||
+    mat == 10600 ||
     mat == 10604 ||
     mat == 12604 ||
+    mat == 10644 ||
     mat == 10656 ||
     mat == 10660 ||
     mat == 10669 ||
+    mat == 10697 ||
+    mat == 10705 ||
     (mat >= 10720 && mat < 10724) ||
     mat == 10728 ||
     (mat >= 10740 && mat < 10749) ||
@@ -375,6 +418,8 @@ cuboid = (
 if (cuboid) {
     switch (mat) {
         case 10041:
+        case 10596:
+        case 10600:
             bounds[1].y = 2;
             break;
         case 10060:
@@ -390,23 +435,57 @@ if (cuboid) {
         case 31000:
             bounds[1].y = int(16*fract(pos.y + 0.03125));
             break;
+        case 10256:
+            bounds[0] = ivec3(7, 0, 7);
+            bounds[1] = ivec3(9, 16, 9);
+            break;
         case 10313:
             bounds[0] = ivec3(5, 3, 5);
             bounds[1] = ivec3(11, 13, 11);
             break;
         case 10400:
         case 10402:
+        case 10568:
             bounds[0] = ivec3(6, 0, 6);
             bounds[1] = ivec3(10, 6, 10);
             break;
         case 10401:
+        case 10403:
+        case 10569:
             bounds[0] = ivec3(3, 0, 3);
             bounds[1] = ivec3(13, 6, 13);
-        case 10403:
             break;
         case 10488:
             bounds[0] = ivec3(3, 0, 3);
             bounds[1] = ivec3(13, 1, 13);
+            break;
+        case 10500:
+        case 12292:
+            bounds[0].xz = ivec2(7);
+            bounds[1].xz = ivec2(9);
+            break;
+        case 10501:
+        case 12293:
+            bounds[0].yz = ivec2(7);
+            bounds[1].yz = ivec2(9);
+            break;
+        case 10502:
+        case 12294:
+            bounds[0].xy = ivec2(7);
+            bounds[1].xy = ivec2(9);
+            break;
+        case 10504:
+            bounds[0] = ivec3(4);
+            bounds[1] = ivec3(12);
+            break;
+        case 10508:
+        case 10512:
+            bounds[0] = ivec3(1);
+            bounds[1] = ivec3(15);
+            break;
+        case 10520:
+            bounds[0].xz = ivec2(1);
+            bounds[1].xz = ivec2(15);
             break;
         case 10560:
         case 10564:
@@ -441,8 +520,12 @@ if (cuboid) {
             bounds[0] = ivec3(7, 0, 7);
             bounds[1] = ivec3(9, 10, 9);
             break;
+        case 10644:
+            bounds[1].y = 3;
+            break;
         case 10669:
             bounds[1].y = 1;
+            break;
         case 10720:
             bounds[0].z = 12;
             break;
