@@ -80,7 +80,7 @@ void main() {
 		vec3 shadowMult = vec3(0.4);
 		DoLighting(color.rgb, shadowMult, playerPos, viewPos, 0.0, normal, lmCoord,
 				true, false, false, 0,
-				0.0, 1.0, 0.0);
+				0.0, 1.0, 0.0, 0);
 	}
 
 	/* DRAWBUFFERS:01 */

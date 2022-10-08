@@ -50,7 +50,7 @@ vec3 getOcclusion(vec3 vxPos, vec3 normal) {
     return occlusion;
 }
 // get the blocklight value at a given position. optionally supply a normal vector to account for dot product shading
-vec3 getBlockLight(vec3 vxPos, vec3 normal) {
+vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat) {
     vec3 vxPosOld = vxPos + floor(cameraPosition) - floor(previousCameraPosition);
     if (isInRange(vxPosOld) && isInRange(vxPos)) {
         vec3 lightCol = vec3(0);
@@ -69,29 +69,26 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal) {
         vec3 ndotls;
         bvec3 isHere;
         bool calcNdotLs = (normal == vec3(0));
+        vec3[3] lightCols;
+        ivec3 lightMats;
         for (int k = 0; k < 3; k++) {
             vec3 lightDir = lights[k].xyz + 0.5 - fract(vxPos);
             isHere[k] = (max(max(abs(lightDir.x), abs(lightDir.y)), abs(lightDir.z)) < 0.511);
-            if (isHere[k]) lights[k].w -= 1;
+            vxData lightSourceData = readVxMap(getVxPixelCoords(vxPos + lights[k].xyz));
+            //if (isHere[k]) lights[k].w -= 1;
             #if SMOOTH_LIGHTING == 2
             lights[k].w *= isHere[k] ? 1 : intMult0;
             #elif SMOOTH_LIGHTING == 1
             lights[k].w = - abs(lightDir.x) - abs(lightDir.y) - abs(lightDir.z);
             #endif
-            ndotls[k] = (isHere[k] || calcNdotLs) ? 1 : max(0, dot(normalize(lightDir), normal));
-        }
-
-        ndotls = min(ndotls * 2, 1);
-        vec3[3] lightCols;
-        ivec3 lightMats;
-        for (int k = 0; k < 3; k++) {
-            vxData lightSourceData = readVxMap(getVxPixelCoords(vxPos + lights[k].xyz));
+            ndotls[k] = ((isHere[k] && lightSourceData.mat / 10000 * 10000 + (lightSourceData.mat % 2000) / 4 * 4 == mat) || calcNdotLs) ? 1 : max(0, dot(normalize(lightDir), normal));
             lightCols[k] = lightSourceData.lightcol * (lightSourceData.emissive ? 1.0 : 0.0);
             lightMats[k] = lightSourceData.mat;
             #if SMOOTH_LIGHTING == 1
             lights[k].w = max(lights[k].w + lightSourceData.lightlevel, 0.0);
             #endif
         }
+        ndotls = min(ndotls * 2, 1);
         #if SMOOTH_LIGHTING == 2
         vec3 offsetDir = sign(fract(vxPos) - 0.5);
         vec3 floorPos = floor(vxPosOld);
@@ -127,7 +124,7 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal) {
 }
 
 vec3 getBlockLight(vec3 vxPos) {
-    return getBlockLight(vxPos, vec3(0));
+    return getBlockLight(vxPos, vec3(0), 0);
 }
 #ifdef SUN_SHADOWS
 float getSunOcclusion(vec3 vxPos) {

@@ -136,7 +136,7 @@ void main() {
 
 	DoLighting(color.rgb, shadowMult, playerPos, viewPos, lViewPos, normal, lmCoordM,
 	           noSmoothLighting, false, false, 0,
-			   0.0, 1.0, emission);
+			   0.0, 1.0, emission, 0);
 
 	#ifdef IPBR
 		color.rgb *= 1.5;

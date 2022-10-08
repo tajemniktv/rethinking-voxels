@@ -178,7 +178,7 @@ void main() {
 
 		DoLighting(color.rgb, shadowMult, playerPos, viewPos, lViewPos, normalM, lmCoordM,
 		           noSmoothLighting, noDirectionalShading, noVanillaAO, subsurfaceMode,
-				   smoothnessG, highlightMult, emission);
+				   smoothnessG, highlightMult, emission, mat);
 
 		#ifdef PBR_REFLECTIONS
 			#ifdef OVERWORLD

@@ -81,7 +81,7 @@ void main() {
 	vec3 shadowMult = vec3(1.0);
 	DoLighting(color.rgb, shadowMult, playerPos, viewPos, lViewPos, normal, lmCoord,
 	           false, false, false, 0,
-			   0.0, 0.0, 0.0);
+			   0.0, 0.0, 0.0, 0);
 
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = color;

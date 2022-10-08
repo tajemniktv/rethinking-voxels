@@ -98,7 +98,7 @@ void main() {
 
 	DoLighting(color.rgb, shadowMult, playerPos, viewPos, lViewPos, normalM, lmCoordM,
 				noSmoothLighting, false, false, 0,
-				0.0, highlightMult, emission);
+				0.0, highlightMult, emission, max(entityId, blockEntityId));
 
 	/* DRAWBUFFERS:01 */
 	gl_FragData[0] = color;

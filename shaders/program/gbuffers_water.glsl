@@ -215,7 +215,7 @@ void main() {
 	// Lighting
 	DoLighting(color.rgb, shadowMult, playerPos, viewPos, lViewPos, normalM, lmCoordM,
 	           noSmoothLighting, noDirectionalShading, false, 0,
-			   smoothnessG, highlightMult, emission);
+			   smoothnessG, highlightMult, emission, mat);
 
 	// Reflections
 	#if REFLECTION_QUALITY >= 2
