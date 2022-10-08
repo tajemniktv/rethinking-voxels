@@ -22,6 +22,7 @@ notrace = (
     mat == 12264 ||
     mat == 12312 ||
     mat == 12480 ||
+    mat == 10544 ||
     mat == 12696 ||
     mat == 10732
 );
@@ -389,6 +390,9 @@ cuboid = (
     mat == 10512 ||
     mat == 10520 ||
     mat == 10528 ||
+    mat == 10548 ||
+    mat == 10552 ||
+    mat == 10556 ||
     mat == 10560 ||
     mat == 10564 ||
     (mat > 10564 && mat < 10568) ||
@@ -432,6 +436,8 @@ if (cuboid) {
             break;
         case 10068:
         case 10548:
+        case 10552:
+        case 10556:
         case 31000:
             bounds[1].y = int(16*fract(pos.y + 0.03125));
             break;
