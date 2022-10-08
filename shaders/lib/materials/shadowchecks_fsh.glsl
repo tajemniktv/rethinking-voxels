@@ -584,7 +584,8 @@ if (cuboid) {
         case 60008:
         case 60012:
             bounds[0] = ivec3(1, 0, 1);
-            bounds[0] = ivec3(15, 14, 15);
+            bounds[1] = ivec3(15, 14, 15);
+            break;
         case 61017:
             bounds[0].y = 3;
             bounds[1].y = 9;
