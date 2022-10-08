@@ -53,7 +53,7 @@ void main() {
             changed = (prevchanged == 0) ? 0 : max(prevchanged - 1, 1); // need to update if voxel is new
         } else changed = 1;
         // newhash and mathash are hashes of the material ID, which change if the block at the given location changes, so it can be detected
-        int newhash =  blockData.mat > 0 ? blockData.mat / 4 % 255 + 1 : 0;
+        int newhash =  blockData.mat > 0 ? blockData.mat % 255 + 1 : 0;
         int mathash = previouslyInRange ? aroundData0[0].x >> 8 : 0;
         // if the material changed, then propagate that
         if (mathash != newhash) {
