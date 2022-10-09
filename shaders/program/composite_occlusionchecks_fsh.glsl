@@ -103,7 +103,7 @@ void main() {
                         }
                     }
                     if (k == 0 && changed == 1 && doBlockLight) {
-                        dataToWrite0.x = ((dataToWrite0.x >> 8) << 8);
+                        dataToWrite0.x = (dataToWrite0.x >> 8) << 8;
                     }
                 }
             }

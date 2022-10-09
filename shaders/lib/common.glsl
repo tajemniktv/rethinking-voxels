@@ -15,7 +15,17 @@
 //voxel settings//
 
     #define SHADOWRES 512 //[512 1024 2048 4096]
-    const int shadowMapResolution = SHADOWRES;
+
+    #if SHADOWRES == 512
+        const int shadowMapResolution = 512;
+    #elif SHADOWRES == 1024
+        const int shadowMapResolution = 1024;
+    #elif SHADOWRES == 2048
+        const int shadowMapResolution = 2048;
+    #else
+        const int shadowMapResolution = 4096;
+    #endif
+    
     #define VXHEIGHT 8 //[4 6 8 12 16]
     #define OCCLUSION_CASCADE_COUNT 5 //[1 2 3 4 5]
 
@@ -31,7 +41,6 @@
     #endif
     #define SUN_ANGLE 0.5 //[-0.5 0 0.5]
     #define SUN_CHECK_SPREAD 3 //[2 3]
-    #define SUN_CHECK_INTERVAL 20 //[5 7 10 15 20 30]
     #define BLOCKLIGHT_CHECK_INTERVAL 17 //[4 5 7 10 15 17 20 30]
     #define VBL_NETHER_MULT 2.0 //[1.0 1.2 1.5 1.7 2.0 2.5 3.0 4.0]
     #define VBL_END_MULT 2.0 //[1.0 1.2 1.5 1.7 2.0 2.5 3.0 4.0]
