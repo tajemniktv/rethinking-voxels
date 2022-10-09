@@ -69,7 +69,7 @@ const float ambientOcclusionLevel = 1.0;
 //Includes//
 
 //Program//
-//uniform sampler2D colortex8;
+//uniform sampler2D colortex10;
 void main() {
 	vec2 texCoordM = texCoord;
 
@@ -78,8 +78,8 @@ void main() {
 	#endif
 
 	vec3 color = texture2D(colortex3, texCoordM).rgb;
-//	ivec2 light = ivec2(texelFetch(colortex8, ivec2(texCoord * textureSize(colortex3, 0)), 0).zw * 65535 + 0.5);
-//	if (light.y >> 8 != 0) color = normalize(vec3(light.x % 256, light.x >> 8, light.y % 256)) * 0.05 * (light.y >> 8);
+//	vec4 light = texelFetch(colortex10, ivec2(texCoord * textureSize(colortex3, 0)), 0);
+//	if (int(light.x * 65535 + 0.5) % 4096 != 0) color = vec3(light.y, light.y, light.z);
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = vec4(color, 1.0);
 }

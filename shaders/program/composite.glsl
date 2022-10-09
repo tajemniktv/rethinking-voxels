@@ -31,7 +31,7 @@ uniform sampler2D depthtex1;
 #endif
 
 #if LIGHTSHAFT_QUALITY > 0
-	#define OCCLUSION_FILTER 0;
+	#undef OCCLUSION_FILTER
 	uniform int frameCounter;
 
 	uniform float viewWidth, viewHeight;
