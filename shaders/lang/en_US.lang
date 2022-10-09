@@ -33,7 +33,61 @@ screen.PREFERENCE_SETTINGS.comment=Settings that are optional, and not changed b
     screen.IPBR_SETTINGS=IntegratedPBR
     screen.IPBR_SETTINGS.comment=Settings that are related to the features of IntegratedPBR.
 
+screen.VX_STUFF=Voxelisation Settings
+screen.VX_STUFF.comment=Settings that relate to everything that uses the voxel volume. This includes its size, but also shadow settings and more.
+
 #Settings
+option.SHADOWRES=Voxel Volume Size
+option.SHADOWRES.comment=Size of the cuboid in which advanced light calculation is performed. 
+value.SHADOWRES.4096=§9Very High
+value.SHADOWRES.2048=§bHigh
+value.SHADOWRES.1024=§aMedium
+value.SHADOWRES.512=§eLow
+
+option.VXHEIGHT=Voxel Volume Height
+option.VXHEIGHT.comment=Controls how far up and down volumetric fog and coloured lights will appear.
+value.VXHEIGHT.4=16 Blocks
+value.VXHEIGHT.6=36 Blocks
+value.VXHEIGHT.8=64 Blocks
+value.VXHEIGHT.12=144 Blocks
+value.VXHEIGHT.16=256 Blocks
+
+option.OCCLUSION_CASCADE_COUNT=Max Blocklight Shadow Res
+option.OCCLUSION_CASCADE_COUNT.comment=Maximum resolution of shadows cast from block light sources.
+value.OCCLUSION_CASCADE_COUNT.1=1/Block
+value.OCCLUSION_CASCADE_COUNT.2=2/Block
+value.OCCLUSION_CASCADE_COUNT.3=4/Block
+value.OCCLUSION_CASCADE_COUNT.4=8/Block
+value.OCCLUSION_CASCADE_COUNT.5=16/Block
+
+option.OCCLUSION_FILTER=Occlusion Filter
+option.OCCLUSION_FILTER.comment=Enables smoothing of shadows cast from blocklight. Setting this to "Off" produces pixel-locked shadows.
+value.OCCLUSION_FILTER.0=Off
+value.OCCLUSION_FILTER.1=Linear
+value.OCCLUSION_FILTER.2=Best (not implemented)
+
+option.SMOOTH_LIGHTING=Smooth Lighting
+option.SMOOTH_LIGHTING.comment=Controls how much block edges have sharp brightness changes. Slow option is experimental.
+value.SMOOTH_LIGHTING.0=Low
+value.SMOOTH_LIGHTING.1=Best
+value.SMOOTH_LIGHTING.2=Slow
+
+option.SUN_SHADOWS=Sunlight Shadows
+option.SUN_SHADOWS.comment=Controls whether shadows will be cast from sunlight.
+
+option.BLOCKLIGHT_CHECK_INTERVAL=Blocklight Update Interval
+option.BLOCKLIGHT_CHECK_INTERVAL.comment=Minimum time between two blocklight updates at any given position, in frames.
+
+option.BLOCKLIGHT_SHAFT_STRENGTH=Volumetric Blocklight Strength
+option.BLOCKLIGHT_SHAFT_STRENGTH.comment=Brightness of blocklight contribution to volumetric fog 
+
+option.VBL_NETHER_MULT=Vol. Blocklight Nether Multiplier
+option.VBL_NETHER_MULT.comment=Volumetric Blocklight Strength in the nether relative to its overworld value.
+
+option.VBL_END_MULT=Vol. Blocklight End Multiplier
+option.VBL_END_MULT.comment=Volumetric Blocklight Strength in the end relative to its overworld value.
+
+
 option.RP_MODE=RP Support
 option.RP_MODE.comment=Changes many internal calculations to determine how different blocks and materials will be rendered. §bIntegrated PBR+§r: Assumption-based PBR materials and extra effects; recommended if you aren't using resource packs. §aBasic§r: No PBR or extra effects; recommended if you are using resource packs that change things quite a bit.
 value.RP_MODE.1=§bIntegrated PBR+
