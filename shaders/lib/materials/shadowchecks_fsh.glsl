@@ -107,7 +107,7 @@ emissive = (
     mat == 10680 ||
     mat == 10684 ||
     mat == 10688 ||
-    mat == 10704 ||
+    mat == 10705 ||
     mat == 10708 ||
     mat == 10739 ||
     mat == 12740 ||
@@ -192,7 +192,7 @@ if (emissive) {
         case 10584:
         case 10616:
         case 10624:
-        case 10704:
+        case 10705:
             lightlevel = 15;
             break;
         default:
