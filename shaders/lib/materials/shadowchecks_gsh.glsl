@@ -31,7 +31,7 @@ switch (matV[0]) {
     case 10544:
     case 10596:
     case 10600:
-        avgPos += 0.1 * cnormal;
+        //avgPos += 0.1 * cnormal;
         break;
     case 0:
     case 10472:

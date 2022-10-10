@@ -37,7 +37,7 @@ float aabbIntersect(vxData data, vec3 pos, vec3 dir, inout int n) {
         }
         // update normal and ray position
         if (valid) {
-            w = w0;
+            w = ((bounds[0][i] + bounds[1][i]) * 0.5 - pos[i]) / dir[i];;
             n = i;
         }
     }
@@ -106,7 +106,7 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, vec3 dir, inout vec3 translucentH
     vec4 oldRayColor = vec4(0);
     // check if stuff already needs to be done at starting position
     vxData voxeldata = readVxMap(getVxPixelCoords(pos));
-    if (voxeldata.trace) {
+    if (voxeldata.trace && !lowDetail) {
         raycolor = handledata(voxeldata, atlas, pos, dir, i);
         raycolor.rgb *= raycolor.a;
     }
@@ -122,7 +122,7 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, vec3 dir, inout vec3 translucentH
         if (isInRange(pos)) {
             voxeldata = readVxMap(getVxPixelCoords(pos));
             if (lowDetail) {
-                if (voxeldata.full && !voxeldata.alphatest) {
+                if (voxeldata.trace && voxeldata.full && !voxeldata.alphatest) {
                     pos0 = pos;
                     return vec4(0, 0, 0, translucentData ? 0 : 1);
                 }
