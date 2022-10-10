@@ -459,6 +459,9 @@ if (cuboid) {
         case 31000:
             bounds[1].y = int(16*fract(pos.y + 0.03125));
             break;
+        case 10129:
+            bounds[1].y = 15;
+            break;
         case 10256:
             bounds[0] = ivec3(7, 0, 7);
             bounds[1] = ivec3(9, 16, 9);

@@ -10,9 +10,9 @@ void main() {
     #ifdef OVERWORLD
         float ang = fract(timeAngle - 0.25);
         ang = (ang + (cos(ang * 3.14159265358979) * -0.5 + 0.5 - ang) / 3.0) * 6.28318530717959;
-        sunDir = vec3(-sin(ang), cos(ang) * sunRotationData);
+        sunDir = vec3(-sin(ang), cos(ang) * sunRotationData) + vec3(0.00001);
     #elif defined END
-        sunDir = vec3(0.0, sunRotationData);
+        sunDir = vec3(0.0, sunRotationData) + vec3(0.00001);
     #else
         sunDir = vec3(0.0);
     #endif

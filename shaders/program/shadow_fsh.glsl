@@ -62,15 +62,14 @@ void main() {
         int(lightcol.b * 255) + (int(texCoord.x * 4095) / 16) * 256,
         int(texCoord.x * 4095) % 16 + int(texCoord.y * 4095) * 16,
         mat); // material index
-    
     bounds[1] -= 1;
     int blocktype = (alphatest ? 1 : 0) + (crossmodel ? 2 : 0) + (full ? 4 : 0) + (emissive ? 8 : 0) + (cuboid ? 16 : 0) + (notrace ? 32 : 0);
     int spritelog = 0;
     while (spriteSize >> spritelog + 1 != 0 && spritelog < 15) spritelog++;
 
     ivec4 packedData1 = ivec4(
-        bounds[0].x + 16 * bounds[0].y + 256 * bounds[0].z + 4096 * bounds[1].x,
-        bounds[1].y + 16 * bounds[1].z + 256 * blocktype,
+        bounds[0].x + (bounds[0].y << 4) + (bounds[0].z << 8) + (bounds[1].x << 12),
+        bounds[1].y + (bounds[1].z << 4) + (blocktype << 8),
         spritelog + 16 * lightlevel,
         0
     );

@@ -49,6 +49,10 @@ uniform sampler2D gaux1;
 	uniform sampler2D gaux3;
 #endif
 
+#if defined PP_BL_SHADOWS || defined PP_SUN_SHADOWS
+	#define ATLASTEX texture
+#endif
+
 //Pipeline Constants//
 
 //Common Variables//

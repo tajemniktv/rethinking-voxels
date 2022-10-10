@@ -32,6 +32,8 @@ uniform sampler2D depthtex1;
 
 #if LIGHTSHAFT_QUALITY > 0
 	#undef OCCLUSION_FILTER
+	#undef PP_BL_SHADOWS
+	#undef PP_SUN_SHADOWS
 	uniform int frameCounter;
 
 	uniform float viewWidth, viewHeight;

@@ -139,7 +139,11 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
                         }
                     #endif
 */
+                    #ifdef PP_SUN_SHADOWS
+                    shadowMult *= getSunLight(vxPos);
+                    #else
                     shadowMult *= getSunLight(previousVxPos);
+                    #endif
                 }
                 #else
                 float shadowLength = 0;

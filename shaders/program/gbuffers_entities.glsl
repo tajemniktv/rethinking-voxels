@@ -41,6 +41,11 @@ uniform mat4 shadowProjection;
 
 uniform sampler2D texture;
 
+#if defined PP_BL_SHADOWS || defined PP_SUN_SHADOWS
+	uniform int frameCounter;
+	#define ATLASTEX texture
+#endif
+
 #ifdef CLOUD_SHADOWS
 	uniform sampler2D gaux3;
 #endif

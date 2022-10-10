@@ -38,6 +38,11 @@ uniform mat4 shadowProjection;
 	uniform sampler2D gaux3;
 #endif
 
+#if defined PP_BL_SHADOWS || defined PP_SUN_SHADOWS
+	uniform sampler2D gtexture;
+	#define ATLASTEX gtexture
+#endif
+
 //Pipeline Constants//
 
 //Common Variables//

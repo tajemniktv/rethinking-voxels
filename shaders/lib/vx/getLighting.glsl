@@ -15,6 +15,7 @@ uniform sampler2D colortex10;
 #include "/lib/vx/raytrace.glsl"
 vec2 tex8size0 = vec2(textureSize(colortex8, 0));
 
+#ifndef PP_BL_SHADOWS
 vec3 getOcclusion(vec3 vxPos, vec3 normal) {
     int k = 0;
     normal *= 2.0 * max(max(abs(vxPos.x) / vxRange, abs(vxPos.y) / (VXHEIGHT * VXHEIGHT)), abs(vxPos.z) / vxRange);
@@ -49,6 +50,33 @@ vec3 getOcclusion(vec3 vxPos, vec3 normal) {
     #endif
     return occlusion;
 }
+#else
+vec3[3] getOcclusion(vec3 vxPos, vec3 normal, vec3[3] lightDirs) {
+    //vxPos += 0.01 * normal;
+    vec3[3] occlusion = vec3[3](vec3(0), vec3(0), vec3(0));
+    for (int k = 0; k < 3; k++) {
+        if (dot(normal, lightDirs[k]) >= 0.0 || max(max(abs(lightDirs[k].x), abs(lightDirs[k].y)), lightDirs[k].z) < 0.512) {
+            vec3 endPos = vxPos;
+            vec3 goalPos = vxPos + lightDirs[k];
+            vec3 offset = hash33(vxPos * 50 + 7 * frameCounter) * 2.0 - 1.0;
+            lightDirs[k] += 0.1 * offset;
+            int goalMat = readVxMap(goalPos).mat;
+            vec4 rayColor = raytrace(endPos, lightDirs[k], ATLASTEX, true);
+            int endMat = readVxMap(endPos).mat;
+            float dist = max(max(abs(endPos.x - goalPos.x), abs(endPos.y - goalPos.y)), abs(endPos.z - goalPos.z));
+            if (dist < 0.512  + ((goalMat == endMat) ? 2.0 : 0.0)) {
+                rayColor.a = sqrt(rayColor.a);
+                rayColor.rgb = mix(vec3(1.0), rayColor.rgb, rayColor.a);
+                rayColor.rgb *= 1.0 - rayColor.a;
+                //rayColor.rgb = rayColor.rgb * rayColor.a + 1.0 - rayColor.a;
+                rayColor.rgb *= rayColor.rgb / max(max(rayColor.r, max(rayColor.g, rayColor.b)), 0.00001);
+                occlusion[k] = rayColor.rgb;
+            } 
+        }
+    }
+    return occlusion;
+}
+#endif
 // get the blocklight value at a given position. optionally supply a normal vector to account for dot product shading
 vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat) {
     vec3 vxPosOld = vxPos + floor(cameraPosition) - floor(previousCameraPosition);
@@ -71,8 +99,14 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat) {
         bool calcNdotLs = (normal == vec3(0));
         vec3[3] lightCols;
         ivec3 lightMats;
+        #ifdef PP_BL_SHADOWS
+        vec3[3] lightDirs;
+        #endif
         for (int k = 0; k < 3; k++) {
             vec3 lightDir = lights[k].xyz + 0.5 - fract(vxPos);
+            #ifdef PP_BL_SHADOWS
+            lightDirs[k] = lightDir;
+            #endif
             isHere[k] = (max(max(abs(lightDir.x), abs(lightDir.y)), abs(lightDir.z)) < 0.511);
             vxData lightSourceData = readVxMap(getVxPixelCoords(vxPos + lights[k].xyz));
             //if (isHere[k]) lights[k].w -= 1;
@@ -81,7 +115,7 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat) {
             #elif SMOOTH_LIGHTING == 1
             lights[k].w = - abs(lightDir.x) - abs(lightDir.y) - abs(lightDir.z);
             #endif
-            ndotls[k] = ((isHere[k] && lightSourceData.mat / 10000 * 10000 + (lightSourceData.mat % 2000) / 4 * 4 == mat) || calcNdotLs) ? 1 : max(0, dot(normalize(lightDir), normal));
+            ndotls[k] = ((isHere[k] && (lightSourceData.mat / 10000 * 10000 + (lightSourceData.mat % 2000) / 4 * 4 == mat || true)) || calcNdotLs) ? 1 : max(0, dot(normalize(lightDir), normal));
             lightCols[k] = lightSourceData.lightcol * (lightSourceData.emissive ? 1.0 : 0.0);
             lightMats[k] = lightSourceData.mat;
             #if SMOOTH_LIGHTING == 1
@@ -117,7 +151,11 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat) {
             }
         }
         #endif
+        #ifdef PP_BL_SHADOWS
+        vec3[3] occlusionData = getOcclusion(vxPos, normal, lightDirs);
+        #else
         vec3 occlusionData = getOcclusion(vxPosOld, normal);
+        #endif
         for (int k = 0; k < 3; k++) lightCol += lightCols[k] * occlusionData[k] * pow(lights[k].w * BLOCKLIGHT_STRENGTH / 20.0, BLOCKLIGHT_STEEPNESS) * ndotls[k];
         return lightCol;
     } else return vec3(0);
@@ -127,39 +165,6 @@ vec3 getBlockLight(vec3 vxPos) {
     return getBlockLight(vxPos, vec3(0), 0);
 }
 #ifdef SUN_SHADOWS
-float getSunOcclusion(vec3 vxPos) {
-    int k = 0;
-    // zoom in appropriately
-    for (; isInRange(2 * vxPos, 1) && k < OCCLUSION_CASCADE_COUNT - 1; k++) {
-        vxPos *= 2;
-    }
-    float occlusion = 0;
-    #if OCCLUSION_FILTER > 0
-    vxPos -= 0.5;
-    vec3 floorPos = floor(vxPos);
-    float totalInt = 1; // track total intensity
-    for (int j = 0; j < 8; j++) {
-        vec3 offset = vec3(j%2, (j>>1)%2, (j>>2)%2);
-        vec3 cornerPos = floorPos + offset;
-        // this corner's intensity multiplier
-        float intMult = (1 - abs(vxPos.x - cornerPos.x)) * (1 - abs(vxPos.y - cornerPos.y)) * (1 - abs(vxPos.z - cornerPos.z));
-        // skip this corner if it is across a block boundary, to disregard dark spots on the insides of surfaces
-        if (length(floor(cornerPos / float(1 << k)) - floor((vxPos + 0.5) / float(1 << k))) > 0.5) {
-            totalInt -= intMult;
-            continue;
-        }
-        #else
-        vec3 cornerPos = vxPos;
-        float intMult = 1.0;
-        #endif
-        ivec4 sunData = ivec4(texelFetch(colortex10, getVxPixelCoords(cornerPos + 0.5), 0) * 65535 + 0.5);
-        occlusion += ((k == 0) ? (sunData.x % 4 == SUN_CHECK_SPREAD ? 1 : 0) : ((sunData.x >> k + 3) % 2)) * intMult;
-    #if OCCLUSION_FILTER > 0
-    }
-    occlusion /= totalInt;
-    #endif
-    return occlusion;
-}
 
 vec2[9] shadowoffsets = vec2[9](
     vec2( 0.0       ,  0.0),
@@ -178,9 +183,9 @@ vec3 getWorldSunVector() {
     #ifdef OVERWORLD
         float ang = fract(timeAngle - 0.25);
         ang = (ang + (cos(ang * 3.14159265358979) * -0.5 + 0.5 - ang) / 3.0) * 6.28318530717959;
-        return vec3(-sin(ang), cos(ang) * sunRotationData);
+        return vec3(-sin(ang), cos(ang) * sunRotationData) + vec3(0.00001);
     #elif defined END
-        return vec3(0.0, sunRotationData);
+        return vec3(0.0, sunRotationData) + vec3(0.00001);
     #else
         return vec3(0.0);
     #endif
@@ -197,7 +202,7 @@ vec2 sampleShadow(sampler2D shadowMap, vec3 pos) {
     }
     return isInShadow;
 }
-
+#ifndef PP_SUN_SHADOWS
 vec3 getSunLight(vec3 vxPos, bool causticMult) {
     vec3 sunDir = getWorldSunVector();
     sunDir *= sign(sunDir.y);
@@ -226,5 +231,17 @@ vec3 getSunLight(vec3 vxPos, bool causticMult) {
 vec3 getSunLight(vec3 vxPos) {
     return getSunLight(vxPos, false);
 }
+#else
+vec3 getSunLight(vec3 vxPos) {
+    vec3 sunDir = getWorldSunVector();
+    sunDir *= sign(sunDir.y);
+    vec3 offset = hash33(vxPos * 50 + 7 * frameCounter) * 2.0 - 1.0;
+    vec4 sunColor = raytrace(vxPos, (sunDir + 0.01 * offset) * sqrt(vxRange * vxRange + VXHEIGHT * VXHEIGHT * VXHEIGHT * VXHEIGHT), ATLASTEX);
+    sunColor.a = sqrt(sunColor.a);
+    sunColor.rgb = (sunColor.rgb * sunColor.a + 1.0) * (1.0 - sunColor.a);
+    sunColor.rgb *= sunColor.rgb / max(max(sunColor.r, max(sunColor.g, sunColor.b)), 0.00001);
+    return sunColor.rgb;
+}
+#endif
 #endif
 #endif

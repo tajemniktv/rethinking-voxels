@@ -32,6 +32,7 @@ void main() {
     float area = length(cnormal);
     cnormal = normalize(cnormal);
     avgPos += fract(cameraPosition);
+    vec3 avgPos0 = avgPos;
     bool tracemat = true;
     float zpos = 0.5 - sqrt(area) - 0.02 * fract(avgPos.y + 0.01) - 0.01 * fract(avgPos.x + 0.01)- 0.015 * fract(avgPos.z + 0.01) - 0.2 * cnormal.y;
     #include "/lib/materials/shadowchecks_gsh.glsl"
@@ -43,7 +44,7 @@ void main() {
             normal = cnormal;
             vertexCol = vertexColV[i];
             vertexCol.a = area;
-            pos = avgPos;
+            pos = avgPos0;
             mat = matV[i];
             spriteSize = spriteSizeV[i];
             gl_Position = vec4(coord * 2 - vec2(1) + offsets[i] / shadowMapResolution, zpos, 1);

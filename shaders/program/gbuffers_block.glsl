@@ -50,6 +50,10 @@ uniform mat4 shadowProjection;
 
 uniform sampler2D texture;
 
+#if defined PP_BL_SHADOWS || defined PP_SUN_SHADOWS
+	#define ATLASTEX texture
+#endif
+
 #ifdef COATED_TEXTURES
 	uniform sampler2D noisetex;
 #endif

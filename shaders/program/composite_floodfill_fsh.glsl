@@ -94,7 +94,7 @@ void main() {
                     //unpack and adjust light data
                     ivec4 thisLight = ivec4(theselights[i].x % 256, theselights[i].x >> 8, theselights[i].y % 256, theselights[i].y >> 8);
                     thisLight.xyz += offsets[k];
-                    thisLight.w = (aroundData0[k].y >> i) % 2 == 1 ? thisLight.w - 1 : 0;
+                    thisLight.w = (aroundData0[k].y >> i) % 2 == 1 ? thisLight.w - 1 : min(thisLight.w - 1, 1);
                     if (thisLight.w <= 0) break; // ignore light sources with zero intensity
                     bool newLight = true;
                     for (int j = 0; j < 3; j++) {

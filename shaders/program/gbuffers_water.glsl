@@ -57,6 +57,10 @@ uniform float viewHeight;
 
 uniform sampler2D texture;
 
+#if defined PP_BL_SHADOWS || defined PP_SUN_SHADOWS
+	#define ATLASTEX texture
+#endif
+
 #if WATER_QUALITY >= 2 || WATER_STYLE >= 2 || defined FANCY_NETHERPORTAL
 	uniform sampler2D noisetex;
 #endif
