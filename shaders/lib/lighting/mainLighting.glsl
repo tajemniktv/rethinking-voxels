@@ -35,6 +35,9 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     vec3 nViewPos = normalize(viewPos);
     vec3 worldNormal = normalize(ViewToPlayer(normal*1000.0));
     playerPos += 0.01 * worldNormal;
+    #if PIXEL_SHADOW > 0 && !defined GBUFFERS_HAND
+        playerPos = floor((playerPos + cameraPosition) * PIXEL_SHADOW + 0.001) / PIXEL_SHADOW - cameraPosition + 0.5 / PIXEL_SHADOW;
+    #endif
     vec3 vxPos = getVxPos(playerPos);
     vec3 previousVxPos = getPreviousVxPos(playerPos);
 
