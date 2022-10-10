@@ -11,22 +11,18 @@ mat3 eye = mat3(
 // cuboid intersection algorithm
 float aabbIntersect(vxData data, vec3 pos, vec3 dir, inout int n) {
     // offset to work around floating point errors
-    vec3 offset = 0.01 * eye[n] * sign(dir[n]);
+    vec3 offset = 0.001 * eye[n] * sign(dir[n]);
     // don't need to know global position, only relative to current block
-    pos = fract(pos + offset) - offset;
+    pos = fract(pos);
     vec3[2] bounds = vec3[2](data.lower, data.upper);
     float w = 10000;
     for (int i = 0; i < 3; i++) {
         if (dir[i] == 0) continue;
         float relevantBound = bounds[dir[i] < 0 ? 1 : 0][i];
         float w0 = (relevantBound - pos[i]) / dir[i];
-        if (w0 < 0.0) {
-            relevantBound = bounds[dir[i] < 0 ? 0 : 1][i];
-            w0 = (relevantBound - pos[i]) / dir[i];
-        }
         vec3 newPos = pos + w0 * dir;
         // ray-plane intersection position needs to be closer than the previous best one and further than approximately 0
-        bool valid = (w0 > -0.01 / length(dir) && w0 < w);
+        bool valid = (w0 > -0.005 / length(dir) && w0 < w);
         for (int j = 1; j < 3; j++) {
             int ij = (i + j) % 3;
             // intersection position also needs to be within other bounds
@@ -37,7 +33,7 @@ float aabbIntersect(vxData data, vec3 pos, vec3 dir, inout int n) {
         }
         // update normal and ray position
         if (valid) {
-            w = ((bounds[0][i] + bounds[1][i]) * 0.5 - pos[i]) / dir[i];;
+            w = w0;
             n = i;
         }
     }
@@ -117,7 +113,7 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, vec3 dir, inout vec3 translucentH
     // main loop
     while (w < 1 && k < 2000 && raycolor.a < 0.99) {
         oldRayColor = raycolor;
-        pos = pos0 + (min(w, 1.0) + invDirLenScaled) * dir + eyeOffsets[i];
+        pos = pos0 + (min(w, 1.0)) * dir + eyeOffsets[i];
         // read voxel data at new position and update ray colour accordingly
         if (isInRange(pos)) {
             voxeldata = readVxMap(getVxPixelCoords(pos));
