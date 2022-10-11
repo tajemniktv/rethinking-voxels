@@ -18,7 +18,7 @@ vec2 tex8size0 = vec2(textureSize(colortex8, 0));
 #ifndef PP_BL_SHADOWS
 vec3 getOcclusion(vec3 vxPos, vec3 normal) {
     int k = 0;
-    normal *= 2.0 * max(max(abs(vxPos.x) / vxRange, abs(vxPos.y) / (VXHEIGHT * VXHEIGHT)), abs(vxPos.z) / vxRange);
+    normal *= 4.0 * max(max(abs(vxPos.x) / vxRange, abs(vxPos.y) / (VXHEIGHT * VXHEIGHT)), abs(vxPos.z) / vxRange);
     // zoom in to the highest-resolution available sub map
     for (; isInRange(2 * vxPos, 1) && k < OCCLUSION_CASCADE_COUNT - 1; k++) {
         vxPos *= 2;
