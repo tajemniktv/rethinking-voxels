@@ -201,12 +201,19 @@ vec2 sampleShadow(sampler2D shadowMap, vec3 pos) {
     return isInShadow;
 }
 #ifndef PP_SUN_SHADOWS
-vec3 getSunLight(vec3 vxPos, bool causticMult) {
+vec3 getSunLight(vec3 vxPos, vec3 worldNormal, bool causticMult) {
     vec3 sunDir = getWorldSunVector();
     sunDir *= sign(sunDir.y);
     vec2 tex8size0 = vec2(textureSize(colortex8, 0));
-    vec3 shadowPos = getShadowPos(vxPos, sunDir);
+    mat3 sunRotMat = getRotMat(sunDir);
+    vec3 shadowPos = getShadowPos(vxPos, sunRotMat);
     float shadowLength = length(shadowPos.xy);//max(abs(shadowPos.x), abs(shadowPos.y));
+    if (length(worldNormal) > 0.0001) {
+        float dShadowdLength = distortShadowDeriv(shadowLength);
+        vxPos += worldNormal / (dShadowdLength * VXHEIGHT);
+        shadowPos = getShadowPos(vxPos, sunRotMat);
+        shadowLength = length(shadowPos.xy);//max(abs(shadowPos.x), abs(shadowPos.y));
+    }
     shadowPos.xy *= distortShadow(shadowLength) / shadowLength;
     vec3 sunColor = vec3(0);
     #if OCCLUSION_FILTER > 0
@@ -225,6 +232,12 @@ vec3 getSunLight(vec3 vxPos, bool causticMult) {
     #endif
     return sunColor;
     //return shadowPos;
+}
+vec3 getSunLight(vec3 vxPos, bool causticMult) {
+    return getSunLight(vxPos, vec3(0), causticMult);
+}
+vec3 getSunLight(vec3 vxPos, vec3 worldNormal) {
+    return getSunLight(vxPos, worldNormal, false);
 }
 vec3 getSunLight(vec3 vxPos) {
     return getSunLight(vxPos, false);

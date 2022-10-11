@@ -91,6 +91,9 @@ vec4 getSunRayStartPos(vec3 pos0, vec3 sunDir) {
 float distortShadow(float shadowLength) {
     return sqrt(0.0030864197530864196 + shadowLength * 1.1111111111) - 0.0555555555;
 }
+float distortShadowDeriv(float shadowLength) {
+    return 0.555555555 / sqrt(0.0030864197530864196 + shadowLength * 1.1111111111);
+}
 float undistortShadow(float distortedLength) {
     return 0.1 * distortedLength + 0.9 * distortedLength * distortedLength;
 }
