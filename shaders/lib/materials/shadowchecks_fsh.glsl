@@ -651,7 +651,7 @@ if (cuboid) {
                         break;
                 }
             } else if ((mat % 10000) / 2000 == 1) {
-                if (mat % 4 == 1) bounds[1].y = 13;
+                if (mat % 4 == 1) bounds[0].y = 13;
             } else if ((mat % 10000) / 2000 == 2) {
                 switch(mat % 4) {
                     case 0:
