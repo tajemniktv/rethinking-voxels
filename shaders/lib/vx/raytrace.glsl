@@ -13,7 +13,7 @@ float aabbIntersect(vxData data, vec3 pos, vec3 dir, inout int n) {
     // offset to work around floating point errors
     vec3 offset = 0.001 * eye[n] * sign(dir[n]);
     // don't need to know global position, only relative to current block
-    pos = fract(pos);
+    pos = fract(pos + offset) - offset;
     vec3[2] bounds = vec3[2](data.lower, data.upper);
     float w = 10000;
     for (int i = 0; i < 3; i++) {
@@ -22,7 +22,7 @@ float aabbIntersect(vxData data, vec3 pos, vec3 dir, inout int n) {
         float w0 = (relevantBound - pos[i]) / dir[i];
         vec3 newPos = pos + w0 * dir;
         // ray-plane intersection position needs to be closer than the previous best one and further than approximately 0
-        bool valid = (w0 > -0.005 / length(dir) && w0 < w);
+        bool valid = (w0 > -0.00005 / length(dir) && w0 < w);
         for (int j = 1; j < 3; j++) {
             int ij = (i + j) % 3;
             // intersection position also needs to be within other bounds
@@ -56,7 +56,7 @@ vec4 handledata(vxData data, sampler2D atlas, inout vec3 pos, vec3 dir, int n) {
         return color;
     }
     // get around floating point errors using an offset
-    vec3 offset = 0.01 * eye[n] * sign(dir[n]);
+    vec3 offset = 0.001 * eye[n] * sign(dir[n]);
     vec3 blockInnerPos = fract(pos + offset) - offset;
     // ray-plane intersections
     float w0 = (1 - blockInnerPos.x - blockInnerPos.z) / (dir.x + dir.z);
@@ -92,12 +92,13 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, vec3 dir, inout vec3 translucentH
     // step size in each direction (to keep to the voxel grid)
     vec3 stp = abs(1 / dir);
     float dirlen = length(dir);
+    float invDirLenScaled = 0.001 / dirlen;
     vec3 dirsgn = sign(dir);
     vec3[3] eyeOffsets;
     for (int k = 0; k < 3; k++) {
         eyeOffsets[k] = 0.0001 * eye[k] * dirsgn[k];
     }
-    vec3 pos = pos0;
+    vec3 pos = pos0 + invDirLenScaled * dir;
     vec4 raycolor = vec4(0);
     vec4 oldRayColor = vec4(0);
     // check if stuff already needs to be done at starting position
@@ -107,7 +108,6 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, vec3 dir, inout vec3 translucentH
         raycolor.rgb *= raycolor.a;
     }
     if (raycolor.a > 0.01 && raycolor.a < 0.9) translucentHit = pos;
-    float invDirLenScaled = 0.001 / dirlen;
     int k = 0; // k is a safety iterator
     int mat = voxeldata.mat; // for inner face culling
     // main loop
@@ -117,6 +117,7 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, vec3 dir, inout vec3 translucentH
         // read voxel data at new position and update ray colour accordingly
         if (isInRange(pos)) {
             voxeldata = readVxMap(getVxPixelCoords(pos));
+            pos -= eyeOffsets[i];
             if (lowDetail) {
                 if (voxeldata.trace && voxeldata.full && !voxeldata.alphatest) {
                     pos0 = pos;
