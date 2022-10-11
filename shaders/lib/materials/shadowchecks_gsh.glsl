@@ -18,6 +18,9 @@ switch (matV[0]) {
         if (cnormal.y < 0.5) tracemat = false;
         avgPos.y -= 0.1;
         break;
+    case 12380:
+        //tracemat = false;
+        break;
     case 10548:
         if(area < 0.8) tracemat = false;
         break;
