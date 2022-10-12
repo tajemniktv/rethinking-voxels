@@ -8,6 +8,7 @@ notrace = (
     mat == 10072 ||
     mat == 10076 ||
     mat == 10012 ||
+    mat == 10041 ||
     mat == 10083 ||
     mat == 12152 ||
     mat == 12156 ||
@@ -353,7 +354,6 @@ crossmodel = (
 );
 cuboid = (
     (mat > 10032 && mat < 10036) ||
-    mat == 10041 ||
     mat == 10060 ||
     mat == 10064 ||
     mat == 10068 ||
@@ -463,7 +463,6 @@ cuboid = (
 );
 if (cuboid) {
     switch (mat) {
-        case 10041:
         case 10596:
         case 10600:
             bounds[1].y = 2;
