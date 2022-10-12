@@ -133,6 +133,7 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, vec3 dir, inout vec3 translucentH
                 raycolor.a += (1 - raycolor.a) * newcolor.a;
                 if (oldRayColor.a < 0.01 && raycolor.a > 0.01 && raycolor.a < 0.9) translucentHit = pos;
             }
+            pos += eyeOffsets[i];
         }
         // update position
         k += 1;

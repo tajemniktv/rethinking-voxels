@@ -64,7 +64,7 @@ vec3[3] getOcclusion(vec3 vxPos, vec3 normal, vec3[3] lightDirs) {
             vec4 rayColor = raytrace(endPos, lightDirs[k], ATLASTEX, true);
             int endMat = readVxMap(endPos).mat;
             float dist = max(max(abs(endPos.x - goalPos.x), abs(endPos.y - goalPos.y)), abs(endPos.z - goalPos.z));
-            if (dist < 0.512  + ((goalMat == endMat) ? 1.0 : 0.0)) {
+            if (dist < 0.512  + ((goalMat == endMat) ? 2.0 : 0.0)) {
                 rayColor.rgb = length(rayColor) < 0.001 ? vec3(1.0) : rayColor.rgb;
                 float rayBrightness = max(max(rayColor.r, rayColor.g), rayColor.b);
                 rayColor.rgb /= sqrt(rayBrightness);
