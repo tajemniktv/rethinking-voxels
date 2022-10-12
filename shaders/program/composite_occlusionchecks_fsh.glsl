@@ -35,9 +35,29 @@ void main() {
     ivec2 pixelCoord = ivec2(texCoord * tex8size);
     if (max(pixelCoord.x, pixelCoord.y) < shadowMapResolution) {
         dataToWrite0 = ivec4(texelFetch(colortex8, pixelCoord, 0) * 65535 + 0.5);
-        #ifdef SUN_SHADOWS
         dataToWrite1 = ivec4(texelFetch(colortex10, pixelCoord, 0) * 65535 + 0.5);
-        #endif
+        if (max(pixelCoord.x, pixelCoord.y) < vxRange) {
+            int height = VXHEIGHT * VXHEIGHT / 2 - 1;
+            for (; height > -VXHEIGHT * VXHEIGHT / 2; height--) {
+                vxData thisBlock = readVxMap(getVxPixelCoords(vec3(pixelCoord.x, height, pixelCoord.y) + vec3(-vxRange / 2.0 + 0.5, 0.5, -vxRange / 2.0 + 0.5)));
+                bool isGround = true;
+                switch (thisBlock.mat) {
+                    case 0:
+                        break;
+                    case 10160:
+                    case 10168:
+                    case 10176:
+                    case 10184:
+                    case 10192:
+                    case 10200:
+                    case 10208:
+                        isGround = false;
+                        break;
+                }
+                if ((thisBlock.full && !thisBlock.alphatest && isGround)) break;
+            }
+            dataToWrite1.w = (dataToWrite1.w >> 8 << 8) + height + (VXHEIGHT * VXHEIGHT / 2);
+        }
         vec3 pos0 = getVxPos(pixelCoord);
         vec3 pos = pos0;
         vec3 offset0 = floor(cameraPosition) - floor(previousCameraPosition);
@@ -118,10 +138,7 @@ void main() {
         //write data
         dataToWrite0.y = newOcclusionData;
     }
-    /*RENDERTARGETS:8*/
-    gl_FragData[0] = vec4(dataToWrite0) / 65535.0;
-    #ifdef SUN_SHADOWS
     /*RENDERTARGETS:8,10*/
+    gl_FragData[0] = vec4(dataToWrite0) / 65535.0;
     gl_FragData[1] = vec4(dataToWrite1) / 65535.0;
-    #endif
 }

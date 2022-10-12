@@ -78,8 +78,9 @@ void main() {
 	#endif
 
 	vec3 color = texture2D(colortex3, texCoordM).rgb;
-//	vec4 light = texelFetch(colortex10, ivec2(texCoord * textureSize(colortex3, 0)), 0);
-//	if (int(light.x * 65535 + 0.5) % 4096 != 0) color = vec3(light.y, light.y, light.z);
+//	ivec2 pixelCoord = ivec2(texCoord * textureSize(colortex3, 0)) / 3;
+//	vec4 light = texelFetch(colortex10, pixelCoord, 0);
+//	if (max(pixelCoord.x, pixelCoord.y) < shadowMapResolution / VXHEIGHT) color = vec3(int(light.w * 65535 + 0.5) % 256) / float(VXHEIGHT * VXHEIGHT);
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = vec4(color, 1.0);
 }

@@ -116,6 +116,10 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, vec3 dir, inout vec3 translucentH
         pos = pos0 + (min(w, 1.0)) * dir + eyeOffsets[i];
         // read voxel data at new position and update ray colour accordingly
         if (isInRange(pos)) {
+            if (!isInRange(pos, 2)) {
+                int height = int(texelFetch(colortex10, ivec2(pos.xz + floor(cameraPosition.xz) - floor(previousCameraPosition.xz) + vxRange / 2), 0).w * 65535 + 0.5) % 256 - VXHEIGHT * VXHEIGHT / 2;
+                if (pos.y + floor(cameraPosition.y) - floor(previousCameraPosition.y) < height) raycolor.a = 1;
+            }
             voxeldata = readVxMap(getVxPixelCoords(pos));
             pos -= eyeOffsets[i];
             if (lowDetail) {
