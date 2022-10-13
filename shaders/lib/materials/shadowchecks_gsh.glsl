@@ -10,7 +10,6 @@ switch (matV[0]) {
         break;
     case 10072:
     case 10076:
-    case 12112:
         vec3 tempPos = fract(avgPos - 0.5);
         if (max(tempPos.x, max(tempPos.y, tempPos.z)) > 0.49) tracemat = false;
         break;
@@ -34,6 +33,7 @@ switch (matV[0]) {
     case 10544:
     case 10596:
     case 10600:
+    case 12112:
         //avgPos += 0.1 * cnormal;
         break;
     case 0:
