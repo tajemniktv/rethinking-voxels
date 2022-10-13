@@ -22,7 +22,7 @@ uniform int isEyeInWater;
 
 uniform vec3 cameraPosition;
 
-uniform sampler2D texture;
+uniform sampler2D tex;
 uniform sampler2D noisetex;
 
 #if WATER_STYLE >= 3
@@ -41,7 +41,7 @@ float sunVisibility = clamp(SdotU + 0.0625, 0.0, 0.125) / 0.125;
 
 //Program//
 void main() {
-	vec4 color1 = texture2DLod(texture, texCoord, 0);
+	vec4 color1 = texture2DLod(tex, texCoord, 0);
 	vec4 color2 = color1;
 	
 	color2.rgb *= 0.25;

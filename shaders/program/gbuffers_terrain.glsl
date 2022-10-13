@@ -44,10 +44,10 @@ uniform mat4 gbufferModelViewInverse;
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
 
-uniform sampler2D texture;
+uniform sampler2D tex;
 
 #if defined PP_BL_SHADOWS || defined PP_SUN_SHADOWS
-	#define ATLASTEX texture
+	#define ATLASTEX tex
 #endif
 
 #if defined NETHER || defined COATED_TEXTURES
@@ -120,7 +120,7 @@ void DoBrightBlockTweaks(inout vec3 shadowMult, inout float highlightMult) {
 
 //Program//
 void main() {
-	vec4 color = texture2D(texture, texCoord);
+	vec4 color = texture2D(tex, texCoord);
 
 	float smoothnessD = 0.0, materialMask = 0.0, skyLightFactor = 0.0;
 	vec3 normalM = normal;

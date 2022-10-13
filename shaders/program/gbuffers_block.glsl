@@ -48,10 +48,10 @@ uniform mat4 gbufferModelViewInverse;
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
 
-uniform sampler2D texture;
+uniform sampler2D tex;
 
 #if defined PP_BL_SHADOWS || defined PP_SUN_SHADOWS
-	#define ATLASTEX texture
+	#define ATLASTEX tex
 #endif
 
 #ifdef COATED_TEXTURES
@@ -105,7 +105,7 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 
 //Program//
 void main() {
-	vec4 color = texture2D(texture, texCoord);
+	vec4 color = texture2D(tex, texCoord);
 	#ifdef GENERATED_NORMALS
 		vec3 colorP = color.rgb;
 	#endif

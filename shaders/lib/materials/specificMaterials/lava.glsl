@@ -1,5 +1,5 @@
 #ifdef NETHER
-    color.rgb /= max(GetLuminance(texture2DLod(texture, texCoord, 100.0).rgb) * 2.5, 0.001);
+    color.rgb /= max(GetLuminance(texture2DLod(tex, texCoord, 100.0).rgb) * 2.5, 0.001);
 
     vec3 worldPos = playerPos + cameraPosition;
     vec2 lavaPos = (floor(worldPos.xz * 16.0) + worldPos.y * 32.0) * 0.000666;

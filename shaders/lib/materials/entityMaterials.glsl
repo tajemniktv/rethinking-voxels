@@ -34,7 +34,7 @@ if (entityId < 50064) {
             if (entityId < 50024) {
                 if (entityId == 50016) { // Player
                     if (entityColor.a < 0.001) {
-                        vec3 identification = texelFetch(texture, ivec2(63, 0), 0).rgb;
+                        vec3 identification = texelFetch(tex, ivec2(63, 0), 0).rgb;
                         
                         /*if (CheckForColor(identification, vec3(193, 91, 241))) {
 

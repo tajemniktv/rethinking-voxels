@@ -39,8 +39,8 @@ uniform mat4 shadowProjection;
 #endif
 
 #if defined PP_BL_SHADOWS || defined PP_SUN_SHADOWS
-	uniform sampler2D gtexture;
-	#define ATLASTEX gtexture
+	uniform sampler2D tex;
+	#define ATLASTEX tex
 #endif
 
 //Pipeline Constants//
