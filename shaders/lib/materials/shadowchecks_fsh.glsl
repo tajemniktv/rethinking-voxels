@@ -10,7 +10,6 @@ notrace = (
     mat == 10012 ||
     mat == 10041 ||
     mat == 10083 ||
-    mat == 12152 ||
     mat == 12156 ||
     mat == 12164 ||
     mat == 12172 ||
@@ -370,7 +369,9 @@ cuboid = (
     mat == 10129 ||
     mat == 10137 ||
     (mat > 10152 && mat < 10156) ||
-    mat == 12153 ||
+    (mat >= 12152 && mat < 12156) ||
+    (mat >= 14152 && mat < 14156) ||
+    (mat >= 16152 && mat < 16156) ||
     (mat > 10156 || mat < 10160) ||
     mat == 12157 ||
     (mat >= 14156 && mat < 14160) ||
@@ -563,6 +564,36 @@ if (cuboid) {
             bounds[0] = ivec3(6, 0, 6);
             bounds[1] = ivec3(10, 6, 10);
             break;
+        case 12152:
+            bounds[0].y = 12;
+            break;
+        case 12154:
+            bounds[0].y = 4;
+            break;
+        case 14152:
+            bounds[0].z = 12;
+            break;
+        case 14153:
+            bounds[1].z = 4;
+            break;
+        case 14154:
+            bounds[1].x = 4;
+            break;
+        case 14155:
+            bounds[0].x = 12;
+            break;
+        case 16152:
+            bounds[0].z = 4;
+            break;
+        case 16153:
+            bounds[1].z = 12;
+            break;
+        case 16154:
+            bounds[1].x = 12;
+            break;
+        case 16155:
+            bounds[0].x = 4;
+            break;
         case 10496:
         case 10528:
         case 10604:
@@ -631,7 +662,7 @@ if (cuboid) {
             bounds[0] = ivec3(1, 0, 1);
             bounds[1] = ivec3(15, 14, 15);
             break;
-        case 61017:
+        case 60017:
             bounds[0].y = 3;
             bounds[1].y = 9;
             break;
