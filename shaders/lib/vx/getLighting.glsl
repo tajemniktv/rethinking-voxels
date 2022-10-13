@@ -189,7 +189,7 @@ vec3 getWorldSunVector() {
         return vec3(0.0);
     #endif
 }
-
+/*
 //x is solid, y is translucent, pos.xy are position on shadow map, pos.z is shadow depth
 vec2 sampleShadow(sampler2D shadowMap, vec3 pos) {
     vec2 isInShadow = vec2(0);
@@ -197,10 +197,11 @@ vec2 sampleShadow(sampler2D shadowMap, vec3 pos) {
     for (int k = 0; k < 4; k++) {
         ivec2 offset = ivec2(k % 2, k / 2 % 2);
         float intMult = (1 - abs(floorPos.x + offset.x - pos.x)) * (1 - abs(floorPos.y + offset.y - pos.y));
-        vec4 sunData = texelFetch(shadowMap, (floor(pos.xy) + offset), 0);
+        vec4 sunData = texelFetch(shadowMap, ivec2(floor(pos.xy) + offset), 0);
     }
     return isInShadow;
 }
+*/
 #ifndef PP_SUN_SHADOWS
 vec3 getSunLight(vec3 vxPos, vec3 worldNormal, bool causticMult) {
     vec3 sunDir = getWorldSunVector();
@@ -249,9 +250,11 @@ vec3 getSunLight(vec3 vxPos) {
     sunDir *= sign(sunDir.y);
     vec3 offset = hash33(vxPos * 50 + 7 * frameCounter) * 2.0 - 1.0;
     vec4 sunColor = raytrace(vxPos, (sunDir + 0.01 * offset) * sqrt(vxRange * vxRange + VXHEIGHT * VXHEIGHT * VXHEIGHT * VXHEIGHT), ATLASTEX);
-    sunColor.a = sqrt(sunColor.a);
-    sunColor.rgb = (sunColor.rgb * sunColor.a + 1.0) * (1.0 - sunColor.a);
-    sunColor.rgb *= sunColor.rgb / max(max(sunColor.r, max(sunColor.g, sunColor.b)), 0.00001);
+    const float alphaSteepness = 5.0;
+    float colorMult = clamp(alphaSteepness - alphaSteepness * sunColor.a, 0, 1);
+    float mixFactor = clamp(alphaSteepness * sunColor.a, 0, 1);
+    sunColor.rgb = mix(vec3(1), sunColor.rgb * colorMult, mixFactor);
+    sunColor.rgb /= sqrt(max(max(sunColor.r, sunColor.g), max(sunColor.b, 0.0001)));
     return sunColor.rgb;
 }
 #endif
