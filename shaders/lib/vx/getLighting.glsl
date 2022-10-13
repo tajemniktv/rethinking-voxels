@@ -209,6 +209,7 @@ vec3 getSunLight(vec3 vxPos, vec3 worldNormal, bool causticMult) {
     vec2 tex8size0 = vec2(textureSize(colortex8, 0));
     mat3 sunRotMat = getRotMat(sunDir);
     vec3 shadowPos = getShadowPos(vxPos, sunRotMat);
+    vec3 debugVar = vec3(0);
     float shadowLength = length(shadowPos.xy);//max(abs(shadowPos.x), abs(shadowPos.y));
     if (length(worldNormal) > 0.0001) {
         float dShadowdLength = distortShadowDeriv(shadowLength);
@@ -228,6 +229,7 @@ vec3 getSunLight(vec3 vxPos, vec3 worldNormal, bool causticMult) {
         int sunColor0 = int(texelFetch(colortex10, ivec2((shadowPos.xy * 0.5 + 0.5) * shadowMapResolution + shadowoffsets[k] * 0.9), 0).r * 65535 + 0.5);
         vec3 sunColor1 = vec3(sunColor0 % 16, (sunColor0 >> 4) % 16, (sunColor0 >> 8) % 16) * (causticMult ? (sunColor0 >> 12) : 4.0) / 64.0;
         sunColor += shadowPos.z > sunData.y ? (shadowPos.z > sunData.z ? vec3(1) : sunColor1) : vec3(0.0);
+        debugVar += (sunData.y) / vxRange;
     #if OCCLUSION_FILTER > 0
     }
     sunColor = min(0.2 * sunColor, vec3(1.0));

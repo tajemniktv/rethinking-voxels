@@ -3,7 +3,7 @@
 #include "/lib/vx/voxelMapping.glsl"
 #include "/lib/vx/voxelReading.glsl"
 
-mat3 eye = mat3(
+const mat3 eye = mat3(
     1, 0, 0,
     0, 1, 0,
     0, 0, 1
@@ -20,6 +20,10 @@ float aabbIntersect(vxData data, vec3 pos, vec3 dir, inout int n) {
         if (dir[i] == 0) continue;
         float relevantBound = bounds[dir[i] < 0 ? 1 : 0][i];
         float w0 = (relevantBound - pos[i]) / dir[i];
+        if (w0 < -0.00005 / length(dir)) {
+            relevantBound = bounds[dir[i] < 0 ? 0 : 1][i];
+            w0 = (relevantBound - pos[i]) / dir[i];
+        }
         vec3 newPos = pos + w0 * dir;
         // ray-plane intersection position needs to be closer than the previous best one and further than approximately 0
         bool valid = (w0 > -0.00005 / length(dir) && w0 < w);
@@ -103,7 +107,7 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, vec3 dir, inout vec3 translucentH
     vec4 oldRayColor = vec4(0);
     // check if stuff already needs to be done at starting position
     vxData voxeldata = readVxMap(getVxPixelCoords(pos));
-    if (voxeldata.trace && !lowDetail) {
+    if (isInRange(pos) && voxeldata.trace && !lowDetail) {
         raycolor = handledata(voxeldata, atlas, pos, dir, i);
         raycolor.rgb *= raycolor.a;
     }
@@ -118,7 +122,10 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, vec3 dir, inout vec3 translucentH
         if (isInRange(pos)) {
             if (!isInRange(pos, 2)) {
                 int height = int(texelFetch(colortex10, ivec2(pos.xz + floor(cameraPosition.xz) - floor(previousCameraPosition.xz) + vxRange / 2), 0).w * 65535 + 0.5) % 256 - VXHEIGHT * VXHEIGHT / 2;
-                if (pos.y + floor(cameraPosition.y) - floor(previousCameraPosition.y) < height) raycolor.a = 1;
+                if (pos.y + floor(cameraPosition.y) - floor(previousCameraPosition.y) < height) {
+                    raycolor.a = 1;
+                    break;
+                }
             }
             voxeldata = readVxMap(getVxPixelCoords(pos));
             pos -= eyeOffsets[i];
