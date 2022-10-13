@@ -349,10 +349,14 @@ crossmodel = (
     mat == 10076 ||
     mat == 10123 ||
     mat == 10332 ||
-    mat == 10492
+    mat == 10492 ||
+    mat == 10628 ||
+    mat == 10632
 );
 cuboid = (
     (mat > 10032 && mat < 10036) ||
+    mat == 10045 ||
+    mat == 10046 ||
     mat == 10060 ||
     mat == 10064 ||
     mat == 10068 ||
@@ -464,6 +468,12 @@ cuboid = (
 );
 if (cuboid) {
     switch (mat) {
+        case 10045:
+        case 10048:
+        case 10052:
+        case 10056:
+            bounds[1].y = 15;
+            break;
         case 10596:
         case 10600:
             bounds[1].y = 2;
