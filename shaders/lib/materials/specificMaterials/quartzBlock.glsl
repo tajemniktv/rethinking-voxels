@@ -11,5 +11,5 @@ highlightMult = 3.5 * factor8;
 smoothnessD = factor8;
 
 #ifdef COATED_TEXTURES
-	noiseFactor = 0.5;
+    noiseFactor = 0.5;
 #endif

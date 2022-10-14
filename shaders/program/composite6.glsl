@@ -41,19 +41,19 @@ float GetLinearDepth(float depth) {
 
 //Program//
 void main() {
-	vec3 color = texelFetch(colortex3, texelCoord, 0).rgb;
+    vec3 color = texelFetch(colortex3, texelCoord, 0).rgb;
 
-	#ifdef TAA
-		vec3 temp = vec3(0.0);
-		DoTAA(color, temp);
-	#endif
+    #ifdef TAA
+        vec3 temp = vec3(0.0);
+        DoTAA(color, temp);
+    #endif
 
-	/*DRAWBUFFERS:3*/
+    /*DRAWBUFFERS:3*/
 	gl_FragData[0] = vec4(color, 1.0);
-	
+    
 	#ifdef TAA
-		/*DRAWBUFFERS:32*/
-		gl_FragData[1] = vec4(temp, 1.0);
+        /*DRAWBUFFERS:32*/
+        gl_FragData[1] = vec4(temp, 1.0);
 	#endif
 }
 

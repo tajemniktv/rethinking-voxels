@@ -11,17 +11,17 @@ vec2 midCoord = texCoord - absMidCoordPos * signMidCoordPos;
 vec2 minimumMidCoordPos = midCoord - absMidCoordPos;
 
 for (int i = 0; i < sampleCount; i++) {
-	float portalStep = (i + dither) / sampleCount;
-	coord += interval * portalStep;
-	vec2 sampleCoord = fract(coord) * absMidCoordPos2 + minimumMidCoordPos;
-	vec4 psample = texture2DLod(tex, sampleCoord, 0);
+    float portalStep = (i + dither) / sampleCount;
+    coord += interval * portalStep;
+    vec2 sampleCoord = fract(coord) * absMidCoordPos2 + minimumMidCoordPos;
+    vec4 psample = texture2DLod(tex, sampleCoord, 0);
 
-	float factor = 1.0 - portalStep;
-	psample *= pow(factor, 0.1);
+    float factor = 1.0 - portalStep;
+    psample *= pow(factor, 0.1);
 
-	emission = max(emission, psample.r);
+    emission = max(emission, psample.r);
 
-	color += psample;
+    color += psample;
 }
 color /= sampleCount;
 

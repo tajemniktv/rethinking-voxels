@@ -34,7 +34,7 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 	#ifdef OVERWORLD
 		float VdotLM = max((VdotL + 1.0) / 2.0, 0.0);
 		float VdotUM = mix(pow2(1.0 - max(VdotU, 0.0)), 1.0, 0.5 * vlSceneIntensity);
-			  VdotUM = smoothstep1(VdotUM);
+		      VdotUM = smoothstep1(VdotUM);
 			  VdotUM = pow(VdotUM, min(lViewPos / far, 1.0) * (3.0 - 2.0 * vlSceneIntensity));
 		float vlMult = mix(VdotUM * VdotLM, 0.5 + 0.5 * VdotLM, rainFactor2) * vlTime;
 			  vlMult *= mix(invNoonFactor * 0.875 + 0.125, 1.0, max(vlSceneIntensity, rainFactor2));

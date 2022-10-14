@@ -94,7 +94,7 @@ void main() {
 	vec3 screenPos = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight), gl_FragCoord.z);
 	vec3 viewPos = ScreenToView(screenPos);
 	float lViewPos = length(viewPos);
-	vec3 playerPos = ViewToPlayer(viewPos);
+    vec3 playerPos = ViewToPlayer(viewPos);
 	
 	float dither = Bayer64(gl_FragCoord.xy);
 	#ifdef TAA
@@ -139,7 +139,7 @@ void main() {
 	#endif
 
 	DoLighting(color.rgb, shadowMult, playerPos, viewPos, lViewPos, normal, lmCoordM,
-		   noSmoothLighting, false, false, 0,
+	           noSmoothLighting, false, false, 0,
 			   0.0, 1.0, emission, 0);
 
 	#ifdef IPBR

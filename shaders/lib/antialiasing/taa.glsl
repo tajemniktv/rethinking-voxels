@@ -46,7 +46,7 @@ void DoTAA(inout vec3 color, inout vec3 temp) {
 	vec2 velocity = (texCoord - prvCoord.xy) * view;
 
 	float blendFactor = float(prvCoord.x > 0.0 && prvCoord.x < 1.0 &&
-					  prvCoord.y > 0.0 && prvCoord.y < 1.0);
+	                          prvCoord.y > 0.0 && prvCoord.y < 1.0);
 	//float blendMinimum = 0.6;
 	//float blendVariable = 0.5;
 	//float blendConstant = 0.4;
