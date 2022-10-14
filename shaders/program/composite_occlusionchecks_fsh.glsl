@@ -123,7 +123,7 @@ void main() {
                         vxData endBlock = readVxMap(getVxPixelCoords(endPos));
                         vxData goalBlock = readVxMap(getVxPixelCoords(goalPos));
                         float dist = max(max(abs(endPos.x - goalPos.x), abs(endPos.y - goalPos.y)), abs(endPos.z - goalPos.z));
-                        if (dist < 0.512  + ((goalBlock.mat == endBlock.mat) ? 1.0 : 0.0)) {
+                        if (dist < 0.5 || (goalBlock.mat == endBlock.mat && dist < 2.51)) {
                             occlusionData += 1 << i;
                         }
                     }
