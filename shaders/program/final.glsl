@@ -23,8 +23,8 @@ uniform sampler2D colortex3;
 /*
 const int colortex0Format = R11F_G11F_B10F; //main color
 const int colortex1Format = RGB8;			//smoothnessD & materialMask & skyLightFactor
-const int colortex2Format = RGB16;		    //taa
-const int colortex3Format = RGB8;		    //translucentMult & bloom & final color
+const int colortex2Format = RGB16;			//taa
+const int colortex3Format = RGB8;			//translucentMult & bloom & final color
 const int colortex4Format = R8;				//ssao & volumetric cloud linear depth & volumetric light factor
 const int colortex5Format = RGB8_SNORM;		//normalM & scene image for water reflections
 #ifdef TEMPORAL_FILTER

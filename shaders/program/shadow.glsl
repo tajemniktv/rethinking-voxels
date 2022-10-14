@@ -65,7 +65,7 @@ void main() {
 				#else
 					vec2 causticWind = vec2(frameTimeCounter * 0.04, 0.0);
 					float caustic = texture2D(noisetex, worldPos.xz * 0.05 + causticWind).g;
-					      caustic += texture2D(noisetex, worldPos.xz * 0.1 - causticWind).g;
+						  caustic += texture2D(noisetex, worldPos.xz * 0.1 - causticWind).g;
 					color1.rgb = vec3(pow2(caustic) * 0.3 + 0.1);
 				#endif
 				color1.rgb *= glColor.rgb * vec3(0.6, 0.8, 1.1);
@@ -99,8 +99,8 @@ void main() {
 		}
 	}
 
-    gl_FragData[0] = color1;
-    gl_FragData[1] = color2;
+	gl_FragData[0] = color1;
+	gl_FragData[1] = color2;
 }
 
 #endif

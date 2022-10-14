@@ -116,7 +116,7 @@ void main() {
 		vec3 viewPos = ScreenToView(vec3(TAAJitter(screenPos.xy, -0.5), screenPos.z));
 	#else
 		vec3 viewPos = ScreenToView(screenPos);
-    #endif
+	#endif
 	float lViewPos = length(viewPos);
 	vec3 playerPos = ViewToPlayer(viewPos);
 
@@ -148,7 +148,7 @@ void main() {
 	#endif
 
 	DoLighting(color.rgb, shadowMult, playerPos, viewPos, lViewPos, normalM, lmCoordM,
-	           noSmoothLighting, noDirectionalShading, false, 0,
+		   noSmoothLighting, noDirectionalShading, false, 0,
 			   smoothnessG, highlightMult, emission, blockEntityId);
 
 	/* DRAWBUFFERS:01 */

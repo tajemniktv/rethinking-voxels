@@ -166,7 +166,7 @@ void main() {
 		vec3 viewPos = ScreenToView(vec3(TAAJitter(screenPos.xy, -0.5), screenPos.z));
 	#else
 		vec3 viewPos = ScreenToView(screenPos);
-    #endif
+	#endif
 	float lViewPos = length(viewPos);
 
 	float dither = Bayer64(gl_FragCoord.xy);
@@ -179,7 +179,7 @@ void main() {
 	#endif
 
 	vec3 nViewPos = normalize(viewPos);
-    vec3 playerPos = ViewToPlayer(viewPos);
+	vec3 playerPos = ViewToPlayer(viewPos);
 	float VdotU = dot(nViewPos, upVec);
 	float VdotS = dot(nViewPos, sunVec);
 	float VdotN = dot(nViewPos, normal);
@@ -218,7 +218,7 @@ void main() {
 
 	// Lighting
 	DoLighting(color.rgb, shadowMult, playerPos, viewPos, lViewPos, normalM, lmCoordM,
-	           noSmoothLighting, noDirectionalShading, false, 0,
+		   noSmoothLighting, noDirectionalShading, false, 0,
 			   smoothnessG, highlightMult, emission, mat);
 
 	// Reflections
@@ -226,7 +226,7 @@ void main() {
 		if (fresnel > 0.000001) {
 			#include "/lib/materials/translucentReflections.glsl"
 		}
-    #endif
+	#endif
 
 	DoFog(color.rgb, lViewPos, playerPos, VdotU, VdotS, dither);
 

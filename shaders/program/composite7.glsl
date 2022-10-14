@@ -31,13 +31,13 @@ uniform sampler2D colortex3;
 
 //Program//
 void main() {
-    vec3 color = texelFetch(colortex3, texelCoord, 0).rgb;
+	vec3 color = texelFetch(colortex3, texelCoord, 0).rgb;
 
 	#ifdef FXAA
 		FXAA311(color);
 	#endif
 
-    /*DRAWBUFFERS:3*/
+	/*DRAWBUFFERS:3*/
 	gl_FragData[0] = vec4(color, 1.0);
 }
 

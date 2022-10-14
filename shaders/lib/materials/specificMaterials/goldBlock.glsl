@@ -12,5 +12,5 @@ smoothnessD = colorG4;
 color.rgb *= 0.9;
 
 #ifdef COATED_TEXTURES
-    noiseFactor = 0.33;
+	noiseFactor = 0.33;
 #endif

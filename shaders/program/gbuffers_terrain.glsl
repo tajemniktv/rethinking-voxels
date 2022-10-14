@@ -181,7 +181,7 @@ void main() {
 		#endif
 
 		DoLighting(color.rgb, shadowMult, playerPos, viewPos, lViewPos, normalM, lmCoordM,
-		           noSmoothLighting, noDirectionalShading, noVanillaAO, subsurfaceMode,
+			   noSmoothLighting, noDirectionalShading, noVanillaAO, subsurfaceMode,
 				   smoothnessG, highlightMult, emission, mat);
 
 		#ifdef PBR_REFLECTIONS
@@ -242,6 +242,8 @@ out vec4 glColor;
 attribute vec4 mc_Entity;
 attribute vec4 mc_midTexCoord;
 
+attribute vec3 at_midBlock;
+
 #ifdef GENERATED_NORMALS
 	attribute vec4 at_tangent;
 #endif
@@ -279,18 +281,27 @@ void main() {
 	absMidCoordPos  = abs(texMinMidCoord);
 
 	mat = int(mc_Entity.x + 0.5);
+	bool crossmodel = (
+		mat == 10004 ||
+		mat == 10016 ||
+		mat == 10020 ||
+		mat == 10072 ||
+		mat == 10076 ||
+		mat == 10123 ||
+		mat == 10332 ||
+		mat == 10492 ||
+		mat == 10628 ||
+		mat == 10632);
 	mat = 10000 * (mat / 10000) + 4 * ((mat % 2000) / 4);
-
+	// undo random offsets
+	vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
+	if (crossmodel) {
+		position.xz += at_midBlock.xz / 64.0 - 0.5 * sign(at_midBlock.xz);
+	}
 	#if WAVING_BLOCKS >= 1
-		vec4 position = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
-
 		DoWave(position.xyz, mat);
-
-		gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
-	#else
-
-		gl_Position = ftransform();
 	#endif
+	gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 
 	#ifdef FLICKERING_FIX
 		if (mat == 10256) gl_Position.z -= 0.00001; // Iron Bars !!!!! someone please remind me to optimise this using position later !!!!!

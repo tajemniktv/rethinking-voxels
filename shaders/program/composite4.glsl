@@ -48,31 +48,31 @@ vec3 BloomTile(float lod, vec2 offset, vec2 rescale) {
 
 //Program//
 void main() {
-    vec3 blur = vec3(0.0);
+	vec3 blur = vec3(0.0);
 
-    #ifdef BLOOM
-        vec2 rescale = 1.0 / vec2(1920.0, 1080.0);
+	#ifdef BLOOM
+		vec2 rescale = 1.0 / vec2(1920.0, 1080.0);
 
-        #if defined OVERWORLD || defined END
-            blur += BloomTile(2.0, vec2(0.0      , 0.0   ), rescale);
-            blur += BloomTile(3.0, vec2(0.0      , 0.26  ), rescale);
-            blur += BloomTile(4.0, vec2(0.135    , 0.26  ), rescale);
-            blur += BloomTile(5.0, vec2(0.2075   , 0.26  ), rescale) * 0.8;
-            blur += BloomTile(6.0, vec2(0.135    , 0.3325), rescale) * 0.8;
-            blur += BloomTile(7.0, vec2(0.160625 , 0.3325), rescale) * 0.6;
-            blur += BloomTile(8.0, vec2(0.1784375, 0.3325), rescale) * 0.4;
-        #else
-            blur += BloomTile(2.0, vec2(0.0      , 0.0   ), rescale);
-            blur += BloomTile(3.0, vec2(0.0      , 0.26  ), rescale);
-            blur += BloomTile(4.0, vec2(0.135    , 0.26  ), rescale);
-            blur += BloomTile(5.0, vec2(0.2075   , 0.26  ), rescale);
-            blur += BloomTile(6.0, vec2(0.135    , 0.3325), rescale);
-            blur += BloomTile(7.0, vec2(0.160625 , 0.3325), rescale);
-            blur += BloomTile(8.0, vec2(0.1784375, 0.3325), rescale) * 0.6;
-        #endif
-    #endif
+		#if defined OVERWORLD || defined END
+		blur += BloomTile(2.0, vec2(0.0      , 0.0   ), rescale);
+		blur += BloomTile(3.0, vec2(0.0      , 0.26  ), rescale);
+		blur += BloomTile(4.0, vec2(0.135    , 0.26  ), rescale);
+		blur += BloomTile(5.0, vec2(0.2075   , 0.26  ), rescale) * 0.8;
+		blur += BloomTile(6.0, vec2(0.135    , 0.3325), rescale) * 0.8;
+		blur += BloomTile(7.0, vec2(0.160625 , 0.3325), rescale) * 0.6;
+		blur += BloomTile(8.0, vec2(0.1784375, 0.3325), rescale) * 0.4;
+		#else
+		blur += BloomTile(2.0, vec2(0.0      , 0.0   ), rescale);
+		blur += BloomTile(3.0, vec2(0.0      , 0.26  ), rescale);
+		blur += BloomTile(4.0, vec2(0.135    , 0.26  ), rescale);
+		blur += BloomTile(5.0, vec2(0.2075   , 0.26  ), rescale);
+		blur += BloomTile(6.0, vec2(0.135    , 0.3325), rescale);
+		blur += BloomTile(7.0, vec2(0.160625 , 0.3325), rescale);
+		blur += BloomTile(8.0, vec2(0.1784375, 0.3325), rescale) * 0.6;
+		#endif
+	#endif
 
-    /* DRAWBUFFERS:3 */
+	/* DRAWBUFFERS:3 */
 	gl_FragData[0] = vec4(blur, 1.0);
 }
 

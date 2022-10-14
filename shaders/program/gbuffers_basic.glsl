@@ -79,13 +79,13 @@ void main() {
 		vec3 viewPos = ScreenToView(vec3(TAAJitter(screenPos.xy, -0.5), screenPos.z));
 	#else
 		vec3 viewPos = ScreenToView(screenPos);
-    #endif
+	#endif
 	float lViewPos = length(viewPos);
 	vec3 playerPos = ViewToPlayer(viewPos);
 
 	vec3 shadowMult = vec3(1.0);
 	DoLighting(color.rgb, shadowMult, playerPos, viewPos, lViewPos, normal, lmCoord,
-	           false, false, false, 0,
+		   false, false, false, 0,
 			   0.0, 0.0, 0.0, 0);
 
 	/* DRAWBUFFERS:0 */

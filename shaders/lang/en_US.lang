@@ -24,14 +24,14 @@ screen.PERFORMANCE_SETTINGS.comment=Settings that directly relate to the perform
 
 screen.PREFERENCE_SETTINGS=Preference Settings
 screen.PREFERENCE_SETTINGS.comment=Settings that are optional, and not changed by the different shader profiles.
-    screen.SKY_SETTINGS=Sky
-    screen.SKY_SETTINGS.comment=Settings that relate to the sky.
-        screen.CLOUD_SETTINGS=Clouds
-        screen.CLOUD_SETTINGS.comment=Settings that relate to the clouds.
-    screen.CAMERA_SETTINGS=Camera
-    screen.CAMERA_SETTINGS.comment=Settings that determine how the final image is tweaked.
-    screen.IPBR_SETTINGS=IntegratedPBR
-    screen.IPBR_SETTINGS.comment=Settings that are related to the features of IntegratedPBR.
+	screen.SKY_SETTINGS=Sky
+	screen.SKY_SETTINGS.comment=Settings that relate to the sky.
+		screen.CLOUD_SETTINGS=Clouds
+		screen.CLOUD_SETTINGS.comment=Settings that relate to the clouds.
+	screen.CAMERA_SETTINGS=Camera
+	screen.CAMERA_SETTINGS.comment=Settings that determine how the final image is tweaked.
+	screen.IPBR_SETTINGS=IntegratedPBR
+	screen.IPBR_SETTINGS.comment=Settings that are related to the features of IntegratedPBR.
 
 screen.VX_STUFF=Voxelisation Settings
 screen.VX_STUFF.comment=Settings that relate to everything that uses the voxel volume. This includes its size, but also shadow settings and more.
