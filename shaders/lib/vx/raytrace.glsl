@@ -30,7 +30,7 @@ float aabbIntersect(vxData data, vec3 pos, vec3 dir, inout int n) {
         for (int j = 1; j < 3; j++) {
             int ij = (i + j) % 3;
             // intersection position also needs to be within other bounds
-            if (newPos[ij] < bounds[0][ij] - 0.01 || newPos[ij] > bounds[1][ij] + 0.01) {
+            if (newPos[ij] < bounds[0][ij] || newPos[ij] > bounds[1][ij]) {
                 valid = false;
                 break;
             }
