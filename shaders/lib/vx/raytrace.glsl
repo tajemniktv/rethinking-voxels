@@ -110,6 +110,7 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, bool doScattering, vec3 dir, inou
     // check if stuff already needs to be done at starting position
     vxData voxeldata = readVxMap(getVxPixelCoords(pos));
     bool isScattering = false;
+    if (lowDetail && voxeldata.full && !voxeldata.alphatest) return vec4(0, 0, 0, translucentData ? 0 : 1);
     if (isInRange(pos) && voxeldata.trace && !lowDetail) {
         raycolor = handledata(voxeldata, atlas, pos, dir, i);
         if (doScattering && raycolor.a > 0.1) isScattering = (voxeldata.mat == 10004 || voxeldata.mat == 10008 || voxeldata.mat == 10016);
@@ -160,12 +161,14 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, bool doScattering, vec3 dir, inou
                     isScattering = newScattering;
                 }
             }
+            #ifdef CAVE_SUNLIGHT_FIX
             if (!isInRange(pos, 2)) {
                 int height = int(texelFetch(colortex10, ivec2(pos.xz + floor(cameraPosition.xz) - floor(previousCameraPosition.xz) + vxRange / 2), 0).w * 65535 + 0.5) % 256 - VXHEIGHT * VXHEIGHT / 2;
                 if (pos.y + floor(cameraPosition.y) - floor(previousCameraPosition.y) < height) {
                     raycolor.a = 1;
                 }
             }
+            #endif
             pos += eyeOffsets[i];
         }
         // update position

@@ -8,12 +8,25 @@ uniform int frameCounter;
 uniform float frameTimeCounter;
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
+#ifndef SHADOWCOL0
+#define SHADOWCOL0
 uniform sampler2D shadowcolor0;
+#endif
+#ifndef SHADOWCOL1
+#define SHADOWCOL1
 uniform sampler2D shadowcolor1;
+#endif
+#ifndef COLORTEX8
+#define COLORTEX8
 uniform sampler2D colortex8;
+#endif
+#ifndef COLORTEX9
+#define COLORTEX9
 uniform sampler2D colortex9;
+#endif
 uniform sampler2D noisetex;
-#ifdef SUN_SHADOWS
+#ifndef COLORTEX10
+#define COLORTEX10
 uniform sampler2D colortex10;
 #endif
 uniform sampler2D colortex15; // texture atlas
@@ -123,7 +136,7 @@ void main() {
                         vxData endBlock = readVxMap(getVxPixelCoords(endPos));
                         vxData goalBlock = readVxMap(getVxPixelCoords(goalPos));
                         float dist = max(max(abs(endPos.x - goalPos.x), abs(endPos.y - goalPos.y)), abs(endPos.z - goalPos.z));
-                        if (dist < 0.5 || (goalBlock.mat == endBlock.mat && dist < 2.51)) {
+                        if (dist < 0.5 || (k != 0 && goalBlock.mat == endBlock.mat && dist < 2.5)) {
                             occlusionData += 1 << i;
                         }
                     }

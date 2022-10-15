@@ -4,11 +4,22 @@
 #include "/lib/common.glsl"
 
 in vec2 texCoord;
-
+#ifndef COLORTEX8
+#define COLORTEX8
 uniform sampler2D colortex8;
+#endif
+#ifndef COLORTEX9
+#define COLORTEX9
 uniform sampler2D colortex9;
+#endif
+#ifndef SHADOWCOL0
+#define SHADOWCOL0
 uniform sampler2D shadowcolor0;
+#endif
+#ifndef SHADOWCOL1
+#define SHADOWCOL1
 uniform sampler2D shadowcolor1;
+#endif
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
 

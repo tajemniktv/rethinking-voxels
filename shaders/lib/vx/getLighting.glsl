@@ -1,12 +1,24 @@
 #ifndef LIGHTING
 #define LIGHTING
-#ifndef VOXEL_TEXTURES
-#define VOXEL_TEXTURES
+#ifndef SHADOWCOL0
+#define SHADOWCOL0
 uniform sampler2D shadowcolor0;
+#endif
+#ifndef SHADOWCOL1
+#define SHADOWCOL1
 uniform sampler2D shadowcolor1;
+#endif
+#ifndef COLORTEX8
+#define COLORTEX8
 uniform sampler2D colortex8;
+#endif
+#ifndef COLORTEX9
+#define COLORTEX9
 uniform sampler2D colortex9;
+#endif
 #ifdef SUN_SHADOWS
+#ifndef COLORTEX10
+#define COLORTEX10
 uniform sampler2D colortex10;
 #endif
 #endif
@@ -14,7 +26,7 @@ uniform sampler2D colortex10;
 #include "/lib/vx/voxelMapping.glsl"
 #include "/lib/vx/raytrace.glsl"
 vec2 tex8size0 = vec2(textureSize(colortex8, 0));
-
+//#define DEBUG_OCCLUDERS
 #ifndef PP_BL_SHADOWS
 vec3 getOcclusion(vec3 vxPos, vec3 normal) {
     int k = 0;
@@ -51,25 +63,30 @@ vec3 getOcclusion(vec3 vxPos, vec3 normal) {
     return occlusion;
 }
 #else
-vec3[3] getOcclusion(vec3 vxPos, vec3 normal, vec3[3] lightDirs) {
+vec3[3] getOcclusion(vec3 vxPos, vec3 normal, vec4[3] lights) {
     //vxPos += 0.01 * normal;
     vec3[3] occlusion = vec3[3](vec3(0), vec3(0), vec3(0));
     for (int k = 0; k < 3; k++) {
-        if (dot(normal, lightDirs[k]) >= 0.0 || max(max(abs(lightDirs[k].x), abs(lightDirs[k].y)), lightDirs[k].z) < 0.512) {
+        if (dot(normal, lights[k].xyz) >= 0.0 || max(max(abs(lights[k].x), abs(lights[k].y)), lights[k].z) < 0.512) {
             vec3 endPos = vxPos;
-            vec3 goalPos = vxPos + lightDirs[k];
+            vec3 goalPos = vxPos + lights[k].xyz;
             vec3 offset = hash33(vxPos * 50 + 7 * frameCounter) * 2.0 - 1.0;
-            lightDirs[k] += 0.1 * offset;
+            lights[k].xyz += 0.1 * offset;
             int goalMat = readVxMap(goalPos).mat;
-            vec4 rayColor = raytrace(endPos, lightDirs[k], ATLASTEX, true);
+            vec4 rayColor = raytrace(endPos, lights[k].xyz, ATLASTEX, true);
             int endMat = readVxMap(endPos).mat;
             float dist = max(max(abs(endPos.x - goalPos.x), abs(endPos.y - goalPos.y)), abs(endPos.z - goalPos.z));
-            if (dist < 0.512  + ((goalMat == endMat) ? 2.0 : 0.0)) {
+            if (dist < 0.5 || (lights[k].w > 1.5 && goalMat == endMat && dist < 2.5)) {
                 rayColor.rgb = length(rayColor) < 0.001 ? vec3(1.0) : rayColor.rgb;
                 float rayBrightness = max(max(rayColor.r, rayColor.g), rayColor.b);
                 rayColor.rgb /= sqrt(rayBrightness);
                 rayColor.rgb *= clamp(4 - 4 * rayColor.a, 0, 1);
+                #ifdef DEBUG_OCCLUDERS
+                if (frameCounter % 100 < 50) occlusion[k] = rayColor.rgb;
+                else occlusion[k][k] = 1.0;
+                #else
                 occlusion[k] = rayColor.rgb;
+                #endif
             } 
         }
     }
@@ -98,27 +115,22 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat) {
         bool calcNdotLs = (normal == vec3(0));
         vec3[3] lightCols;
         ivec3 lightMats;
-        #ifdef PP_BL_SHADOWS
-        vec3[3] lightDirs;
-        #endif
+        vec3 brightnesses;
         for (int k = 0; k < 3; k++) {
-            vec3 lightDir = lights[k].xyz + 0.5 - fract(vxPos);
-            #ifdef PP_BL_SHADOWS
-            lightDirs[k] = lightDir;
-            #endif
-            isHere[k] = (max(max(abs(lightDir.x), abs(lightDir.y)), abs(lightDir.z)) < 0.511);
+            lights[k].xyz += 0.5 - fract(vxPos);
+            isHere[k] = (max(max(abs(lights[k].x), abs(lights[k].y)), abs(lights[k].z)) < 0.511);
             vxData lightSourceData = readVxMap(getVxPixelCoords(vxPos + lights[k].xyz));
             //if (isHere[k]) lights[k].w -= 1;
             #if SMOOTH_LIGHTING == 2
-            lights[k].w *= isHere[k] ? 1 : intMult0;
+            brightnesses[k] *= isHere[k] ? 1 : intMult0;
             #elif SMOOTH_LIGHTING == 1
-            lights[k].w = - abs(lightDir.x) - abs(lightDir.y) - abs(lightDir.z);
+            brightnesses[k] = - abs(lights[k].x) - abs(lights[k].y) - abs(lights[k].z);
             #endif
-            ndotls[k] = ((isHere[k] && (lightSourceData.mat / 10000 * 10000 + (lightSourceData.mat % 2000) / 4 * 4 == mat || true)) || calcNdotLs) ? 1 : max(0, dot(normalize(lightDir), normal));
+            ndotls[k] = ((isHere[k] && (lightSourceData.mat / 10000 * 10000 + (lightSourceData.mat % 2000) / 4 * 4 == mat || true)) || calcNdotLs) ? 1 : max(0, dot(normalize(lights[k].xyz), normal));
             lightCols[k] = lightSourceData.lightcol * (lightSourceData.emissive ? 1.0 : 0.0);
             lightMats[k] = lightSourceData.mat;
             #if SMOOTH_LIGHTING == 1
-            lights[k].w = max(lights[k].w + lightSourceData.lightlevel, 0.0);
+            brightnesses[k] = max(brightnesses[k] + lightSourceData.lightlevel, 0.0);
             #endif
         }
         ndotls = min(ndotls * 2, 1);
@@ -151,11 +163,16 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat) {
         }
         #endif
         #ifdef PP_BL_SHADOWS
-        vec3[3] occlusionData = getOcclusion(vxPos, normal, lightDirs);
+        vec3[3] occlusionData = getOcclusion(vxPos, normal, lights);
+        #else
+        #ifdef DEBUG_OCCLUDERS
+        vec3 occlusionData0 = getOcclusion(vxPosOld, normal);
+        vec3[3] occlusionData = vec3[3](vec3(occlusionData0.x, 0, 0), vec3(0, occlusionData0.y, 0), vec3(0, 0, occlusionData0.z));
         #else
         vec3 occlusionData = getOcclusion(vxPosOld, normal);
         #endif
-        for (int k = 0; k < 3; k++) lightCol += lightCols[k] * occlusionData[k] * pow(lights[k].w * BLOCKLIGHT_STRENGTH / 20.0, BLOCKLIGHT_STEEPNESS) * ndotls[k];
+        #endif
+        for (int k = 0; k < 3; k++) lightCol += lightCols[k] * occlusionData[k] * pow(brightnesses[k] * BLOCKLIGHT_STRENGTH / 20.0, BLOCKLIGHT_STEEPNESS) * ndotls[k];
         return lightCol;
     } else return vec3(0);
 }

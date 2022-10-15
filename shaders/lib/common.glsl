@@ -205,11 +205,14 @@
     #endif
     #ifdef NETHER
         #undef ATMOSPHERIC_FOG
+        #undef SUN_SHADOWS
     #endif
     #ifdef END
         #undef BLOOM_FOG
     #endif
-
+    #ifdef SUN_SHADOWS
+        #define CAVE_SUNLIGHT_FIX
+    #endif
     #if defined GBUFFERS_TEXTURED || defined GBUFFERS_BASIC
         #undef LIGHT_HIGHLIGHT
         #undef DIRECTIONAL_SHADING
