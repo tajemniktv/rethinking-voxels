@@ -78,7 +78,7 @@ vec4 handledata(vxData data, sampler2D atlas, inout vec3 pos, vec3 dir, int n) {
     return (w0 < w1) ? (vec4(color0.xyz * color0.a, color0.a) + (1 - color0.a) * vec4(color1.xyz * color1.a, color1.a)) : (vec4(color1.xyz * color1.a, color1.a) + (1 - color1.a) * vec4(color0.xyz * color0.a, color0.a));
 }
 // voxel ray tracer
-vec4 raytrace(bool lowDetail, inout vec3 pos0, vec3 dir, inout vec3 translucentHit, sampler2D atlas, bool translucentData) {
+vec4 raytrace(bool lowDetail, inout vec3 pos0, bool doScattering, vec3 dir, inout vec3 translucentHit, sampler2D atlas, bool translucentData) {
     vec3 progress;
     for (int i = 0; i < 3; i++) {
         //set starting position in each direction
@@ -103,17 +103,27 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, vec3 dir, inout vec3 translucentH
         eyeOffsets[k] = 0.0001 * eye[k] * dirsgn[k];
     }
     vec3 pos = pos0 + invDirLenScaled * dir;
+    vec3 scatterPos = pos0;
     vec4 raycolor = vec4(0);
     vec4 oldRayColor = vec4(0);
+    const float scatteringMaxAlpha = 0.1;
     // check if stuff already needs to be done at starting position
     vxData voxeldata = readVxMap(getVxPixelCoords(pos));
+    bool isScattering = false;
     if (isInRange(pos) && voxeldata.trace && !lowDetail) {
         raycolor = handledata(voxeldata, atlas, pos, dir, i);
+        if (doScattering && raycolor.a > 0.1) isScattering = (voxeldata.mat == 10004 || voxeldata.mat == 10008 || voxeldata.mat == 10016);
+        if (doScattering && isScattering) {
+            scatterPos = pos;
+            raycolor.a = min(scatteringMaxAlpha, raycolor.a);
+        }
         raycolor.rgb *= raycolor.a;
     }
     if (raycolor.a > 0.01 && raycolor.a < 0.9) translucentHit = pos;
     int k = 0; // k is a safety iterator
-    int mat = voxeldata.mat; // for inner face culling
+    int mat = raycolor.a > 0.1 ? voxeldata.mat : 0; // for inner face culling
+    vec3 oldPos = pos;
+    bool oldFull = voxeldata.full;
     // main loop
     while (w < 1 && k < 2000 && raycolor.a < 0.99) {
         oldRayColor = raycolor;
@@ -127,15 +137,28 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, vec3 dir, inout vec3 translucentH
                     pos0 = pos + eyeOffsets[i];
                     return vec4(0, 0, 0, translucentData ? 0 : 1);
                 }
-            } else if (voxeldata.trace) {
-                vec4 newcolor = handledata(voxeldata, atlas, pos, dir, i);
-                if (dot(pos - pos0, dir) < 0.0) newcolor.a = 0;
-                bool samemat = voxeldata.mat == mat;
-                mat = (newcolor.a > 0.1) ? voxeldata.mat : 0;
-                if (samemat) newcolor.a = clamp(10.0 * newcolor.a - 9.0, 0.0, 1.0);
-                raycolor.rgb += (1 - raycolor.a) * newcolor.a * newcolor.rgb;
-                raycolor.a += (1 - raycolor.a) * newcolor.a;
-                if (oldRayColor.a < 0.01 && raycolor.a > 0.01 && raycolor.a < 0.9) translucentHit = pos;
+            } else {
+                bool newScattering = false;
+                if (voxeldata.trace) {
+                    vec4 newcolor = handledata(voxeldata, atlas, pos, dir, i);
+                    if (dot(pos - pos0, dir) < 0.0) newcolor.a = 0;
+                    bool samemat = voxeldata.mat == mat;
+                    mat = (newcolor.a > 0.1) ? voxeldata.mat : 0;
+                    if (doScattering) newScattering = (mat == 10004 || mat == 10008 || mat == 10016);
+                    if (newScattering) newcolor.a = min(newcolor.a, scatteringMaxAlpha);
+                    if (samemat) newcolor.a = clamp(10.0 * newcolor.a - 9.0, 0.0, 1.0);
+                    raycolor.rgb += (1 - raycolor.a) * newcolor.a * newcolor.rgb;
+                    raycolor.a += (1 - raycolor.a) * newcolor.a;
+                    if (oldRayColor.a < 0.01 && raycolor.a > 0.01 && raycolor.a < 0.9) translucentHit = pos;
+                }
+                if (doScattering) {
+                    if (isScattering) {
+                        scatterPos = pos;
+                    }
+                    oldFull = voxeldata.full;
+                    oldPos = pos;
+                    isScattering = newScattering;
+                }
             }
             if (!isInRange(pos, 2)) {
                 int height = int(texelFetch(colortex10, ivec2(pos.xz + floor(cameraPosition.xz) - floor(previousCameraPosition.xz) + vxRange / 2), 0).w * 65535 + 0.5) % 256 - VXHEIGHT * VXHEIGHT / 2;
@@ -157,9 +180,19 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, vec3 dir, inout vec3 translucentH
             }
         }
     }
+    float oldAlpha = raycolor.a;
+    raycolor.a = 1 - exp(-4*length(scatterPos - pos0)) * (1 - raycolor.a);
+    raycolor.rgb += raycolor.a - oldAlpha; 
     pos0 = pos;
     raycolor = (k == 2000 ? vec4(1, 0, 0, 1) : raycolor);
     return translucentData ? oldRayColor : raycolor;
+}
+vec4 raytrace(bool lowDetail, inout vec3 pos0, vec3 dir, inout vec3 translucentHit, sampler2D atlas, bool translucentData) {
+    return raytrace(lowDetail, pos0, false, dir, translucentHit, atlas, translucentData);
+}
+vec4 raytrace(inout vec3 pos0, bool doScattering, vec3 dir, sampler2D atlas) {
+    vec3 translucentHit = vec3(0);
+    return raytrace(false, pos0, doScattering, dir, translucentHit, atlas, false);
 }
 vec4 raytrace(inout vec3 pos0, vec3 dir, inout vec3 translucentHit, sampler2D atlas, bool translucentData) {
     return raytrace(false, pos0, dir, translucentHit, atlas, translucentData);

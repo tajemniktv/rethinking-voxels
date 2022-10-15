@@ -34,7 +34,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     vec3 shadowLighting = lightColor;
     vec3 nViewPos = normalize(viewPos);
     vec3 worldNormal = normalize(ViewToPlayer(normal*1000.0));
-    playerPos += 0.01 * worldNormal;
+    playerPos += 0.001 * worldNormal;
     #if PIXEL_SHADOW > 0 && !defined GBUFFERS_HAND
         playerPos = floor((playerPos + cameraPosition) * PIXEL_SHADOW + 0.001) / PIXEL_SHADOW - cameraPosition + 0.5 / PIXEL_SHADOW;
     #endif
@@ -143,9 +143,9 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
                     #endif
 */
                     #ifdef PP_SUN_SHADOWS
-                    shadowMult *= getSunLight(vxPos);
+                    shadowMult *= getSunLight(vxPos, subsurfaceMode != 0);
                     #else
-                    shadowMult *= getSunLight(previousVxPos, worldNormal);
+                    shadowMult *= getSunLight(subsurfaceMode != 0, previousVxPos, worldNormal);
                     #endif
                 }
                 #else

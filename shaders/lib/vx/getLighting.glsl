@@ -203,13 +203,12 @@ vec2 sampleShadow(sampler2D shadowMap, vec3 pos) {
 }
 */
 #ifndef PP_SUN_SHADOWS
-vec3 getSunLight(vec3 vxPos, vec3 worldNormal, bool causticMult) {
+vec3 getSunLight(bool scatter, vec3 vxPos, vec3 worldNormal, bool causticMult) {
     vec3 sunDir = getWorldSunVector();
     sunDir *= sign(sunDir.y);
     vec2 tex8size0 = vec2(textureSize(colortex8, 0));
     mat3 sunRotMat = getRotMat(sunDir);
     vec3 shadowPos = getShadowPos(vxPos, sunRotMat);
-    vec3 debugVar = vec3(0);
     float shadowLength = length(shadowPos.xy);//max(abs(shadowPos.x), abs(shadowPos.y));
     if (length(worldNormal) > 0.0001) {
         float dShadowdLength = distortShadowDeriv(shadowLength);
@@ -228,14 +227,19 @@ vec3 getSunLight(vec3 vxPos, vec3 worldNormal, bool causticMult) {
         sunData.yz = (sunData.yz - 0.5) * 1.5 * vxRange;
         int sunColor0 = int(texelFetch(colortex10, ivec2((shadowPos.xy * 0.5 + 0.5) * shadowMapResolution + shadowoffsets[k] * 0.9), 0).r * 65535 + 0.5);
         vec3 sunColor1 = vec3(sunColor0 % 16, (sunColor0 >> 4) % 16, (sunColor0 >> 8) % 16) * (causticMult ? (sunColor0 >> 12) : 4.0) / 64.0;
-        sunColor += shadowPos.z > sunData.y ? (shadowPos.z > sunData.z ? vec3(1) : sunColor1) : vec3(0.0);
-        debugVar += (sunData.y) / vxRange;
+        vec3 sunColor2 = shadowPos.z > sunData.y ? (shadowPos.z > sunData.z ? vec3(1) : sunColor1) : sunColor1 * (scatter ? max(0.7 + shadowPos.z - sunData.y, 0) : 0);
+        sunColor += sunColor2;
     #if OCCLUSION_FILTER > 0
     }
     sunColor = min(0.2 * sunColor, vec3(1.0));
     #endif
     return sunColor;
-    //return shadowPos;
+}
+vec3 getSunLight(vec3 vxPos, vec3 worldNormal, bool causticMult) {
+    return getSunLight(false, vxPos, worldNormal, causticMult);
+}
+vec3 getSunLight(bool scatter, vec3 vxPos, vec3 worldNormal) {
+    return getSunLight(scatter, vxPos, worldNormal, false);
 }
 vec3 getSunLight(vec3 vxPos, bool causticMult) {
     return getSunLight(vxPos, vec3(0), causticMult);
@@ -247,17 +251,20 @@ vec3 getSunLight(vec3 vxPos) {
     return getSunLight(vxPos, false);
 }
 #else
-vec3 getSunLight(vec3 vxPos) {
+vec3 getSunLight(vec3 vxPos, bool doScattering) {
     vec3 sunDir = getWorldSunVector();
     sunDir *= sign(sunDir.y);
     vec3 offset = hash33(vxPos * 50 + 7 * frameCounter) * 2.0 - 1.0;
-    vec4 sunColor = raytrace(vxPos, (sunDir + 0.01 * offset) * sqrt(vxRange * vxRange + VXHEIGHT * VXHEIGHT * VXHEIGHT * VXHEIGHT), ATLASTEX);
+    vec4 sunColor = raytrace(vxPos, doScattering, (sunDir + 0.01 * offset) * sqrt(vxRange * vxRange + VXHEIGHT * VXHEIGHT * VXHEIGHT * VXHEIGHT), ATLASTEX);
     const float alphaSteepness = 5.0;
     float colorMult = clamp(alphaSteepness - alphaSteepness * sunColor.a, 0, 1);
     float mixFactor = clamp(alphaSteepness * sunColor.a, 0, 1);
     sunColor.rgb = mix(vec3(1), sunColor.rgb * colorMult, mixFactor);
     sunColor.rgb /= sqrt(max(max(sunColor.r, sunColor.g), max(sunColor.b, 0.0001)));
     return sunColor.rgb;
+}
+vec3 getSunLight(vec3 vxPos) {
+    return getSunLight(vxPos, false);
 }
 #endif
 #endif
