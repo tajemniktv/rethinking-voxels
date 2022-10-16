@@ -122,9 +122,11 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat) {
             vxData lightSourceData = readVxMap(getVxPixelCoords(vxPos + lights[k].xyz));
             //if (isHere[k]) lights[k].w -= 1;
             #if SMOOTH_LIGHTING == 2
-            brightnesses[k] *= isHere[k] ? 1 : intMult0;
+            brightnesses[k] = isHere[k] ? lights[k].w : lights[k].w * intMult0;
             #elif SMOOTH_LIGHTING == 1
             brightnesses[k] = - abs(lights[k].x) - abs(lights[k].y) - abs(lights[k].z);
+            #else
+            brightnesses[k] = lights[k].w;
             #endif
             ndotls[k] = ((isHere[k] && (lightSourceData.mat / 10000 * 10000 + (lightSourceData.mat % 2000) / 4 * 4 == mat || true)) || calcNdotLs) ? 1 : max(0, dot(normalize(lights[k].xyz), normal));
             lightCols[k] = lightSourceData.lightcol * (lightSourceData.emissive ? 1.0 : 0.0);
