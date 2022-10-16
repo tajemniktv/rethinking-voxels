@@ -133,10 +133,12 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 			blSample *= translucentMult;
 		}
 		volumetricBlockLight += blSample * blSampleMult;
+		#ifdef SUN_SHADOWS
 		#ifdef OVERWORLD
 			volumetricLight += vec4(vlSample, shadowSample) * sampleMult;
 		#elif defined END
 			volumetricLight += vec4(vlSample, shadowSample) * enderBeamSample;
+		#endif
 		#endif
 	}
 
