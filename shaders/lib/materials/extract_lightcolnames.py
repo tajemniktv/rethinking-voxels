@@ -14,7 +14,7 @@ brightnessvals = {}
 currentlyInName = False
 while i < len(fshchecks):
 	if currentlyInName:
-		if fshchecks[i] in " \n":
+		if fshchecks[i] in " \n;":
 			currentlyInName = False
 			currentname = "".join(currentname)
 			try:
@@ -35,7 +35,7 @@ while i < len(fshchecks):
 			prefix = "".join(prefix[::-1])
 			suffix = []
 			n = 1
-			while not fshchecks[i + n] in " \n":
+			while not fshchecks[i + n] in "; \n":
 				suffix.append(fshchecks[i + n])
 				n += 1
 			suffix = "".join(suffix)
@@ -81,14 +81,17 @@ for n in colnames.keys():
 			thisscreenentries.append(v + brightness + n[:-4])
 			definefile.append("#define " + v + brightness + n[:-4] + " 13 //[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30]")
 	except:
+		print("No brightness values for " + n[:-4] + "-related colours!")
 		True
 	definefile.append("")
 	shadersprop.append("screen." + n + "=" + " ".join(thisscreenentries))
 shadersprop[0] += "[OTHER]"
 thisscreenentries = []
+brightnessvalsliders = []
 for n in brightnessvals.keys():
-	if not n in colnames.keys():
-		for v in brightnessvals[n]:
+	for v in brightnessvals[n]:
+		brightnessvalsliders.append(v + brightness + n[:-4])
+		if not n in colnames.keys():
 			thisscreenentries.append(v + brightness + n[:-4])
 			definefile.append("#define " + v + brightness + n[:-4] + " 13 //[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30]")
 shadersprop.append("screen.OTHER=" + " ".join(thisscreenentries))
@@ -96,5 +99,5 @@ definefile = "\n".join(definefile)
 with open("definefile.tmp", "w") as df:
 	df.write(definefile)
 print("additions to shaders.properties:\n" + "\n".join(shadersprop))
-sliders = [n + c for n in colnames.keys() for c in channels]
+sliders = [n + c for n in colnames.keys() for c in channels] + brightnessvalsliders
 print("New sliders:\n" + " ".join(sliders))
