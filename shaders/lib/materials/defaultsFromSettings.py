@@ -23,7 +23,7 @@ for k in range(1, len(sys.argv)):
     if continueNext:
         continueNext = False
         continue
-    if sys.argv[k] == "-i": inPlace = true
+    if sys.argv[k] == "-i": inPlace = True
     elif sys.argv[k] == "-s":
         if settingsFileName != "":
             print("only one settings file is supported!")
@@ -60,6 +60,14 @@ options:
  Not specifying any code files will cause all contents of the working directory to be treated as code files.
 """
     )
+if (inPlace):
+    print("Only change default values in-place if you know what you're doing. It is recommended to back up your shaderpack before changing default values in-place because this overwrites shader files.\nDo you know what you are doing? (y/N)")
+    response = input()
+    if response == "" or not response in "yY":
+        print("abort")
+        exit()
+    else:
+        suffix = ""
 if shaderFileNames == []:
     shaderFileNames = list(walkdir(cwd))
 else:
