@@ -8,11 +8,10 @@ switch (matV[0]) {
     case 10068:
         if (area < 0.8) tracemat = false;
         break;
-    /*case 10072:
-    case 10076:
-        vec3 tempPos = fract(avgPos - 0.5);
-        if (max(tempPos.x, max(tempPos.y, tempPos.z)) > 0.49) tracemat = false;
-        break;*/
+    case 10256:
+	case 30004:
+		// do texture coordinate correction here
+		break;
     case 10350:
         if (cnormal.y < 0.5) tracemat = false;
         avgPos.y -= 0.1;

@@ -12,35 +12,87 @@ const mat3 eye = mat3(
 float aabbIntersect(vxData data, vec3 pos, vec3 dir, inout int n) {
     // offset to work around floating point errors
     vec3 offset = 0.001 * eye[n] * sign(dir[n]);
+	// for connected blocks like walls, fences etc, figure out connection sides
+	bool renderMainCuboid = true;
+	bvec2 renderConnectCuboids = bvec2(false);
+	vec3[4] connectCuboids = vec3[4](
+		vec3(min(data.lower + 0.0625, 0.4375)),
+		vec3(max(data.upper - 0.0625, 0.5625)),
+		vec3(min(data.lower + 0.0625, 0.4375)),
+		vec3(max(data.upper - 0.0625, 0.5625)));
+	if (data.connectsides) {
+		for (int k = 0; k < 4; k++) {
+			connectCuboids[k].y = (k % 2 == 0) ? (abs(data.lower.x - 0.375) < 0.01 ? 0.375 : 0.0) : 0.875;
+			vec3 blockOffset = vec3(k % 2 * 2 - 1) * vec3(1 - (k >> 1), 0, k >> 1);
+			vec3 thisOffsetPos = pos + offset + blockOffset;
+			if (isInRange(thisOffsetPos)) {
+				vxData offsetData = readVxMap(thisOffsetPos);
+				if (offsetData.connectsides || (offsetData.full && !offsetData.alphatest)) {
+					connectCuboids[k][2 * (k >> 1)] = k % 2;
+					renderConnectCuboids[k >> 1] = true;
+				}
+			}
+		}
+		if (abs(data.lower.x - 0.25) < 0.01 && (renderConnectCuboids == bvec2(true, false) && connectCuboids[0].x < 0.01 && connectCuboids[1].x > 0.99) || (renderConnectCuboids == bvec2(false, true) && connectCuboids[2].z < 0.01 && connectCuboids[3].z > 0.99)) renderMainCuboid = false;
+	}
     // don't need to know global position, only relative to current block
     pos = fract(pos + offset) - offset;
-    vec3[2] bounds = vec3[2](data.lower, data.upper);
     float w = 10000;
-    for (int i = 0; i < 3; i++) {
-        if (dir[i] == 0) continue;
-        float relevantBound = bounds[dir[i] < 0 ? 1 : 0][i];
-        float w0 = (relevantBound - pos[i]) / dir[i];
-        if (w0 < -0.00005 / length(dir)) {
-            relevantBound = bounds[dir[i] < 0 ? 0 : 1][i];
-            w0 = (relevantBound - pos[i]) / dir[i];
-        }
-        vec3 newPos = pos + w0 * dir;
-        // ray-plane intersection position needs to be closer than the previous best one and further than approximately 0
-        bool valid = (w0 > -0.00005 / length(dir) && w0 < w);
-        for (int j = 1; j < 3; j++) {
-            int ij = (i + j) % 3;
-            // intersection position also needs to be within other bounds
-            if (newPos[ij] < bounds[0][ij] || newPos[ij] > bounds[1][ij]) {
-                valid = false;
-                break;
-            }
-        }
-        // update normal and ray position
-        if (valid) {
-            w = w0;
-            n = i;
-        }
-    }
+	for (int k = 0; k < 2; k++) {
+		if (renderConnectCuboids[k]) {
+			for (int i = 0; i < 3; i++) {
+				if (dir[i] == 0) continue;
+				for (int l = 0; l < 2; l++) {
+					float w0 = (connectCuboids[2 * k + l][i] - pos[i]) / dir[i];
+					// ray-plane intersection position needs to be closer than the previous best one and further than approximately 0
+					bool valid = (w0 > -0.00005 / length(dir) && w0 < w);
+					if (!valid) break;
+					vec3 newPos = pos + w0 * dir;
+					for (int j = 1; j < 3; j++) {
+						int ij = (i + j) % 3;
+						// intersection position also needs to be within other bounds
+						if (newPos[ij] < connectCuboids[2 * k][ij] || newPos[ij] > connectCuboids[2 * k + 1][ij]) {
+							valid = false;
+							break;
+						}
+					}
+					// update normal and ray position
+					if (valid) {
+						w = w0;
+						n = i;
+					}					
+				}
+			}
+		}
+	}
+	if (renderMainCuboid) {
+	vec3[2] bounds = vec3[2](data.lower, data.upper);
+		for (int i = 0; i < 3; i++) {
+			if (dir[i] == 0) continue;
+			float relevantBound = bounds[dir[i] < 0 ? 1 : 0][i];
+			float w0 = (relevantBound - pos[i]) / dir[i];
+			if (w0 < -0.00005 / length(dir)) {
+				relevantBound = bounds[dir[i] < 0 ? 0 : 1][i];
+				w0 = (relevantBound - pos[i]) / dir[i];
+			}
+			vec3 newPos = pos + w0 * dir;
+			// ray-plane intersection position needs to be closer than the previous best one and further than approximately 0
+			bool valid = (w0 > -0.00005 / length(dir) && w0 < w);
+			for (int j = 1; j < 3; j++) {
+				int ij = (i + j) % 3;
+				// intersection position also needs to be within other bounds
+				if (newPos[ij] < bounds[0][ij] || newPos[ij] > bounds[1][ij]) {
+					valid = false;
+					break;
+				}
+			}
+			// update normal and ray position
+			if (valid) {
+				w = w0;
+				n = i;
+			}
+		}
+	}
     return w;
 }
 // returns color data of the block at pos, when hit by ray in direction dir

@@ -21,14 +21,16 @@ layout(triangle_strip, max_vertices = 3) out;
 
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
+uniform ivec2 atlasSize;
 
 #include "/lib/vx/voxelMapping.glsl"
 
 const vec2[3] offsets = vec2[3](vec2(-1.0, -1.0), vec2(0.0, 1.0), vec2(1.0, -1.0));
 
 void main() {
-    vec3 avgPos = (posV[0] + posV[1] + posV[2]) / 3.0;
+    vec3 avgPos = 0.5 * (max(max(posV[0], posV[1]), posV[2]) + min(min(posV[0], posV[1]), posV[2]));//(posV[0] + posV[1] + posV[2]) / 3.0;
     vec3 cnormal = cross(posV[0] - posV[1], posV[0] - posV[2]);
+	vec2 texCoordOffset = vec2(0);
     float area = length(cnormal);
     cnormal = normalize(cnormal);
     avgPos += fract(cameraPosition);
@@ -39,7 +41,7 @@ void main() {
     if (max(abs(avgPos.x), abs(avgPos.z)) < vxRange / 2 && abs(avgPos.y) < VXHEIGHT * VXHEIGHT / 2 && tracemat) {
         vec2 coord = getVxCoords(avgPos);
         for (int i = 0; i < 3; i++) {
-            texCoord = texCoordV[i];
+            texCoord = texCoordV[i] + texCoordOffset;
             lmCoord = lmCoordV[i];
             normal = cnormal;
             vertexCol = vertexColV[i];

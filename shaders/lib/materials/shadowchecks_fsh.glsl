@@ -2,6 +2,7 @@
 
 // needs bool emissive, alphatest, crossmodel, cuboid, full, entity; vec3 lightcol; ivec3[2] bounds (in 1/16 blocks); int mat
 
+connectSides = false;
 //entities
 entity = (mat / 10000 == 5);
 //exclude from ray tracing
@@ -914,6 +915,7 @@ cuboid = (
     mat == 10402 ||
     mat == 10403 ||
     (mat > 10416 && mat < 10420) ||
+	mat == 12416 ||
     (mat > 10420 && mat < 10424) ||
     (mat > 10428 && mat < 10432) ||
     (mat > 10440 && mat < 10444) ||
@@ -952,6 +954,7 @@ cuboid = (
     (mat >= 10720 && mat < 10724) ||
     mat == 10728 ||
     (mat >= 10740 && mat < 10749) ||
+	mat == 30004 ||
     mat == 31000 ||
     mat == 31016 ||
     mat == 60008 ||
@@ -989,6 +992,8 @@ if (cuboid) {
             bounds[1].y = 15;
             break;
         case 10256:
+		case 30004:
+			connectSides = true;
             bounds[0] = ivec3(7, 0, 7);
             bounds[1] = ivec3(9, 16, 9);
             break;
@@ -1008,6 +1013,10 @@ if (cuboid) {
             bounds[0] = ivec3(3, 0, 3);
             bounds[1] = ivec3(13, 6, 13);
             break;
+		case 12416:
+			connectSides = true;
+			bounds[0].xz = ivec2(6);
+			bounds[1].xz = ivec2(10);
         case 10488:
             bounds[0] = ivec3(3, 0, 3);
             bounds[1] = ivec3(13, 1, 13);
@@ -1178,9 +1187,45 @@ if (cuboid) {
                         bounds[0].y = 8;
                         break;
                     case 3:
-                        bounds[0].xz = ivec2(6);
-                        bounds[1].xz = ivec2(10);
-                        break;
+						switch (mat) {
+							case 10035:
+							case 10087:
+							case 10091:
+							case 10095:
+							case 10107:
+							case 10111:
+							case 10115:
+							case 10155:
+							case 10243:
+							case 10247:
+							case 10419:
+							case 10423:
+							case 10431:
+							case 10443:
+							case 10483:
+								connectSides = true;
+								bounds[0].xz = ivec2(4);
+								bounds[1].xz = ivec2(12);
+								break;
+							case 10159:
+							case 10167:
+							case 10175:
+							case 10183:
+							case 10191:
+							case 10199:
+							case 10207:
+							case 10215:
+							case 10223:
+								connectSides = true;
+								bounds[0].xz = ivec2(6);
+								bounds[1].xz = ivec2(10);
+								break;
+							default:
+								bounds[0].xz = ivec2(6);
+								bounds[1].xz = ivec2(10);
+								break;
+						}
+						break;
                 }
             } else if ((mat % 10000) / 2000 == 1) {
                 if (mat % 4 == 1) bounds[0].y = 13;

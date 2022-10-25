@@ -17,6 +17,7 @@ struct vxData {
     bool alphatest;
     bool emissive;
     bool crossmodel;
+	bool connectsides;
 };
 
 //read data from the voxel map (excluding flood fill data)
@@ -39,6 +40,7 @@ vxData readVxMap(ivec2 coords) {
         data.crossmodel = false;
         data.spritesize = 0;
         data.lightlevel = 0;
+		data.connectsides = false;
     } else {
         data.lightcol = vec3(data0.x % 256, data0.x >> 8, data0.y % 256) / 255;
         data.texcoord = vec2(16 * (data0.y >> 8) + data0.z % 16, data0.z / 16) / 4095;
@@ -52,6 +54,7 @@ vxData readVxMap(ivec2 coords) {
         data.trace = ((type >> 5) % 2 == 0 && data0.w != 65535);
         data.emissive = ((type >> 3) % 2 == 1);
         data.crossmodel = ((type >> 1) % 2 == 1);
+		data.connectsides = ((type >> 6) % 2 == 1);
         data.spritesize = pow(2, data1.z % 16);
         data.lightlevel = (data1.z >> 4) % 128;
     }
