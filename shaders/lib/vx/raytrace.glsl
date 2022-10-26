@@ -33,7 +33,7 @@ float aabbIntersect(vxData data, vec3 pos, vec3 dir, inout int n) {
 				}
 			}
 		}
-		if (abs(data.lower.x - 0.25) < 0.01 && (renderConnectCuboids == bvec2(true, false) && connectCuboids[0].x < 0.01 && connectCuboids[1].x > 0.99) || (renderConnectCuboids == bvec2(false, true) && connectCuboids[2].z < 0.01 && connectCuboids[3].z > 0.99)) renderMainCuboid = false;
+		if (abs(data.lower.x - 0.25) < 0.01 && ((renderConnectCuboids == bvec2(true, false) && connectCuboids[0].x < 0.01 && connectCuboids[1].x > 0.99) || (renderConnectCuboids == bvec2(false, true) && connectCuboids[2].z < 0.01 && connectCuboids[3].z > 0.99))) renderMainCuboid = false;
 	}
     // don't need to know global position, only relative to current block
     pos = fract(pos + offset) - offset;
