@@ -93,10 +93,10 @@ emissive = (
     mat == 10356 || // lapis ore
     mat == 10360 ||
     mat == 10612 || // redstone ore
-    mat == 10616 ||
     mat == 10620 ||
-    mat == 10624 ||
 #endif
+    mat == 10616 || // lit redstone ore
+    mat == 10624 ||
 #ifdef GLOWING_MINERAL_BLOCKS
     mat == 10336 || // emerald block
     mat == 10352 || // lapis block
