@@ -23,9 +23,8 @@ void main() {
     posV = (shadowModelViewInverse * pos0).xyz + 0.0001 * at_midBlock;
     gl_Position = gl_ProjectionMatrix * pos0;
     gl_Position /= gl_Position.w;
-    texCoordV = mc_midTexCoord;
-    vec2 texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-    vec2 spriteSize = atlasSize * abs(texCoord - texCoordV);
+    texCoordV = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+    vec2 spriteSize = atlasSize * abs(texCoordV - mc_midTexCoord);
     spriteSizeV = int(max(spriteSize.x, spriteSize.y) + 0.5);
     lmCoordV = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
     normalV = mat3(shadowProjectionInverse) * (gl_NormalMatrix * gl_Normal).xyz;

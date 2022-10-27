@@ -8,10 +8,6 @@ switch (matV[0]) {
     case 10068:
         if (area < 0.8) tracemat = false;
         break;
-    case 10256:
-	case 30004:
-		// do texture coordinate correction here
-		break;
     case 10350:
         if (cnormal.y < 0.5) tracemat = false;
         avgPos.y -= 0.1;

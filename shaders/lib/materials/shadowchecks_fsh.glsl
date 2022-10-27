@@ -60,6 +60,7 @@ alphatest = (
     mat == 10221 ||
     mat == 12221 ||
     (mat >= 14156 && mat < 14224) ||
+    mat == 10256 ||
     (mat >= 14260 && mat < 14264) ||
     mat == 10265 ||
     mat == 12265 ||
@@ -955,6 +956,7 @@ cuboid = (
     mat == 10728 ||
     (mat >= 10740 && mat < 10749) ||
 	mat == 30004 ||
+    mat == 31012 ||
     mat == 31000 ||
     mat == 31016 ||
     mat == 60008 ||
@@ -993,6 +995,7 @@ if (cuboid) {
             break;
         case 10256:
 		case 30004:
+        case 31012:
 			connectSides = true;
             bounds[0] = ivec3(7, 0, 7);
             bounds[1] = ivec3(9, 16, 9);

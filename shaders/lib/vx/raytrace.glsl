@@ -22,7 +22,7 @@ float aabbIntersect(vxData data, vec3 pos, vec3 dir, inout int n) {
 		vec3(max(data.upper - 0.0625, 0.5625)));
 	if (data.connectsides) {
 		for (int k = 0; k < 4; k++) {
-			connectCuboids[k].y = (k % 2 == 0) ? (abs(data.lower.x - 0.375) < 0.01 ? 0.375 : 0.0) : 0.875;
+			connectCuboids[k].y = (k % 2 == 0) ? (abs(data.lower.x - 0.375) < 0.01 ? 0.375 : 0.0) : (abs(data.lower.x - 0.25) < 0.01 ? 0.875 : (abs(data.lower.x - 0.375) < 0.01 ? 0.9375 : 1.0));
 			vec3 blockOffset = vec3(k % 2 * 2 - 1) * vec3(1 - (k >> 1), 0, k >> 1);
 			vec3 thisOffsetPos = pos + offset + blockOffset;
 			if (isInRange(thisOffsetPos)) {
