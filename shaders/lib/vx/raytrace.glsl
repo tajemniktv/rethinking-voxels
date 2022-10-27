@@ -27,7 +27,7 @@ float aabbIntersect(vxData data, vec3 pos, vec3 dir, inout int n) {
 			vec3 thisOffsetPos = pos + offset + blockOffset;
 			if (isInRange(thisOffsetPos)) {
 				vxData offsetData = readVxMap(thisOffsetPos);
-				if (offsetData.connectsides || (offsetData.full && !offsetData.alphatest)) {
+				if ((offsetData.connectsides && !(abs(offsetData.lower.x - 0.375) < 0.01 ^^ abs(data.lower.x - 0.375) < 0.01)) || (offsetData.full && !offsetData.alphatest)) {
 					connectCuboids[k][2 * (k >> 1)] = k % 2;
 					renderConnectCuboids[k >> 1] = true;
 				}
