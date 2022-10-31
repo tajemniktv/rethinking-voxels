@@ -53,6 +53,7 @@ uniform sampler2D depthtex1;
 	uniform mat4 gbufferProjection;
 	uniform mat4 gbufferModelViewInverse;
 	uniform mat4 shadowModelView;
+	uniform mat4 shadowModelViewInverse;
 	uniform mat4 shadowProjection;
 
 	uniform sampler2D colortex3;
@@ -68,6 +69,8 @@ uniform sampler2D depthtex1;
 	float sunFactor = SdotU < 0.0 ? clamp(SdotU + 0.375, 0.0, 0.75) / 0.75 : clamp(SdotU + 0.03125, 0.0, 0.0625) / 0.0625;
 #endif
 
+vec2 view = vec2(viewWidth, viewHeight);
+
 #if LIGHTSHAFT_QUALITY > 0 && (defined OVERWORLD || defined END)
 	float sunVisibility = clamp(SdotU + 0.0625, 0.0, 0.125) / 0.125;
 	float sunVisibility2 = sunVisibility * sunVisibility;
@@ -75,8 +78,6 @@ uniform sampler2D depthtex1;
 	float shadowTimeVar2 = shadowTimeVar1 * shadowTimeVar1;
 	float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 	float vlTime = min(abs(SdotU) - 0.05, 0.15) / 0.15;
-
-	vec2 view = vec2(viewWidth, viewHeight);
 	
 	#ifdef OVERWORLD
 		vec3 lightVec = sunVec * ((timeAngle < 0.5325 || timeAngle > 0.9675) ? 1.0 : -1.0);
@@ -114,28 +115,25 @@ void main() {
 		vec3 translucentMult = texelFetch(colortex3, texelCoord, 0).rgb;
 		if (translucentMult == vec3(0.0)) translucentMult = vec3(1.0);
 
-			vec4 screenPos = vec4(texCoord, z1, 1.0);
-			vec4 viewPos = gbufferProjectionInverse * (screenPos * 2.0 - 1.0);
-			viewPos /= viewPos.w;
-			float lViewPos = length(viewPos.xyz);
-			vec3 nViewPos = normalize(viewPos.xyz);
-			#if defined OVERWORLD || defined END
-			float VdotL = dot(nViewPos, lightVec);
-			float VdotU = dot(nViewPos, upVec);
-
-			float dither = texture2D(noisetex, texCoord * view / 128.0).b;
-			#ifdef TAA
-				dither = fract(dither + 1.61803398875 * mod(float(frameCounter), 3600.0));
-			#endif
-
-			volumetricLight = GetVolumetricLight(vlFactorM, translucentMult, lViewPos, nViewPos, VdotL, VdotU, texCoord, z0, z1, dither);
+		vec4 screenPos = vec4(texCoord, z1, 1.0);
+		vec4 viewPos = gbufferProjectionInverse * (screenPos * 2.0 - 1.0);
+		viewPos /= viewPos.w;
+		float lViewPos = length(viewPos.xyz);
+		vec3 nViewPos = normalize(viewPos.xyz);
+		#if defined OVERWORLD || defined END
+		float VdotL = dot(nViewPos, lightVec);
+		#else
+		float VdotL = 0.0;
 		#endif
-		float dither = texture2D(noisetex, texCoord * vec2(viewWidth, viewHeight) / 128.0).b;
+		float VdotU = dot(nViewPos, upVec);
+
+		float dither = texture2D(noisetex, texCoord * view / 128.0).b;
 		#ifdef TAA
 			dither = fract(dither + 1.61803398875 * mod(float(frameCounter), 3600.0));
 		#endif
 
-		volumetricLight = GetVolumetricLight(vlFactorM, translucentMult, lViewPos, nViewPos, 0.0, 0.0, texCoord, z0, z1, dither);
+		volumetricLight = GetVolumetricLight(vlFactorM, translucentMult, lViewPos, nViewPos, VdotL, VdotU, texCoord, z0, z1, dither);
+
 	#endif
 	
 	if (isEyeInWater == 1) {
