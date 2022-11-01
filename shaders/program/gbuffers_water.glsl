@@ -84,10 +84,6 @@ uniform sampler2D tex;
 	uniform float isRainy;
 #endif
 
-#ifdef GENERATED_NORMALS
-	uniform ivec2 atlasSize;
-#endif
-
 #ifdef CLOUD_SHADOWS
 	uniform sampler2D gaux3;
 #endif

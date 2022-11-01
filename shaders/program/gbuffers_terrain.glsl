@@ -60,10 +60,6 @@ uniform sampler2D tex;
 	uniform float isRainy;
 #endif
 
-#if defined GENERATED_NORMALS || defined COATED_TEXTURES
-	uniform ivec2 atlasSize;
-#endif
-
 #ifdef CLOUD_SHADOWS
 	uniform sampler2D gaux3;
 #endif
