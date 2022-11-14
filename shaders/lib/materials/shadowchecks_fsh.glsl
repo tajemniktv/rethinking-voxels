@@ -551,7 +551,7 @@ if (emissive) {
             lightlevel = BLOCK_BRIGHTNESS_EMERALD;
             break;
         case 10352: // lapis block
-            lightlevel = BLOCK_BRIGHTNESS_LAPIS
+            lightlevel = BLOCK_BRIGHTNESS_LAPIS;
             break;
         case 10608: // redstone block
             lightlevel = BLOCK_BRIGHTNESS_REDSTONE;
