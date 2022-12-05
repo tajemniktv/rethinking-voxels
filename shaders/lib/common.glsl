@@ -34,7 +34,7 @@
     #define BLOCKLIGHT_SHAFT_STRENGTH 0.5 //[0.01 0.02 0.03 0.05 0.07 0.1 0.15 0.2 0.25 0.3 0.4 0.5 0.7 1.0 1.2 1.5 2 2.5 3]
 
     #define OCCLUSION_FILTER 1 //[0 1 2]
-    #define SMOOTH_LIGHTING 1 //[0 1 2]
+    #define SMOOTH_LIGHTING 1 //[0 1]
   //#define PP_BL_SHADOWS
   //#define PP_SUN_SHADOWS
     #define SUN_SHADOWS
