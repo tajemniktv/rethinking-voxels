@@ -74,6 +74,7 @@ alphatest = (
 );
 //light sources
 emissive = (
+    mat == 1234  || // generic light source
     mat == 10056 || // lava cauldron
     mat == 10068 || // lava
     mat == 10072 || // fire
@@ -494,6 +495,9 @@ if (emissive) {
             break;
     }
     switch (mat) {
+        case 1234:
+            lightlevel = int(24 * lmCoord.x);
+            break;
         case 10056: // lava cauldron
             lightlevel = CAULDRON_BRIGHTNESS_LAVA;
             break;
