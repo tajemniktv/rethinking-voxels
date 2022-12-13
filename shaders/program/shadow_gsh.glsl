@@ -65,6 +65,7 @@ void main() {
             pos = avgPos0;
             mat = matV[i];
             spriteSize = spriteSizeV[i];
+            // using vertexID for the offset fixes translucent rendering on optifine, thanks to GeforceLegend for telling me that
             gl_Position = vec4(coord * 2 - vec2(1) + offsets[vertexID[i]%4] / shadowMapResolution, zpos, 1);
             EmitVertex();
         }
