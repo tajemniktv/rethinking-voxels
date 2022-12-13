@@ -4,6 +4,7 @@ in vec2[3] texCoordV;
 in vec2[3] lmCoordV;
 in vec4[3] vertexColV;
 in vec3[3] posV;
+flat in int[3] vertexID;
 flat in int[3] spriteSizeV;
 flat in int[3] matV;
 
@@ -25,7 +26,7 @@ uniform ivec2 atlasSize;
 
 #include "/lib/vx/voxelMapping.glsl"
 
-const vec2[3] offsets = vec2[3](vec2(-1.0, -1.0), vec2(0.0, 1.0), vec2(1.0, -1.0));
+const vec2[4] offsets = vec2[4](vec2(-1.0, -1.0), vec2(1.0, -1.0), vec2(1.0, 1.0), vec2(-1.0, 1.0));
 
 void main() {
     vec3 avgPos = 0.5 * (max(max(posV[0], posV[1]), posV[2]) + min(min(posV[0], posV[1]), posV[2]));//(posV[0] + posV[1] + posV[2]) / 3.0;
@@ -64,7 +65,7 @@ void main() {
             pos = avgPos0;
             mat = matV[i];
             spriteSize = spriteSizeV[i];
-            gl_Position = vec4(coord * 2 - vec2(1) + offsets[i] / shadowMapResolution, zpos, 1);
+            gl_Position = vec4(coord * 2 - vec2(1) + offsets[vertexID[i]%4] / shadowMapResolution, zpos, 1);
             EmitVertex();
         }
         EndPrimitive();

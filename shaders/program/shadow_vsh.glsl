@@ -5,6 +5,7 @@ out vec2 lmCoordV;
 out vec3 normalV;
 out vec4 vertexColV;
 out vec3 posV;
+flat out int vertexID;
 flat out int spriteSizeV;
 flat out int matV;
 
@@ -29,5 +30,6 @@ void main() {
     lmCoordV = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
     normalV = mat3(shadowProjectionInverse) * (gl_NormalMatrix * gl_Normal).xyz;
     vertexColV = gl_Color;
+    vertexID = gl_VertexID;
     matV = max(int(mc_Entity.x + 0.5), max(entityId, blockEntityId));
 }
