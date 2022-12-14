@@ -86,11 +86,16 @@ void main() {
 #ifdef ADVANCED_LIGHT_TRACING
                 int aroundChanged = aroundData0[k].x % 256;
                 changed = max(aroundChanged - 1, changed);
-#endif
             } else {
                 aroundData0[k] = ivec4(0);
                 aroundData1[k] = ivec4(0);
             }
+#else
+            } else {
+                aroundData0[k] = ivec4(0, 0, 0, 127);
+                aroundData1[k] = ivec4(0, 0, 0, 127);
+            }
+#endif
         }
 #ifdef ADVANCED_LIGHT_TRACING
         // copy data so it is written back to the buffer if unchanged
@@ -149,7 +154,7 @@ void main() {
 #else
         vec3 colMult = vec3(1);
         if (blockData.full && !blockData.alphatest && !blockData.emissive) dataToWrite0.w = 0;
-        else if (blockData.cuboid) {
+        else if (blockData.cuboid && !blockData.emissive) {
             dataToWrite0.w = 0;
             for (int k = 1; k < 7; k++) {
                 if ((blockData.lower[(k-1)%3] < 0.05 && k < 4) || (blockData.upper[(k-1)%3] > 0.95 && k >= 4)) {
@@ -160,7 +165,7 @@ void main() {
                     if (!seals) dataToWrite0.w += 1<<(k-1);
                 } else dataToWrite0.w += 1<<k-1;
             }
-        } else if (blockData.alphatest) {
+        } else if (blockData.alphatest && !blockData.emissive) {
             vec4 texCol = texture2DLod(colortex15, blockData.texcoord, 2);
             if (texCol.a < 0.2) {
                 dataToWrite0.w = 127;

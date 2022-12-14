@@ -119,9 +119,7 @@ value.VXHEIGHT.8=64 Blocks
 value.VXHEIGHT.12=144 Blocks
 value.VXHEIGHT.16=256 Blocks
 
-option.ADVANCED_LIGHT_TRACING=Light Propagation Mode
-value.ADVANCED_LIGHT_TRACING.true=Advanced
-value.ADVANCED_LIGHT_TRACING.false=Basic
+option.ADVANCED_LIGHT_TRACING=Advanced Light Propagation
 
 option.PP_BL_SHADOWS=Pixel Perfect Blocklight Shadows
 option.PP_BL_SHADOWS.comment=Perform blocklight occlusion check for every pixel rather than making an occlusion map in the voxel volume. High performance impact.
