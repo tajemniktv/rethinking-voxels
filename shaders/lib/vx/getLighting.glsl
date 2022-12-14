@@ -27,6 +27,7 @@ uniform sampler2D colortex10;
 #include "/lib/vx/raytrace.glsl"
 vec2 tex8size0 = vec2(textureSize(colortex8, 0));
 //#define DEBUG_OCCLUDERS
+#ifdef ADVANCED_LIGHT_TRACING
 #ifndef PP_BL_SHADOWS
 vec3 getOcclusion(vec3 vxPos, vec3 normal) {
     int k = 0;
@@ -178,6 +179,27 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat) {
         return lightCol;
     } else return vec3(0);
 }
+#else
+vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat) {
+    vxPos += normal;
+    vec3 lightCol = vec3(0);
+    float totalInt = 0.0001;
+    vec3 vxPosOld = vxPos + floor(cameraPosition) - floor(previousCameraPosition);
+    vec3 floorPos = floor(vxPosOld);
+    vec3 offsetDir = sign(fract(vxPos) - 0.5);
+    for (int k = 0; k < 8; k++) {
+        vec3 offset = vec3(k%2, (k>>1)%2, (k>>2)%2);
+        vec3 cornerPos = floorPos + offset * offsetDir + 0.5;
+        if (!isInRange(cornerPos)) continue;
+        ivec2 cornerVxCoordsFF = getVxPixelCoords(cornerPos);
+        vec4 cornerLightData0 = texelFetch(colortex8, cornerVxCoordsFF, 0);
+        float intMult = (1 - abs(cornerPos.x - vxPosOld.x)) * (1 - abs(cornerPos.y - vxPosOld.y)) * (1 - abs(cornerPos.z - vxPosOld.z));
+        lightCol += intMult * cornerLightData0.xyz;
+        totalInt += intMult;
+    }
+    return 4 * lightCol;// / totalInt;
+}
+#endif
 
 vec3 getBlockLight(vec3 vxPos) {
     return getBlockLight(vxPos, vec3(0), 0);

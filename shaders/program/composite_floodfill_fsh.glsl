@@ -20,6 +20,8 @@ uniform sampler2D shadowcolor0;
 #define SHADOWCOL1
 uniform sampler2D shadowcolor1;
 #endif
+uniform sampler2D colortex15; // texture atlas
+ivec2 atlasSize = textureSize(colortex15, 0);
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
 
@@ -55,6 +57,7 @@ void main() {
         bool previouslyInRange = length(oldPos - pos) > 0.5 ? isInRange(oldPos, 1) : true;
         ivec4[7] aroundData0;
         ivec4[7] aroundData1;
+#ifdef ADVANCED_LIGHT_TRACING
         int changed;
         if (previouslyInRange) {
             ivec2 oldCoords = getVxPixelCoords(oldPos);
@@ -73,19 +76,23 @@ void main() {
             mathash = newhash;
         }
         //check for changes in surrounding voxels and propagate them
+#endif
         for (int k = 1; k < 7; k++) {
             vec3 aroundPos = oldPos + offsets[k];
             if (isInRange(aroundPos)) {
                 ivec2 aroundCoords = getVxPixelCoords(aroundPos);
                 aroundData0[k] = ivec4(texelFetch(colortex8, aroundCoords, 0) * 65535 + 0.5);
                 aroundData1[k] = ivec4(texelFetch(colortex9, aroundCoords, 0) * 65535 + 0.5);
+#ifdef ADVANCED_LIGHT_TRACING
                 int aroundChanged = aroundData0[k].x % 256;
                 changed = max(aroundChanged - 1, changed);
+#endif
             } else {
                 aroundData0[k] = ivec4(0);
                 aroundData1[k] = ivec4(0);
             }
         }
+#ifdef ADVANCED_LIGHT_TRACING
         // copy data so it is written back to the buffer if unchanged
         dataToWrite0.xzw = aroundData0[0].xzw;
         dataToWrite0.y = int(texelFetch(colortex8, getVxPixelCoords(pos), 0).y * 65535 + 0.5);
@@ -139,6 +146,43 @@ void main() {
                 sources[2].x + (sources[2].y << 8),
                 sources[2].z + (sources[2].w << 8));
         }
+#else
+        vec3 colMult = vec3(1);
+        if (blockData.full && !blockData.alphatest && !blockData.emissive) dataToWrite0.w = 0;
+        else if (blockData.cuboid) {
+            dataToWrite0.w = 0;
+            for (int k = 1; k < 7; k++) {
+                if ((blockData.lower[(k-1)%3] < 0.05 && k < 4) || (blockData.upper[(k-1)%3] > 0.95 && k >= 4)) {
+                    bool seals = true;
+                    for (int i = k%3; i != (k-1)%3; i = (i+1)%3) {
+                        if (blockData.lower[i] > 0.05 || blockData.upper[i] < 0.95) seals = false;
+                    }
+                    if (!seals) dataToWrite0.w += 1<<(k-1);
+                } else dataToWrite0.w += 1<<k-1;
+            }
+        } else if (blockData.alphatest) {
+            vec4 texCol = texture2DLod(colortex15, blockData.texcoord, 2);
+            if (texCol.a < 0.2) {
+                dataToWrite0.w = 127;
+            } else if (texCol.a < 0.8) {
+                dataToWrite0.w = 127;
+                colMult = 1 - texCol.a + texCol.a * texCol.rgb;
+            } else dataToWrite0.w = 0;
+        } else dataToWrite0.w = 127;
+        if (!blockData.emissive) {
+            vec3 col = vec3(0);
+            float propSum = 0.0001;
+            for (int k = 1; k < 7; k++) {
+                int propData = ((aroundData0[k].w >> (k-1))%2) * ((dataToWrite0.w >> ((k+2)%6))%2);
+                col += vec3(aroundData0[k].xyz * propData) / 65535;
+                propSum += propData;
+            }
+            col *= colMult / propSum;
+            col *= FF_PROP_MUL * max(0.0, (length(col) - FF_PROP_SUB) / (length(col) + 0.0001));
+            //if (length(col) > 5) col = vec3(0);
+            dataToWrite0.xyz = ivec3(col * 65535.0);
+        } else dataToWrite0.xyz = ivec3(65535.0 * blockData.lightcol * blockData.lightlevel / 32.0);
+#endif
     //}
     /*RENDERTARGETS:8,9*/
     gl_FragData[0] = vec4(dataToWrite0) / 65535.0;

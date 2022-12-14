@@ -47,6 +47,10 @@
     #define VBL_NETHER_MULT 2.0 //[1.0 1.2 1.5 1.7 2.0 2.5 3.0 4.0]
     #define VBL_END_MULT 2.0 //[1.0 1.2 1.5 1.7 2.0 2.5 3.0 4.0]
 
+    #define ADVANCED_LIGHT_TRACING
+    #define FF_PROP_MUL 0.999
+    #define FF_PROP_SUB 0.001
+
     #if SHADOWRES == 512
         #if (VXHEIGHT == 4)
             const float shadowDistance = 64.0;

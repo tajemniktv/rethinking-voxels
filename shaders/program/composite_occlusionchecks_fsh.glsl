@@ -102,6 +102,7 @@ void main() {
             dataToWrite1.g = int((0.5 + dot(sunPos, sunMoonDir) / (1.5  * vxRange)) * 65535 + 0.5);
             dataToWrite1.b = int((0.5 + dot(transPos.y > -9999 ? transPos : sunPos, sunMoonDir) / (1.5  * vxRange)) * 65535 + 0.5);
         #endif
+        #ifdef ADVANCED_LIGHT_TRACING
         int newOcclusionData = 0;
         // do occlusion checks at different zoom levels
         for (int k = 0; k < OCCLUSION_CASCADE_COUNT; k++) {
@@ -152,6 +153,7 @@ void main() {
         }
         //write data
         dataToWrite0.y = newOcclusionData;
+        #endif
     }
     /*RENDERTARGETS:8,10*/
     gl_FragData[0] = vec4(dataToWrite0) / 65535.0;
