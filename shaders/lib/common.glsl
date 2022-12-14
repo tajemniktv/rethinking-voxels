@@ -50,6 +50,7 @@
     #define ADVANCED_LIGHT_TRACING
     #define FF_PROP_MUL 0.9999
     #define FF_PROP_SUB 0.0001
+    #define BFF_ABSORBTION_AMOUNT 0.05
 
     #if SHADOWRES == 512
         #if (VXHEIGHT == 4)

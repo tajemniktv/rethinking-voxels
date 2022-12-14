@@ -89,13 +89,12 @@ void main() {
             } else {
                 aroundData0[k] = ivec4(0);
                 aroundData1[k] = ivec4(0);
-            }
 #else
             } else {
                 aroundData0[k] = ivec4(0, 0, 0, 127);
                 aroundData1[k] = ivec4(0, 0, 0, 127);
-            }
 #endif
+            }
         }
 #ifdef ADVANCED_LIGHT_TRACING
         // copy data so it is written back to the buffer if unchanged
@@ -154,6 +153,15 @@ void main() {
 #else
         vec3 colMult = vec3(1);
         if (blockData.full && !blockData.alphatest && !blockData.emissive) dataToWrite0.w = 0;
+        else if (blockData.alphatest && !blockData.emissive) {
+            vec4 texCol = texture2DLod(colortex15, blockData.texcoord, 2);
+            if (texCol.a < 0.2) {
+                dataToWrite0.w = 127;
+            } else if (texCol.a < 0.8) {
+                dataToWrite0.w = 127;
+                colMult = 1 - texCol.a + texCol.a * texCol.rgb;
+            } else dataToWrite0.w = 0;
+        }
         else if (blockData.cuboid && !blockData.emissive) {
             dataToWrite0.w = 0;
             for (int k = 1; k < 7; k++) {
@@ -165,14 +173,6 @@ void main() {
                     if (!seals) dataToWrite0.w += 1<<(k-1);
                 } else dataToWrite0.w += 1<<k-1;
             }
-        } else if (blockData.alphatest && !blockData.emissive) {
-            vec4 texCol = texture2DLod(colortex15, blockData.texcoord, 2);
-            if (texCol.a < 0.2) {
-                dataToWrite0.w = 127;
-            } else if (texCol.a < 0.8) {
-                dataToWrite0.w = 127;
-                colMult = 1 - texCol.a + texCol.a * texCol.rgb;
-            } else dataToWrite0.w = 0;
         } else dataToWrite0.w = 127;
         if (!blockData.emissive) {
             vec3 col = vec3(0);
@@ -182,7 +182,7 @@ void main() {
                 col += vec3(aroundData0[k].xyz * propData) / 65535;
                 propSum += propData;
             }
-            col *= colMult / propSum;
+            col *= colMult / mix(propSum, 6.0, BFF_ABSORBTION_AMOUNT);
             col *= FF_PROP_MUL * max(0.0, (length(col) - FF_PROP_SUB) / (length(col) + 0.0001));
             //if (length(col) > 5) col = vec3(0);
             dataToWrite0.xyz = ivec3(col * 65535.0);
