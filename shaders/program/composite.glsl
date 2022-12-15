@@ -122,10 +122,11 @@ void main() {
 		vec3 nViewPos = normalize(viewPos.xyz);
 		#if defined OVERWORLD || defined END
 		float VdotL = dot(nViewPos, lightVec);
+		float VdotU = dot(nViewPos, upVec);
 		#else
 		float VdotL = 0.0;
+		float VdotU = 0.0;
 		#endif
-		float VdotU = dot(nViewPos, upVec);
 
 		float dither = texture2D(noisetex, texCoord * view / 128.0).b;
 		#ifdef TAA
