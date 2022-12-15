@@ -197,7 +197,7 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat) {
         lightCol += intMult * cornerLightData0.xyz;
         totalInt += intMult;
     }
-    return 4 * lightCol;// / totalInt;
+    return 2 * lightCol;// / totalInt;
 }
 #endif
 

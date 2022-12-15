@@ -180,10 +180,12 @@ void main() {
             float propSum = 0.0001;
             for (int k = 1; k < 7; k++) {
                 int propData = ((aroundData0[k].w >> (k-1))%2) * ((dataToWrite0.w >> ((k+2)%6))%2);
-                col += vec3(aroundData0[k].xyz * propData) / 65535;
+                vec3 col0 = vec3(aroundData0[k].xyz * propData) / 65535;
+                col += col0 * col0;
                 propSum += propData;
             }
-            col *= colMult / mix(propSum, 6.0, BFF_ABSORBTION_AMOUNT);
+            col /= mix(propSum, 6.0, BFF_ABSORBTION_AMOUNT);
+            col = colMult * sqrt(col);
             col *= FF_PROP_MUL * max(0.0, (length(col) - FF_PROP_SUB) / (length(col) + 0.0001));
             //if (length(col) > 5) col = vec3(0);
             dataToWrite0.xyz = ivec3(col * 65535.0);
