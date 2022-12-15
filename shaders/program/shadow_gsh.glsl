@@ -36,11 +36,12 @@ void main() {
     avgPos += fract(cameraPosition);
     vec3 avgPos0 = avgPos;
     bool tracemat = true;
+    bool doCuboidTexCoordCorrection = true;
     float zpos = 0.5 - sqrt(area) - 0.02 * fract(avgPos.y + 0.01) - 0.01 * fract(avgPos.x + 0.01)- 0.015 * fract(avgPos.z + 0.01) - 0.2 * cnormal.y;
     #include "/lib/materials/shadowchecks_gsh.glsl"
     if (max(abs(avgPos.x), abs(avgPos.z)) < vxRange / 2 && abs(avgPos.y) < VXHEIGHT * VXHEIGHT / 2 && tracemat) {
         vec2 outTexCoord = 0.5 * (max(max(texCoordV[0], texCoordV[1]), texCoordV[2]) + min(min(texCoordV[0], texCoordV[1]), texCoordV[2]));
-        if (max(max(abs(cnormal.x), abs(cnormal.y)), abs(cnormal.z)) > 0.99) {
+        if (max(max(abs(cnormal.x), abs(cnormal.y)), abs(cnormal.z)) > 0.99 && doCuboidTexCoordCorrection) {
             int j = abs(cnormal.x) > abs(cnormal.y) ? (abs(cnormal.z) > abs(cnormal.x) ? 0 : 1) : (abs(cnormal.z) > abs(cnormal.y) ? 0 : 2);
             int k = (j + 1) % 3;
             vec3[3] blockRelVertPos0 = vec3[3](posV[0] + fract(cameraPosition) - floor(avgPos) - 0.5, posV[1] + fract(cameraPosition) - floor(avgPos) - 0.5, posV[2] + fract(cameraPosition) - floor(avgPos) - 0.5);

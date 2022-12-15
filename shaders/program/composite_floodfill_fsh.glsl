@@ -152,8 +152,9 @@ void main() {
         }
 #else
         vec3 colMult = vec3(1);
-        if (blockData.full && !blockData.alphatest && !blockData.emissive) dataToWrite0.w = 0;
-        else if (blockData.alphatest && !blockData.emissive) {
+        if (blockData.emissive) dataToWrite0.w = 127;
+        else if (blockData.full && !blockData.alphatest) dataToWrite0.w = 0;
+        else if (blockData.alphatest) {
             vec4 texCol = texture2DLod(colortex15, blockData.texcoord, 2);
             if (texCol.a < 0.2) {
                 dataToWrite0.w = 127;
@@ -162,7 +163,7 @@ void main() {
                 colMult = 1 - texCol.a + texCol.a * texCol.rgb;
             } else dataToWrite0.w = 0;
         }
-        else if (blockData.cuboid && !blockData.emissive) {
+        else if (blockData.cuboid) {
             dataToWrite0.w = 0;
             for (int k = 1; k < 7; k++) {
                 if ((blockData.lower[(k-1)%3] < 0.05 && k < 4) || (blockData.upper[(k-1)%3] > 0.95 && k >= 4)) {

@@ -3,10 +3,14 @@ switch (matV[0]) {
         if (dot(cnormal, vec3(0, 1, 0)) < 0.95) tracemat = false;
         else avgPos -= 0.05 * cnormal;
         break;
+
     case 31000:
         zpos = 0.3 * zpos + 0.7;
     case 10068:
         if (area < 0.8) tracemat = false;
+    case 10584:
+    case 10588:
+        doCuboidTexCoordCorrection = false;
         break;
     case 10350:
         if (cnormal.y < 0.5) tracemat = false;
