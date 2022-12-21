@@ -214,10 +214,10 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     #if HELD_LIGHTING_MODE >= 1
         vec3 heldLightR =  heldItemId <= 0 || heldItemId > 9999 ? vec3(0) : vec3(heldItemId % 16, (heldItemId >> 4) % 16, (heldItemId >> 8) % 16);
         vec3 heldLightL =  heldItemId2 <= 0 || heldItemId2 > 9999 ? vec3(0) : vec3(heldItemId2 % 16, (heldItemId2 >> 4) % 16, (heldItemId2 >> 8) % 16);
-        vec3 heldLight = (heldLightR + heldLightL) / 15.0;
+        vec3 heldLight = (heldLightR + heldLightL) / 15.0 + 0.001;
         float heldLight0 = max(heldBlockLightValue, heldBlockLightValue2);
-        if (heldLight0 < 0.001 && length(heldLight) > 0.5) heldLight0 = 10;
-        if (length(heldLight) < 0.001) heldLight = vec3(1.0);
+        if (length(heldLight) > 0.5) heldLight0 = max(heldLight0, 8);
+        heldLight /= max(heldLight.r, max(heldLight.g, heldLight.b));
         float lViewPosL = lViewPos;
         #if HELD_LIGHTING_MODE == 1
             heldLight0 *= 0.75;
