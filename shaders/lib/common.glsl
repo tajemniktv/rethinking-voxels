@@ -38,6 +38,7 @@
   //#define PP_BL_SHADOWS
   //#define PP_SUN_SHADOWS
     #define SUN_SHADOWS
+    #define BIG_LIGHTS
     #ifdef NETHER
         #undef SUN_SHADOWS
     #endif

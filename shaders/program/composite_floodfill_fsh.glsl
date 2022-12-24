@@ -79,8 +79,8 @@ void main() {
 #endif
         for (int k = 1; k < 7; k++) {
             vec3 aroundPos = oldPos + offsets[k];
-            if (isInRange(aroundPos)) {
-                ivec2 aroundCoords = getVxPixelCoords(aroundPos);
+            ivec2 aroundCoords = getVxPixelCoords(aroundPos);
+            if (isInRange(aroundPos) && aroundCoords.x > 0) {
                 aroundData0[k] = ivec4(texelFetch(colortex8, aroundCoords, 0) * 65535 + 0.5);
                 aroundData1[k] = ivec4(texelFetch(colortex9, aroundCoords, 0) * 65535 + 0.5);
 #ifdef ADVANCED_LIGHT_TRACING

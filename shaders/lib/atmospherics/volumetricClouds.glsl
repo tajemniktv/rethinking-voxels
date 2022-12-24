@@ -1,6 +1,7 @@
 #include "/lib/colors/lightAndAmbientColors.glsl"
 #include "/lib/atmospherics/sky.glsl"
 #include "/lib/atmospherics/cloudCoord.glsl"
+#include "/lib/vx/bigLighting.glsl"
 
 const float cloudStretch = CLOUD_STRETCH;
 const float cloudHeight  = cloudStretch * 2.0;
@@ -125,9 +126,13 @@ vec4 GetVolumetricClouds(float cloudAltitude, float distanceThreshold, inout flo
                       if (sunVisibility < 0.5) VdotSM = -VdotSM;
                       VdotSM = max0(VdotSM) * shadowTime * 0.25 + 0.5 * cloudShading + 0.08;
                 cloudShading = VdotSM * light * lightMult;
+
+                vec3 cloudBlColor = 2.0 * getBigLight(tracePos - floor(cameraPosition));
+            #else
+                vec3 cloudBlColor = vec3(0.0);
             #endif
-            
-            vec3 colorSample = cloudAmbientColor + cloudLightColor * (0.07 + cloudShading);
+
+            vec3 colorSample = cloudBlColor + cloudAmbientColor + cloudLightColor * (0.07 + cloudShading);
             float cloudFogFactor = clamp((distanceThreshold - lTracePos) / distanceThreshold, 0.0, 0.75);
             colorSample = mix(GetSky(VdotU, VdotS, dither, true, false), colorSample, cloudFogFactor * 0.66666);
             colorSample *= pow2(1.0 - max(blindness, darknessFactor));

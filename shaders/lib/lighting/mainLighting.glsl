@@ -302,10 +302,11 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     // Combine Lighting
     float shadowLength = min(vxRange / 2.0 - abs(vxPos.x), min(VXHEIGHT * VXHEIGHT - 2.0 * abs(vxPos.y), vxRange / 2.0 - abs(vxPos.z)));
     vec3 blockLighting = isInRange(vxPos) ? mix(getBlockLight(vxPos, worldNormal, mat), lightmapXM * blocklightCol, 1 - clamp(shadowLength / 8.0, 0, 1)) : lightmapXM * blocklightCol;
+    vec3 bigLighting = getBigLight(vxPos, worldNormal);
     #if HELD_LIGHTING_MODE >= 1
     blockLighting = sqrt(blockLighting * blockLighting + heldLight * heldLight);
     #endif
-    vec3 sceneLighting = shadowLighting * shadowMult + ambientColor * ambientMult;
+    vec3 sceneLighting = shadowLighting * shadowMult + (ambientColor + bigLighting) * ambientMult;
     float dotSceneLighting = dot(sceneLighting, sceneLighting);
     
     // Vanilla Ambient Occlusion
