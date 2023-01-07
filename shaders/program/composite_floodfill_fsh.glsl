@@ -160,6 +160,7 @@ void main() {
                     dataToWrite0.w = 127;
                 } else if (texCol.a < 0.8) {
                     dataToWrite0.w = 127;
+                    texCol.a = pow(texCol.a, TRANSLUCENT_LIGHT_TINT);
                     colMult = 1 - texCol.a + texCol.a * texCol.rgb;
                 } else dataToWrite0.w = 0;
             } else dataToWrite0.w = 0;

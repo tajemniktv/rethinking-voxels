@@ -107,6 +107,7 @@ vec4 handledata(vxData data, sampler2D atlas, inout vec3 pos, vec3 dir, int n) {
         ivec2 texcoord = ivec2(data.texcoord * atlasSize + (data.spritesize - 0.5) * spritecoord);
         vec4 color = texelFetch(atlas, texcoord, 0);
         if (!data.alphatest) color.a = 1;
+        else if (color.a > 0.1 && color.a < 0.9) color.a = pow(color.a, TRANSLUCENT_LIGHT_TINT);
         // multiply by vertex color for foliage, water etc
         color.rgb *= data.emissive ? vec3(1) : data.lightcol;
         return color;

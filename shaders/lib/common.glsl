@@ -34,6 +34,7 @@
     #define BLOCKLIGHT_SHAFT_STRENGTH 0.5 //[0.01 0.02 0.03 0.05 0.07 0.1 0.15 0.2 0.25 0.3 0.4 0.5 0.7 1.0 1.2 1.5 2 2.5 3]
 
     #define OCCLUSION_FILTER 1 //[0 1 2]
+    #define OCCLUSION_BLEED_PREVENTION
     #define SMOOTH_LIGHTING 1 //[0 1]
   //#define PP_BL_SHADOWS
   //#define PP_SUN_SHADOWS
@@ -52,6 +53,7 @@
     #define FF_PROP_MUL 0.9999
     #define FF_PROP_SUB 0.003 //[0.0001 0.0003 0.0005 0.001 0.002 0.003 0.005 0.007 0.01]
     #define BFF_ABSORBTION_AMOUNT 0.05
+    #define TRANSLUCENT_LIGHT_TINT 0.5 // [0.1 0.15 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 
     #if SHADOWRES == 512
         #if (VXHEIGHT == 4)

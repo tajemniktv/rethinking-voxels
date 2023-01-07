@@ -69,7 +69,7 @@ void main() {
                 }
                 if ((thisBlock.full && !thisBlock.alphatest && isGround)) break;
             }
-            dataToWrite1.w = (dataToWrite1.w >> 8 << 8) + height + (VXHEIGHT * VXHEIGHT / 2);
+            dataToWrite1.w = (dataToWrite1.w >> 8 << 8) + clamp(height + (VXHEIGHT * VXHEIGHT / 2), 0, 255);
         }
         vec3 pos0 = getVxPos(pixelCoord);
         vec3 pos = pos0;

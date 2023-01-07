@@ -46,11 +46,13 @@ vec3 getOcclusion(vec3 vxPos, vec3 normal) {
         vec3 cornerPos = floorPos + offset;
         // intensity multiplier for linear interpolation
         float intMult = (1 - abs(vxPos.x - cornerPos.x)) * (1 - abs(vxPos.y - cornerPos.y)) * (1 - abs(vxPos.z - cornerPos.z));
+        #ifdef OCCLUSION_BLEED_PREVENTION
         // skip this corner if it is across a block boundary, to disregard dark spots on the insides of surfaces
         if (length(floor(cornerPos / float(1 << k)) - floor((vxPos + 0.5) / float(1 << k))) > 0.5) {
             totalInt -= intMult;
             continue;
         }
+        #endif
         #else
         vec3 cornerPos = vxPos;
         float intMult = 1.0;
