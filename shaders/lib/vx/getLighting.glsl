@@ -97,7 +97,7 @@ vec3[3] getOcclusion(vec3 vxPos, vec3 normal, vec4[3] lights) {
 }
 #endif
 // get the blocklight value at a given position. optionally supply a normal vector to account for dot product shading
-vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat) {
+vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat, bool doScattering) {
     vec3 vxPosOld = vxPos + floor(cameraPosition) - floor(previousCameraPosition);
     if (isInRange(vxPosOld) && isInRange(vxPos)) {
         vec3 lightCol = vec3(0);
@@ -182,7 +182,7 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat) {
     } else return vec3(0);
 }
 #else
-vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat) {
+vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat, bool doScattering) { // doScattering doesn't do anything in basic light propagation mode
     vxPos += normal * 0.5;
     vec3 lightCol = vec3(0);
     float totalInt = 0.0001;
@@ -202,7 +202,9 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat) {
     return 3 * lightCol;// / totalInt;
 }
 #endif
-
+vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat) {
+    return getBlockLight(vxPos, normal, mat, false);
+}
 vec3 getBlockLight(vec3 vxPos) {
     return getBlockLight(vxPos, vec3(0), 0);
 }

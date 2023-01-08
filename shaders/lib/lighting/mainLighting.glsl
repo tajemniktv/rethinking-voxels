@@ -333,7 +333,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     #ifdef GBUFFERS_ENTITIES
     if (length(lmCoord - vec2(1, 0)) > 0.01 || abs(normal.x) > 0.01 || abs(worldNormal.y) > 0.01) {
     #endif
-        blockLighting = isInRange(vxPos) ? mix(getBlockLight(vxPos, worldNormal, mat), lightmapXM * blocklightCol, 1 - clamp(shadowLength / 8.0, 0, 1)) : lightmapXM * blocklightCol;
+        blockLighting = isInRange(vxPos) ? mix(getBlockLight(vxPos, worldNormal * float(subsurfaceMode == 0), mat), lightmapXM * blocklightCol, 1 - clamp(shadowLength / 8.0, 0, 1)) : lightmapXM * blocklightCol;
     #ifdef GBUFFERS_ENTITIES
     } else {
         blockLighting = blocklightCol * 5.0;
