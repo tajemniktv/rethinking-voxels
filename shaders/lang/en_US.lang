@@ -9,14 +9,20 @@ profile.ULTRA=§dUltra
 profile.comment=Shader profiles change performance settings with the most optimised visual fidelity to performance ratio. It's recommended to use one of these profiles for your performance settings unless you know what you are doing.
 
 #CMPR
-option.CMPR=Complementary
-value.CMPR.0=§bReimagined
-value.CMPR.1=§bReimagined
-value.CMPR.2=§bReimagined
-value.CMPR.3=§bReimagined
-value.CMPR.4=§bReimagined
-value.CMPR.5=§bReimagined
-option.CMPR.comment=Complementary Reimagined is a creation of love and care, meant to complement the unique Minecraft experience in the best way possible. I hope you enjoy your time with Reimagined as much as I enjoyed developing it. Please feel free to join the Complementary community here: www.complementary.dev/discord
+option.CMPR=Rethinking
+value.CMPR.0=§aVoxels
+value.CMPR.1=§2Voxels
+value.CMPR.2=§bVoxels
+value.CMPR.3=§3Voxels
+value.CMPR.4=§9Voxels
+value.CMPR.5=§dVoxels
+value.CMPR.6=§5Voxels
+value.CMPR.7=§4Voxels
+value.CMPR.8=§cVoxels
+value.CMPR.9=§6Voxels
+value.CMPR.10=§eVoxels
+
+option.CMPR.comment=Rethinking Voxels is an edit of Complementary Reimagined, a creation of love and care, meant to complement the unique Minecraft experience in the best way possible and be cool. I hope you enjoy your time with Rethinking Voxels as much as I enjoyed developing it. Please feel free to join the Complementary community here: www.complementary.dev/discord
 
 #Screens
 screen.PERFORMANCE_SETTINGS=Performance Settings
@@ -54,6 +60,7 @@ screen.OTHER_SETTINGS.comment=Settings that don't fit into any other category.
 
 screen.VX_STUFF=Voxelisation Settings
 screen.VX_STUFF.comment=Settings that relate to everything that uses the voxel volume. This includes its size, but also shadow settings and more.
+screen.VX_PERF_STUFF=High Performance Impact
 
 screen.LIGHTCOLS=Light Colors
 screen.LIGHTCOLS.comment=Settings that are about changing light colors.
@@ -160,6 +167,8 @@ value.OCCLUSION_CASCADE_COUNT.5=16/Block
 
 option.OCCLUSION_FILTER=Occlusion Filter
 option.OCCLUSION_FILTER.comment=Enables smoothing of shadows cast from blocklight. Setting this to "Off" produces pixel-locked shadows.
+option.OCCLUSION_BLEED_PREVENTION=Occlusion Bleeding 'Fix'
+option.OCCLUSION_BLEED_PREVENTION.comment=This option fixes a few bright edges in the lighting while adding some hard edges.
 value.OCCLUSION_FILTER.0=Off
 value.OCCLUSION_FILTER.1=Linear
 value.OCCLUSION_FILTER.2=Best (not implemented)
