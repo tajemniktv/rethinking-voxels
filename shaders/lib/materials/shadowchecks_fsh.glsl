@@ -33,7 +33,8 @@ notrace = (
     mat == 10605 ||
     mat == 12605 ||
     mat == 12696 ||
-    mat == 10732
+    mat == 10732 ||
+    mat == 60018
 );
 //translucent / alpha cutout blocks:
 alphatest = (
