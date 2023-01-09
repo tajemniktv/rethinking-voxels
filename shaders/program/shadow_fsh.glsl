@@ -60,8 +60,8 @@ void main() {
         if (!emissive) lightcol = vertexCol.rgb;
     }
     ivec4 packedData0 = ivec4(
-        int(lightcol.r * 255) + int(lightcol.g * 255) * 256,
-        int(lightcol.b * 255) + (int(texCoord.x * 4095) / 16) * 256,
+        int(lightcol.r * 255.9) + int(lightcol.g * 255.9) * 256,
+        int(lightcol.b * 255.9) + (int(texCoord.x * 4095) / 16) * 256,
         int(texCoord.x * 4095) % 16 + int(texCoord.y * 4095) * 16,
         mat); // material index
     bounds[1] -= 1;
@@ -69,9 +69,13 @@ void main() {
     int spritelog = 0;
     while (spriteSize >> spritelog + 1 != 0 && spritelog < 15) spritelog++;
 
-    ivec4 packedData1 = ivec4(
+    ivec4 packedData1 = ivec4(0);
+    if (cuboid) packedData1.xy = ivec2(
         bounds[0].x + (bounds[0].y << 4) + (bounds[0].z << 8) + (bounds[1].x << 12),
-        bounds[1].y + (bounds[1].z << 4) + (blocktype << 8),
+        bounds[1].y + (bounds[1].z << 4) + (blocktype << 8)
+    );
+    if (crossmodel) packedData1.x = int(256 * fract(pos.x)) + (int(256 * fract(pos.z)) << 8);
+    packedData1.zw = ivec2(
         spritelog + 16 * lightlevel,
         0
     );

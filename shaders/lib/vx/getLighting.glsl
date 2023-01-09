@@ -65,8 +65,7 @@ vec3 getOcclusion(vec3 vxPos, vec3 normal) {
     return occlusion;
 }
 #else
-vec3[3] getOcclusion(vec3 vxPos, vec3 normal, vec4[3] lights) {
-    //vxPos += 0.01 * normal;
+vec3[3] getOcclusion(vec3 vxPos, vec3 normal, vec4[3] lights, bool doScattering) {
     vec3[3] occlusion = vec3[3](vec3(0), vec3(0), vec3(0));
     for (int k = 0; k < 3; k++) {
         if (dot(normal, lights[k].xyz) >= 0.0 || max(max(abs(lights[k].x), abs(lights[k].y)), lights[k].z) < 0.512) {
@@ -74,8 +73,13 @@ vec3[3] getOcclusion(vec3 vxPos, vec3 normal, vec4[3] lights) {
             vec3 goalPos = vxPos + lights[k].xyz;
             vec3 offset = hash33(vxPos * 50 + 7 * frameCounter) * 2.0 - 1.0;
             lights[k].xyz += 0.1 * offset;
+            if (doScattering) {
+                vec3 scatterOffset = 0.2 * normalize(lights[k].xyz);
+                endPos += scatterOffset;
+                lights[k].xyz -= scatterOffset;
+            }
             int goalMat = readVxMap(goalPos).mat;
-            vec4 rayColor = raytrace(endPos, lights[k].xyz, ATLASTEX, true);
+            vec4 rayColor = raytrace(endPos, doScattering, lights[k].xyz, ATLASTEX, true);
             int endMat = readVxMap(endPos).mat;
             float dist = max(max(abs(endPos.x - goalPos.x), abs(endPos.y - goalPos.y)), abs(endPos.z - goalPos.z));
             if (dist < 0.5 || (lights[k].w > 1.5 && goalMat == endMat && dist < 2.5)) {
@@ -167,7 +171,7 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat, bool doScattering) {
         }
         #endif
         #ifdef PP_BL_SHADOWS
-        vec3[3] occlusionData = getOcclusion(vxPos, normal, lights);
+        vec3[3] occlusionData = getOcclusion(vxPos, normal, lights, doScattering);
         #else
         #ifdef DEBUG_OCCLUDERS
         vec3 occlusionData0 = getOcclusion(vxPosOld, normal);

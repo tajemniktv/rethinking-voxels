@@ -34,7 +34,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     vec3 shadowLighting = lightColor;
     vec3 nViewPos = normalize(viewPos);
     vec3 worldNormal = normalize(ViewToPlayer(normal*1000.0));
-    playerPos += 0.001 * worldNormal;
+    playerPos += 0.000001 * length(cameraPosition) * worldNormal;
     #if PIXEL_SHADOW > 0 && !defined GBUFFERS_HAND
         playerPos = floor((playerPos + cameraPosition) * PIXEL_SHADOW + 0.001) / PIXEL_SHADOW - cameraPosition + 0.5 / PIXEL_SHADOW;
     #endif
@@ -333,7 +333,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     #ifdef GBUFFERS_ENTITIES
     if (length(lmCoord - vec2(1, 0)) > 0.01 || abs(normal.x) > 0.01 || abs(worldNormal.y) > 0.01) {
     #endif
-        blockLighting = isInRange(vxPos) ? mix(getBlockLight(vxPos, worldNormal * float(subsurfaceMode == 0), mat), lightmapXM * blocklightCol, 1 - clamp(shadowLength / 8.0, 0, 1)) : lightmapXM * blocklightCol;
+        blockLighting = isInRange(vxPos) ? mix(getBlockLight(vxPos, worldNormal * float(subsurfaceMode == 0), mat, subsurfaceMode != 0), lightmapXM * blocklightCol, 1 - clamp(shadowLength / 8.0, 0, 1)) : lightmapXM * blocklightCol;
     #ifdef GBUFFERS_ENTITIES
     } else {
         blockLighting = blocklightCol * 5.0;

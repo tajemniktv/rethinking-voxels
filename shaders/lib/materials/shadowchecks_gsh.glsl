@@ -54,7 +54,7 @@ switch (matV[0]) {
         tracemat = false;
         break;
     default:
-        if (matV[0] / 10000 != 1) avgPos -= 0.1 * cnormal;
+        if (matV[0] / 10000 != 1) avgPos -= 0.02 * cnormal;
         break;
 }
 if (matV[0] >= 60000) {
