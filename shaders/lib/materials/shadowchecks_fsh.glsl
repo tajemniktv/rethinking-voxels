@@ -7,6 +7,7 @@ connectSides = false;
 entity = (mat / 10000 == 5);
 //exclude from ray tracing
 notrace = (
+    mat < 1000 ||
     entity ||
     mat == 10072 ||
     mat == 10076 ||
@@ -25,8 +26,12 @@ notrace = (
     mat == 12264 ||
     mat == 12312 ||
     mat == 12480 ||
+    mat == 10497 ||
+    mat == 10529 ||
     (mat >= 10596 && mat <= 10600) ||
     mat == 10544 ||
+    mat == 10605 ||
+    mat == 12605 ||
     mat == 12696 ||
     mat == 10732
 );
@@ -115,12 +120,14 @@ emissive = (
     mat == 10452 || // magma block
     mat == 10476 || // crying obsidian
     mat == 10496 || // torch
+    mat == 10497 ||
     mat == 10500 || // end rod
     mat == 10501 ||
     mat == 10502 ||
     mat == 10508 || // chorus flower
     mat == 10516 || // lit furnace
     mat == 10528 || // soul torch
+    mat == 10529 ||
     mat == 10544 || // glow lichen
     mat == 10548 || // enchanting table
     mat == 10556 || // end portal frame with eye
@@ -136,6 +143,7 @@ emissive = (
     mat == 10598 ||
     mat == 10599 ||
     mat == 12604 || // lit redstone torch
+    mat == 12605 ||
     mat == 10632 || // glow berries
     mat == 10640 || // lit redstone lamp
     mat == 10648 || // shroomlight
@@ -304,6 +312,7 @@ if (emissive) {
             #endif
             break;
         case 10496: // torch
+        case 10497:
             #ifdef HARDCODED_TORCH_COL
             lightcol = vec3(TORCH_COL_R, TORCH_COL_G, TORCH_COL_B);
             #endif
@@ -326,6 +335,7 @@ if (emissive) {
             #endif
             break;
         case 10528: // soul torch
+        case 10529:
             #ifdef HARDCODED_SOULTORCH_COL
             lightcol = vec3(SOULTORCH_COL_R, SOULTORCH_COL_G, SOULTORCH_COL_B);
             #endif
@@ -389,6 +399,7 @@ if (emissive) {
             #endif
             break;
         case 12604: // lit redstone torch
+        case 12605:
             #ifdef TORCH_HARDCODED_REDSTONE_COL
             lightcol = vec3(REDSTONE_COL_R, REDSTONE_COL_G, REDSTONE_COL_B);
             #endif
@@ -592,6 +603,7 @@ if (emissive) {
             lightlevel = BRIGHTNESS_CRYING;
             break;
         case 10496: // torch
+        case 10497:
             lightlevel = BRIGHTNESS_TORCH;
             break;
         case 10500: // end rod
@@ -606,6 +618,7 @@ if (emissive) {
             lightlevel = BRIGHTNESS_FURNACE;
             break;
         case 10528: // soul torch
+        case 10529:
             lightlevel = BRIGHTNESS_SOULTORCH;
             break;
         case 10544: // glow lichen
@@ -651,6 +664,7 @@ if (emissive) {
             lightlevel = WIRE3_BRIGHTNESS_REDSTONE;
             break;
         case 12604: // lit redstone torch
+        case 12605:
             lightlevel = TORCH_BRIGHTNESS_REDSTONE;
             break;
         case 10632: // glow berries

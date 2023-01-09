@@ -1,3 +1,12 @@
+switch(matV[0]) {
+    case 50004:
+        coord = vec2(0.5 / shadowMapResolution);
+        zpos = -avgPos.z / (VXHEIGHT * VXHEIGHT);
+        break;
+    default:
+        coord = getVxCoords(avgPos);
+        if (coord.x < 1.0 / shadowMapResolution) return;
+}
 switch (matV[0]) {
     case 10064:
         if (dot(cnormal, vec3(0, 1, 0)) < 0.95) tracemat = false;
@@ -47,6 +56,9 @@ switch (matV[0]) {
     case 60012:
         if (area < 0.3) tracemat = false;
         avgPos -= 0.02 * cnormal;
+        break;
+    case 60017:
+        if (cnormal.y < 0.5) tracemat = false;
     default:
         if (matV[0] / 10000 != 1) avgPos -= 0.02 * cnormal;
         break;
