@@ -49,17 +49,15 @@ switch (matV[0]) {
     case 10472:
     case 50016:
     case 50996:
-    case 60004:
+    case 60004: 
+    case 60018:
         tracemat = false;
         break;
-    case 60008:
-    case 60012:
-        if (area < 0.3) tracemat = false;
-        avgPos -= 0.02 * cnormal;
-        break;
-    case 60017:
-        if (cnormal.y < 0.5) tracemat = false;
     default:
-        if (matV[0] / 10000 != 1) avgPos -= 0.02 * cnormal;
+        if (matV[0] / 10000 != 1) avgPos -= 0.1 * cnormal;
         break;
+}
+if (matV[0] >= 60000) {
+    if (cnormal.y < 0.5) tracemat = false;
+    avgPos.y -= 0.3;
 }
