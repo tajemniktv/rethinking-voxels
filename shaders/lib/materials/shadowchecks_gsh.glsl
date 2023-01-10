@@ -45,6 +45,10 @@ switch (matV[0]) {
     case 12173:
         //avgPos += 0.1 * cnormal;
         break;
+    case 60008:
+    case 60012:
+        if (area < 0.3) tracemat = false;
+        break;
     case 0:
     case 10472:
     case 50016:
