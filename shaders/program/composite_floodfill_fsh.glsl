@@ -175,7 +175,7 @@ void main() {
                     texCol.a = pow(texCol.a, TRANSLUCENT_LIGHT_TINT);
                     texCol.rgb /= max(max(0.0001, texCol.r), max(texCol.g, texCol.b));
                     texCol.rgb *= 0.5 + TRANSLUCENT_LIGHT_CONDUCTION / (texCol.r + texCol.g + texCol.b);
-                    colMult = 1 - texCol.a + texCol.a * texCol.rgb;
+                    colMult = clamp(1 - texCol.a + texCol.a * texCol.rgb, vec3(0), vec3(max(1, TRANSLUCENT_LIGHT_CONDUCTION + 0.02)));
                 } else dataToWrite0.w = 0;
             } else dataToWrite0.w = 0;
         } else if (blockData.cuboid) {
