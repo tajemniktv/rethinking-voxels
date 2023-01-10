@@ -174,7 +174,7 @@ void main() {
                     dataToWrite0.w = 127;
                     texCol.a = pow(texCol.a, TRANSLUCENT_LIGHT_TINT);
                     texCol.rgb /= max(max(0.0001, texCol.r), max(texCol.g, texCol.b));
-                    texCol.rgb *= 0.5 + 1.0 / (texCol.r + texCol.g + texCol.b);
+                    texCol.rgb *= 0.5 + TRANSLUCENT_LIGHT_CONDUCTION / (texCol.r + texCol.g + texCol.b);
                     colMult = 1 - texCol.a + texCol.a * texCol.rgb;
                 } else dataToWrite0.w = 0;
             } else dataToWrite0.w = 0;

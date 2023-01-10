@@ -182,6 +182,9 @@ value.SMOOTH_LIGHTING.2=Slow
 option.TRANSLUCENT_LIGHT_TINT=Translucent Light Tint
 option.TRANSLUCENT_LIGHT_TINT.comment=Controls how much light is tinted when going through translucent materials. Lower means more saturated.
 
+option.TRANSLUCENT_LIGHT_CONDUCTION=Translucent Light Conduction
+option.TRANSLUCENT_LIGHT_CONDUCTION.comment=Controls brightness change of light passing through translucents without advanced light propagation. Values above 1 do §4not §fconserve energy.
+
 option.SUN_SHADOWS=Sunlight Shadows
 option.SUN_SHADOWS.comment=Controls whether shadows will be cast from sunlight.
 
