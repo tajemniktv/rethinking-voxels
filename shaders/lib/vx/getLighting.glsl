@@ -29,7 +29,7 @@ vec2 tex8size0 = vec2(textureSize(colortex8, 0));
 //#define DEBUG_OCCLUDERS
 #ifdef ADVANCED_LIGHT_TRACING
 #ifndef PP_BL_SHADOWS
-vec3 getOcclusion(vec3 vxPos, vec3 normal) {
+vec3 getOcclusion(vec3 vxPos, vec3 normal, int nlights) {
     int k = 0;
     // zoom in to the highest-resolution available sub map
     for (; isInRange(2 * vxPos, 1) && k < OCCLUSION_CASCADE_COUNT - 1; k++) {
@@ -45,20 +45,22 @@ vec3 getOcclusion(vec3 vxPos, vec3 normal) {
         vec3 cornerPos = floorPos + offset;
         // intensity multiplier for linear interpolation
         float intMult = (1 - abs(vxPos.x - cornerPos.x)) * (1 - abs(vxPos.y - cornerPos.y)) * (1 - abs(vxPos.z - cornerPos.z));
-        #ifdef OCCLUSION_BLEED_PREVENTION
-        // skip this corner if it is across a block boundary, to disregard dark spots on the insides of surfaces
-        if (length(floor(cornerPos / float(1 << k)) - floor((vxPos + 0.5) / float(1 << k))) > 0.5) {
-            totalInt -= intMult;
-            continue;
-        }
-        #endif
         #else
         vec3 cornerPos = vxPos;
         float intMult = 1.0;
         #endif
         ivec4 lightData = ivec4(texelFetch(colortex8, getVxPixelCoords(cornerPos + 0.5), 0) * 65535 + 0.5);
-        for (int i = 0; i < 3; i++) occlusion[i] += ((lightData.y >> 3 * k + i) % 2) * intMult;
+        ivec3 thisocclusion;
+        for (int i = 0; i < nlights; i++) {
+            thisocclusion[i] = (lightData.y >> 3 * k + i) % 2;
+        }
     #if OCCLUSION_FILTER > 0
+        #ifdef OCCLUSION_BLEED_PREVENTION
+        // skip this corner if it is across a block boundary, to disregard dark spots on the insides of surfaces
+        if (nlights== 3 && length(floor(cornerPos / float(1 << k)) - floor((vxPos + 0.5) / float(1 << k))) > 0.5) {
+            totalInt -= intMult;
+        } else occlusion += thisocclusion * intMult;
+        #endif
     }
     occlusion /= totalInt;
     #endif
@@ -141,6 +143,7 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat, bool doScattering) {
             brightnesses[k] = max(brightnesses[k] + lightSourceData.lightlevel, 0.0);
             #endif
         }
+        int nlights = int(brightnesses[0] > 0) + int(brightnesses[1] > 0) + int(brightnesses[2] > 0);
         ndotls = min(ndotls * 2, 1);
         #if SMOOTH_LIGHTING == 2
         vec3 offsetDir = sign(fract(vxPos) - 0.5);
@@ -177,7 +180,7 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat, bool doScattering) {
         vec3 occlusionData0 = getOcclusion(vxPosOld, normal);
         vec3[3] occlusionData = vec3[3](vec3(occlusionData0.x, 0, 0), vec3(0, occlusionData0.y, 0), vec3(0, 0, occlusionData0.z));
         #else
-        vec3 occlusionData = getOcclusion(vxPosOld, normal);
+        vec3 occlusionData = getOcclusion(vxPosOld, normal, nlights);
         #endif
         #endif
         for (int k = 0; k < 3; k++) lightCol += lightCols[k] * occlusionData[k] * pow(brightnesses[k] * BLOCKLIGHT_STRENGTH / 20.0, BLOCKLIGHT_STEEPNESS) * ndotls[k];

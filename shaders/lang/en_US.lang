@@ -263,7 +263,7 @@ value.shadowDistance.80.0=§e5 Chunks
 value.shadowDistance.64.0=§e4 Chunks
 
 option.ENTITY_SHADOWS=Entity Voxelisation
-option.ENTITY_SHADOWS.comment=Enables the ability for entities and block entities to cast shadows and emit light.
+option.ENTITY_SHADOWS.comment=Enables the ability for entities and block entities to emit light.
 value.ENTITY_SHADOWS.true=§dON
 value.ENTITY_SHADOWS.false=§eOFF
 
