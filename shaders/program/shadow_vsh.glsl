@@ -21,7 +21,7 @@ uniform ivec2 atlasSize;
 
 void main() {
     vec4 pos0 = gl_ModelViewMatrix * gl_Vertex;
-    posV = (shadowModelViewInverse * pos0).xyz + 0.0001 * at_midBlock;
+    posV = (shadowModelViewInverse * pos0).xyz + 0.001 * at_midBlock;
     gl_Position = gl_ProjectionMatrix * pos0;
     gl_Position /= gl_Position.w;
     texCoordV = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;

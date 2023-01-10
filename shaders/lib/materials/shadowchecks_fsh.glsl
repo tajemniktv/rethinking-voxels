@@ -7,7 +7,6 @@ connectSides = false;
 entity = (mat / 10000 == 5);
 //exclude from ray tracing
 notrace = (
-    mat < 1000 ||
     entity ||
     mat == 10072 ||
     mat == 10076 ||

@@ -307,6 +307,7 @@ vec3 getSunLight(vec3 vxPos) {
 vec3 getSunLight(vec3 vxPos, bool doScattering) {
     vec3 sunDir = getWorldSunVector();
     sunDir *= sign(sunDir.y);
+    vxPos += 0.01 * normalize(sunDir);
     vec3 offset = hash33(vxPos * 50 + 7 * frameCounter) * 2.0 - 1.0;
     vec4 sunColor = raytrace(vxPos, doScattering, (sunDir + 0.01 * offset) * sqrt(vxRange * vxRange + VXHEIGHT * VXHEIGHT * VXHEIGHT * VXHEIGHT), ATLASTEX);
     const float alphaSteepness = 5.0;

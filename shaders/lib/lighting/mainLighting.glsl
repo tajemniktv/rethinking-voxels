@@ -34,7 +34,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     vec3 shadowLighting = lightColor;
     vec3 nViewPos = normalize(viewPos);
     vec3 worldNormal = normalize(ViewToPlayer(normal*1000.0));
-    playerPos += 0.000001 * length(cameraPosition) * worldNormal;
+    playerPos += max(0.000001 * length(cameraPosition), 0.001) * worldNormal;
     #if PIXEL_SHADOW > 0 && !defined GBUFFERS_HAND
         playerPos = floor((playerPos + cameraPosition) * PIXEL_SHADOW + 0.001) / PIXEL_SHADOW - cameraPosition + 0.5 / PIXEL_SHADOW;
     #endif
@@ -78,7 +78,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
         if (shadowMult.r > 0.00001) {
             if (NdotLM > 0.0001) {
                 vec3 shadowMultBeforeLighting = shadowMult;
-                #ifdef SUN_SHADOWS
+                #if defined SUN_SHADOWS && !defined GBUFFERS_WATER
                 float shadowLength = min(vxRange / 2.0 - abs(vxPos.x), min(VXHEIGHT * VXHEIGHT - 2.0 * abs(vxPos.y), vxRange / 2.0 - abs(vxPos.z)));
 
                 if (shadowLength > 0.000001) {

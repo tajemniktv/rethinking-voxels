@@ -2,6 +2,12 @@
 #define RAYTRACE
 #include "/lib/vx/voxelMapping.glsl"
 #include "/lib/vx/voxelReading.glsl"
+#ifdef DISTANCE_FIELD
+#ifndef COLORTEX11
+#define COLORTEX11
+uniform sampler2D colortex11;
+#endif
+#endif
 
 const mat3 eye = mat3(
     1, 0, 0,
@@ -179,13 +185,22 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, bool doScattering, vec3 dir, inou
     int mat = raycolor.a > 0.1 ? voxeldata.mat : 0; // for inner face culling
     vec3 oldPos = pos;
     bool oldFull = voxeldata.full;
+    bool wasInRange = false;
     // main loop
     while (w < 1 && k < 2000 && raycolor.a < 0.99) {
         oldRayColor = raycolor;
         pos = pos0 + (min(w, 1.0)) * dir + eyeOffsets[i];
+        #ifdef DISTANCE_FIELD
+        ivec4 dfdata;
+        #endif
         // read voxel data at new position and update ray colour accordingly
         if (isInRange(pos)) {
-            voxeldata = readVxMap(getVxPixelCoords(pos));
+            wasInRange = true;
+            ivec2 vxCoords = getVxPixelCoords(pos);
+            voxeldata = readVxMap(vxCoords);
+            #ifdef DISTANCE_FIELD
+            dfdata = ivec4(texelFetch(colortex11, vxCoords, 0) * 65525 + 0.5);
+            #endif
             pos -= eyeOffsets[i];
             if (lowDetail) {
                 if (voxeldata.trace && voxeldata.full && !voxeldata.alphatest) {
@@ -225,23 +240,39 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, bool doScattering, vec3 dir, inou
             #endif
             pos += eyeOffsets[i];
         }
-        // update position
-        k += 1;
-        progress[i] += stp[i];
-        w = progress[0];
-        i = 0;
-        for (int i0 = 1; i0 < 3; i0++) {
-            if (progress[i0] < w) {
-                i = i0;
-                w = progress[i];
-            }
+        else {
+            #ifdef DISTANCE_FIELD
+            dfdata.x = int(max(max(abs(pos.x), abs(pos.z)) - vxRange / 2, abs(pos.y) - VXHEIGHT * VXHEIGHT / 2) + 0.5);
+            #endif
+            if (wasInRange) break;
         }
+        // update position
+        #ifdef DISTANCE_FIELD
+        if (dfdata.x % 256 == 0) dfdata.x++;
+        for (int j = 0; j < dfdata.x % 256; j++) {
+        #endif
+            progress[i] += stp[i];
+            w = progress[0];
+            i = 0;
+            for (int i0 = 1; i0 < 3; i0++) {
+                if (progress[i0] < w) {
+                    i = i0;
+                    w = progress[i];
+                }
+            }
+        #ifdef DISTANCE_FIELD
+        }
+        #endif
+        k++;
     }
     float oldAlpha = raycolor.a;
     raycolor.a = 1 - exp(-4*length(scatterPos - pos0)) * (1 - raycolor.a);
     raycolor.rgb += raycolor.a - oldAlpha; 
     pos0 = pos;
-    raycolor = (k == 2000 ? vec4(1, 0, 0, 1) : raycolor);
+    if (k == 2000) {
+        oldRayColor = vec4(1, 0, 0, 1);
+        raycolor = vec4(1, 0, 0, 1);
+    }
     return translucentData ? oldRayColor : raycolor;
 }
 

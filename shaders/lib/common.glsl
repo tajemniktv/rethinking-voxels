@@ -114,7 +114,9 @@
     #else
         const float shadowDistance = 100.0;
     #endif
-
+    #if (defined PP_SUN_SHADOWS || defined VOXEL_REFLECTIONS)
+        //#define DISTANCE_FIELD
+    #endif
 //regular settings//
 
     #define CMPR 3 //[0 1 2 3 4 5]

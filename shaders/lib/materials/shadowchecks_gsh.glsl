@@ -1,3 +1,6 @@
+if (matV[0] < 1000) {
+    tracemat = false;
+}
 switch(matV[0]) {
     case 50004:
         coord = vec2(0.5 / shadowMapResolution);
@@ -58,7 +61,7 @@ switch (matV[0]) {
         tracemat = false;
         break;
     default:
-        if (matV[0] / 10000 != 1) avgPos -= 0.02 * cnormal;
+        avgPos -= 0.04 * cnormal;
         break;
 }
 if (matV[0] >= 60000) {

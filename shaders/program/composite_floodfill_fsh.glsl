@@ -12,6 +12,10 @@ uniform sampler2D colortex8;
 #define COLORTEX9
 uniform sampler2D colortex9;
 #endif
+#if defined DISTANCE_FIELD && !defined COLORTEX11
+#define COLORTEX11
+uniform sampler2D colortex11;
+#endif
 #ifndef SHADOWCOL0
 #define SHADOWCOL0
 uniform sampler2D shadowcolor0;
@@ -50,6 +54,7 @@ void main() {
     ivec2 pixelCoord = ivec2(texCoord * tex8size);
     ivec4 dataToWrite0;
     ivec4 dataToWrite1;
+    ivec4 dataToWrite3 = ivec4(255, 0, 0, 0);
     //if (max(pixelCoord.x, pixelCoord.y) < shadowMapResolution) {
         vxData blockData = readVxMap(pixelCoord);
         vec3 pos = getVxPos(pixelCoord);
@@ -75,14 +80,21 @@ void main() {
             changed = blockData.emissive ? blockData.lightlevel : aroundData0[0].w >> 8;
             mathash = newhash;
         }
+        if (mathash != 0) dataToWrite3.x = 0;
         //check for changes in surrounding voxels and propagate them
 #endif
         for (int k = 1; k < 7; k++) {
             vec3 aroundPos = oldPos + offsets[k];
             ivec2 aroundCoords = getVxPixelCoords(aroundPos);
-            if (isInRange(aroundPos) && aroundCoords.x > 0) {
+            if (isInRange(aroundPos)) {
                 aroundData0[k] = ivec4(texelFetch(colortex8, aroundCoords, 0) * 65535 + 0.5);
                 aroundData1[k] = ivec4(texelFetch(colortex9, aroundCoords, 0) * 65535 + 0.5);
+                #ifdef DISTANCE_FIELD
+                    if (mathash == 0) {
+                        ivec4 aroundData3 = ivec4(texelFetch(colortex11, aroundCoords, 0) * 65535 + 0.5);
+                        dataToWrite3.x = min(dataToWrite3.x, aroundData3.x % 256 + 1);
+                    }
+                #endif
 #ifdef ADVANCED_LIGHT_TRACING
                 int aroundChanged = aroundData0[k].x % 256;
                 changed = max(aroundChanged - 1, changed);
@@ -193,7 +205,9 @@ void main() {
         } else dataToWrite0.xyz = ivec3(65535.0 / 700.0 * blockData.lightcol * blockData.lightlevel * blockData.lightlevel);
 #endif
     //}
-    /*RENDERTARGETS:8,9*/
+    /*RENDERTARGETS:8,9,11*/
     gl_FragData[0] = vec4(dataToWrite0) / 65535.0;
     gl_FragData[1] = vec4(dataToWrite1) / 65535.0;
+    gl_FragData[2] = vec4(dataToWrite3) / 65535.0;
+
 }
