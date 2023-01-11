@@ -50,7 +50,7 @@ vec3 getOcclusion(vec3 vxPos, vec3 normal, int nlights) {
         float intMult = 1.0;
         #endif
         ivec4 lightData = ivec4(texelFetch(colortex8, getVxPixelCoords(cornerPos + 0.5), 0) * 65535 + 0.5);
-        ivec3 thisocclusion;
+        ivec3 thisocclusion = ivec3(0);
         for (int i = 0; i < nlights; i++) {
             thisocclusion[i] = (lightData.y >> 3 * k + i) % 2;
         }
@@ -59,8 +59,9 @@ vec3 getOcclusion(vec3 vxPos, vec3 normal, int nlights) {
         // skip this corner if it is across a block boundary, to disregard dark spots on the insides of surfaces
         if (nlights== 3 && length(floor(cornerPos / float(1 << k)) - floor((vxPos + 0.5) / float(1 << k))) > 0.5) {
             totalInt -= intMult;
-        } else occlusion += thisocclusion * intMult;
+        } else
         #endif
+        occlusion += thisocclusion * intMult;
     }
     occlusion /= totalInt;
     #endif
