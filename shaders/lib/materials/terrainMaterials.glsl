@@ -17,9 +17,9 @@ if (mat < 10512) {
                             if (mat == 10008) { // Leaves
                                 #include "/lib/materials/specificMaterials/leaves.glsl"
 
-                                #if SHADOW_QUALITY < 3
-                                    shadowMult = vec3(sqrt1(max0(max(lmCoordM.y, min1(lmCoordM.x * 2.0)) - 0.95) * 20.0)); //dup5823
-                                #endif
+                                //#if SHADOW_QUALITY < 3
+                                //    shadowMult = vec3(sqrt1(max0(max(lmCoordM.y, min1(lmCoordM.x * 2.0)) - 0.95) * 20.0)); //dup5823
+                                //#endif
                             }
                             else /*if (mat == 10012)*/ { // Vine
                                 #include "/lib/materials/specificMaterials/leaves.glsl"

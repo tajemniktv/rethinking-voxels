@@ -125,7 +125,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
                         vec3 centerplayerPos = floor(playerPosM + cameraPosition) - cameraPosition + 0.5;
                         playerPosM = mix(centerplayerPos, playerPosM + vec3(0.0, 0.02, 0.0), lightmapYM);
                     #endif
-            
+
                     vec3 shadowPos = calculateShadowPos(playerPosM);
 
                     #ifdef TAA
@@ -133,27 +133,23 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
                     #else
                         float gradientNoise = 0.5;
                     #endif
-
+*/
                     bool leaves = false;
                     #ifdef GBUFFERS_TERRAIN
-                        if (subsurfaceMode == 0) {
-                            #if defined PERPENDICULAR_TWEAKS && defined SIDE_SHADOWING
-                                offset *= 1.0 + pow2(absNdotN);
-                            #endif
-                        } else {
+                        if (subsurfaceMode > 0) {
                             float VdotL = dot(nViewPos, lightVec);
                             float lightFactor = pow(max(VdotL, 0.0), 10.0) * float(isEyeInWater == 0);
                             if (subsurfaceMode == 1) {
-                                offset = 0.0010235 * lightmapYM + 0.0009765;
-                                shadowPos.z -= max(NdotL * 0.0001, 0.0) * lightmapYM;
+                                //offset = 0.0010235 * lightmapYM + 0.0009765;
+                                //shadowPos.z -= max(NdotL * 0.0001, 0.0) * lightmapYM;
                                 subsurfaceHighlight = lightFactor * 0.8;
                                 #ifndef SHADOW_FILTERING
                                     shadowPos.z -= 0.0002;
                                 #endif
                             } else {
                                 leaves = true;
-                                offset = 0.0005235 * lightmapYM + 0.0009765;
-                                shadowPos.z -= 0.000175 * lightmapYM;
+                                //offset = 0.0005235 * lightmapYM + 0.0009765;
+                                //shadowPos.z -= 0.000175 * lightmapYM;
                                 subsurfaceHighlight = lightFactor * 0.6;
                                 #ifndef SHADOW_FILTERING
                                     NdotLM = mix(NdotL, NdotLM, 0.5);
@@ -161,7 +157,6 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
                             }
                         }
                     #endif
-*/
                     #ifdef PP_SUN_SHADOWS
                     shadowMult *= getSunLight(vxPos, subsurfaceMode != 0);
                     #else
