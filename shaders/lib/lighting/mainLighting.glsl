@@ -334,7 +334,11 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
         blockLighting = blocklightCol * 5.0;
     }
     #endif
+    #ifdef BIG_LIGHTS
     vec3 bigLighting = getBigLight(vxPos, worldNormal);
+    #else
+    vec3 bigLighting = vec3(0);
+    #endif
     #if HELD_LIGHTING_MODE >= 1
     blockLighting = sqrt(blockLighting * blockLighting + heldLight * heldLight);
     #endif

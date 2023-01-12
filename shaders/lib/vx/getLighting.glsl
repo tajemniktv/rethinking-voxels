@@ -64,8 +64,10 @@ vec3 getOcclusion(vec3 vxPos, vec3 normal, int nlights) {
         occlusion += thisocclusion * intMult;
     }
     occlusion /= totalInt;
-    #endif
     return occlusion;
+    #else
+    return vec3(thisocclusion);
+    #endif
 }
 #else
 vec3[3] getOcclusion(vec3 vxPos, vec3 normal, vec4[3] lights, bool doScattering) {
