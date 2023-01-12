@@ -1,13 +1,17 @@
 import numpy as np
 import sys
+import os
+wd = os.getcwd()
 with open("shadowchecks_fsh.glsl") as file:
     data = file.readlines()
-with open("/home/david/.minecraft/shaderpacks/rethinking-voxels/shaders/block.properties") as bpfile:
+rootpath = "/".join(wd.split("/")[:-2])
+with open(rootpath + "/block.properties") as bpfile:
     blockprops0 = bpfile.readlines()
-with open("/home/david/.minecraft/shaderpacks/rethinking-voxels/shaders/block.properties") as epfile:
+with open(rootpath + "/entity.properties") as epfile:
     entityprops0 = epfile.readlines()
 nums = []
 bools = {}
+boolnames = []
 inbool = ""
 switches = {}
 inswitches = []
@@ -17,24 +21,30 @@ cbd = 0
 rbd = 0
 variables = []
 declaredvariables = []
+globallines = []
+includes = []
 for i, a in enumerate(data):
     #print(rbd, inbool)
     unknown = True
     ocbd = cbd
+    orbd = rbd
     for c in a:
         if c == "{": cbd += 1
         if c == "}": cbd -= 1
         if c == "(": rbd += 1
         if c == ")": rbd -= 1
     a = a.strip().split(" ")
-    if a == []: continue
+    if a == [] or a[0][:2] == "//" or len(a) == 1 and a[0] == "": continue
     if len(a) >= 2 and a[1] == "=":
         variables.append(a[0].split(".")[0].split("[")[0])
     if (a[0].split("[")[0] in ["int, float, bool, ivec2, ivec3, ivec4, vec2, vec3, vec4"]):
         print(a, file=sys.stderr)
         declaredvariables.append(a[1].strip(";"))
     if a[0] == "#include":
-        print(" ".join(a))
+        includes.append(" ".join(a))
+        unknown = False
+    if len(a[-1]) > 0 and a[-1][-1] == ";" and cbd == 0 and rbd == 0 and ocbd == 0 and orbd == 0:
+        globallines.append(" ".join(a))
         unknown = False
     if a[0] == "switch" and a[1] == "(mat)":
         inmatswitch.append(cbd)
@@ -57,6 +67,7 @@ for i, a in enumerate(data):
         if cbd < inmatswitch[-1]: inmatswitch.pop(-1)
     if len(a) == 3 and a[1] == "=" and a[2] == "(":
         inbool = a[0]
+        boolnames.append(a[0])
         unknown = False
     if inbool != "":
         if (a[0] == "#ifdef"):
@@ -103,12 +114,15 @@ for i, a in enumerate(data):
                     unknown = False
     if unknown:
         print(f"Unknown line ({i}): \"" + " ".join(a) + "\"", file=sys.stderr)
+for b in set(boolnames):
+    globallines = [b + " = false;"] + globallines
 nums = sorted(set(nums))
 while nums[0] < 1000: nums.pop(0)
 variables = set(variables)
 variables -= set(declaredvariables)
 print("// needs " + ", ".join(sorted(variables)))
-
+print("\n".join(includes))
+print("\n".join(globallines))
 blockprops = {}
 for b in blockprops0 + entityprops0:
     b = b.split("=")
@@ -155,4 +169,7 @@ def printrecursiveifstatements(nums, depth=0):
             True
         
     return string
-print(printrecursiveifstatements(nums))
+print("if (mat >= 1000) {\n" + printrecursiveifstatements(nums, 1) + "}\n\n// Manual Additions")
+with open("shadowchecks_fsh_manual.glsl") as manualfile:
+    mdata = manualfile.read()
+print(mdata)

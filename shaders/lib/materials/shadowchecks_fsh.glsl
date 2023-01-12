@@ -7,7 +7,6 @@ connectSides = false;
 entity = (mat / 10000 == 5);
 //exclude from ray tracing
 notrace = (
-    entity ||
     mat == 10072 ||
     mat == 10076 ||
     mat == 10012 ||
@@ -34,6 +33,7 @@ notrace = (
     mat == 12696 ||
     mat == 10732
 );
+if (entity) notrace = true;
 //translucent / alpha cutout blocks:
 alphatest = (
     mat == 10000 ||
@@ -73,9 +73,9 @@ alphatest = (
     mat == 10596 ||
     mat == 10600 ||
     mat == 10708 ||
-    (mat >= 10720 && mat < 10724) ||
-    (mat / 10000 == 3 && mat != 31016)
+    (mat >= 10720 && mat < 10724)
 );
+if (mat / 10000 == 3 && mat != 31016) alphatest = true;
 //light sources
 emissive = (
     mat == 1234  || // generic light source

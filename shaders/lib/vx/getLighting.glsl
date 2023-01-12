@@ -246,20 +246,46 @@ vec3 getWorldSunVector() {
         return vec3(0.0);
     #endif
 }
-/*
-//x is solid, y is translucent, pos.xy are position on shadow map, pos.z is shadow depth
-vec2 sampleShadow(sampler2D shadowMap, vec3 pos) {
-    vec2 isInShadow = vec2(0);
-    vec2 floorPos = floor(pos.xy);
-    for (int k = 0; k < 4; k++) {
-        ivec2 offset = ivec2(k % 2, k / 2 % 2);
-        float intMult = (1 - abs(floorPos.x + offset.x - pos.x)) * (1 - abs(floorPos.y + offset.y - pos.y));
-        vec4 sunData = texelFetch(shadowMap, ivec2(floor(pos.xy) + offset), 0);
-    }
-    return isInShadow;
-}
-*/
+
 #ifndef PP_SUN_SHADOWS
+
+//x is solid, y is translucent, pos.xy are position on shadow map, pos.z is shadow depth
+
+/*        vec4 sunData = texture2D(colortex10, () / tex8size0);
+        sunData.yz = (sunData.yz - 0.5) * 1.5 * vxRange;
+        sunData0.yz = (sunData0.yz - 0.5) * 1.5 * vxRange;
+        int sunColor0 = int(sunData0.x * 65535 + 0.5);
+        vec3 sunColor1 = vec3(sunColor0 % 16, (sunColor0 >> 4) % 16, (sunColor0 >> 8) % 16) * (causticMult ? (sunColor0 >> 12) : 4.0) / 64.0;
+        vec3 sunColor2;
+        if (shadowPos.z > sunData.y) {
+            if (shadowPos.z > sunData.z) sunColor2 = vec3(1);
+            else sunColor2 = sunColor1;
+        } else if (scatter) {
+            sunColor2 = sunColor1 * max(0.7 + shadowPos.z - sunData.y, 0);
+        } else sunColor2 = vec3(0);
+        sunColor += sunColor2;*/
+vec3 sampleShadow(vec2 shadowPixelCoord, float depth, bool causticMult, bool scatter) {
+    vec3 shadow = vec3(0);
+    ivec2 intCoord = ivec2(shadowPixelCoord);
+    for (int k = 0; k < 4; k++) {
+        ivec2 newCoord = intCoord + ivec2(k%2, k>>1);
+        vec4 sunData0 = texelFetch(colortex10, newCoord, 0);
+        sunData0.yz = (sunData0.yz - 0.5) * 1.5 * vxRange;
+        float intMult = (1 - abs(float(newCoord.x) - shadowPixelCoord.x)) * (1 - abs(float(newCoord.y) - shadowPixelCoord.y));
+        if (depth > sunData0.y) {
+            if (depth > sunData0.z) shadow += vec3(intMult);
+            else {
+                int sunColor0 = int(sunData0.x * 65535 + 0.5);
+                vec3 sunColor1 = vec3(sunColor0 % 16, (sunColor0 >> 4) % 16, (sunColor0 >> 8) % 16) * (causticMult ? (sunColor0 >> 12) : 4.0) / 64.0;
+                shadow += intMult * sunColor1;
+            }
+        } else if (scatter) {
+            shadow += intMult * max(0.7 + depth - sunData0.z, 0);
+        } 
+    }
+    return shadow;
+}
+
 vec3 getSunLight(bool scatter, vec3 vxPos, vec3 worldNormal, bool causticMult) {
     vec3 sunDir = getWorldSunVector();
     sunDir *= sign(sunDir.y);
@@ -269,7 +295,7 @@ vec3 getSunLight(bool scatter, vec3 vxPos, vec3 worldNormal, bool causticMult) {
     float shadowLength = length(shadowPos.xy);//max(abs(shadowPos.x), abs(shadowPos.y));
     if (length(worldNormal) > 0.0001) {
         float dShadowdLength = distortShadowDeriv(shadowLength);
-        vxPos += worldNormal / (dShadowdLength * VXHEIGHT * 1.0);
+        vxPos += worldNormal / (dShadowdLength * VXHEIGHT * 0.7);
         shadowPos = getShadowPos(vxPos, sunRotMat);
         shadowLength = length(shadowPos.xy);//max(abs(shadowPos.x), abs(shadowPos.y));
     }
@@ -280,12 +306,8 @@ vec3 getSunLight(bool scatter, vec3 vxPos, vec3 worldNormal, bool causticMult) {
     #else
     int k = 0;
     #endif
-        vec4 sunData = texture2D(colortex10, ((shadowPos.xy * 0.5 + 0.5) * shadowMapResolution + shadowoffsets[k] * 1.8) / tex8size0);
-        sunData.yz = (sunData.yz - 0.5) * 1.5 * vxRange;
-        int sunColor0 = int(texelFetch(colortex10, ivec2((shadowPos.xy * 0.5 + 0.5) * shadowMapResolution + shadowoffsets[k] * 1.8), 0).r * 65535 + 0.5);
-        vec3 sunColor1 = vec3(sunColor0 % 16, (sunColor0 >> 4) % 16, (sunColor0 >> 8) % 16) * (causticMult ? (sunColor0 >> 12) : 4.0) / 64.0;
-        vec3 sunColor2 = shadowPos.z > sunData.y ? (shadowPos.z > sunData.z ? vec3(1) : sunColor1) : sunColor1 * (scatter ? max(0.7 + shadowPos.z - sunData.y, 0) : 0);
-        sunColor += sunColor2;
+        vec2 shadowPixelCoord = (shadowPos.xy * 0.5 + 0.5) * shadowMapResolution + shadowoffsets[k] * 1.8;
+        sunColor += sampleShadow(shadowPixelCoord, shadowPos.z, causticMult, scatter);
     #if OCCLUSION_FILTER > 0
     }
     sunColor = min(0.2 * sunColor, vec3(1.0));
