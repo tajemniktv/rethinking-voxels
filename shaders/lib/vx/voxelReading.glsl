@@ -10,6 +10,7 @@ struct vxData {
     vec2 midcoord;
     int mat;
     int lightlevel;
+    int skylight;
     float spritesize;
     vec3 lightcol;
     bool trace;
@@ -41,6 +42,7 @@ vxData readVxMap(ivec2 coords) {
         data.crossmodel = false;
         data.spritesize = 0;
         data.lightlevel = 0;
+        data.skylight = 15;
 		data.connectsides = false;
         data.midcoord = vec2(0.5);
     } else {
@@ -57,6 +59,7 @@ vxData readVxMap(ivec2 coords) {
 		data.connectsides = ((type >> 6) % 2 == 1);
         data.spritesize = pow(2, data1.z % 16);
         data.lightlevel = (data1.z >> 4) % 128;
+        data.skylight = (data1.z >> 11) % 16;
         if (data.cuboid) {
             data.lower = vec3(data1.x % 16, (data1.x >> 4) % 16, (data1.x >> 8) % 16) / 16.0;
             data.upper = (vec3((data1.x >> 12) % 16, data1.y % 16, (data1.y >> 4) % 16) + 1) / 16.0;

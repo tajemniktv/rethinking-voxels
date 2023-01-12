@@ -76,7 +76,7 @@ void main() {
     );
     if (crossmodel) packedData1.x = int(256 * fract(pos.x)) + (int(256 * fract(pos.z)) << 8);
     packedData1.zw = ivec2(
-        spritelog + 16 * lightlevel,
+        spritelog + 16 * lightlevel + 2048 * int(lmCoord.y * 16),
         0
     );
     

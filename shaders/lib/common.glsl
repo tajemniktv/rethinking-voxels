@@ -35,6 +35,7 @@
 
     #define OCCLUSION_FILTER 1 //[0 1 2]
   //#define OCCLUSION_BLEED_PREVENTION
+    #define CAVE_SUNLIGHT_FIX 2 // [0 1 2]
     #define SMOOTH_LIGHTING 1 //[0 1]
   //#define PP_BL_SHADOWS
   //#define PP_SUN_SHADOWS
@@ -115,7 +116,7 @@
         const float shadowDistance = 100.0;
     #endif
     #if (defined PP_SUN_SHADOWS || defined VOXEL_REFLECTIONS)
-        //#define DISTANCE_FIELD
+        #define DISTANCE_FIELD
     #endif
 //regular settings//
 
@@ -240,8 +241,8 @@
     #ifdef END
         #undef BLOOM_FOG
     #endif
-    #ifdef SUN_SHADOWS
-        #define CAVE_SUNLIGHT_FIX
+    #ifndef SUN_SHADOWS
+        #undef CAVE_SUNLIGHT_FIX
     #endif
     #if defined GBUFFERS_TEXTURED || defined GBUFFERS_BASIC
         #undef LIGHT_HIGHLIGHT
