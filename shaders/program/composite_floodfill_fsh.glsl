@@ -206,6 +206,21 @@ void main() {
             dataToWrite0.xyz = ivec3(col * 65535.0);
         } else dataToWrite0.xyz = ivec3(65535.0 / 700.0 * blockData.lightcol * blockData.lightlevel * blockData.lightlevel);
 #endif
+    #ifdef WAVESIM
+        ivec2 oldCoord = pixelCoord - VXHEIGHT * ivec2(1.001 * (floor(cameraPosition) - floor(previousCameraPosition)));
+        vec2 state = texelFetch(colortex11, oldCoord, 0).yz * 2.0 - 1.0;
+        float a = 0;
+        for (int x = -1; x < 2; x += 2) {
+            for (int z = -1; z < 2; z += 2) {
+                vec2 aroundState = texelFetch(colortex11, oldCoord + ivec2(x, z), 0).yz * 2.0 - 1.0;
+                a += aroundState.x - state.x;
+            }
+        }
+        state.y += a * 0.7;
+        state.x += state.y;
+        state *= 0.9999;
+        dataToWrite3.yz = ivec2(65535 * (state * 0.5 + 0.5) + 0.5);
+    #endif
     //}
     /*RENDERTARGETS:8,9,11*/
     gl_FragData[0] = vec4(dataToWrite0) / 65535.0;
