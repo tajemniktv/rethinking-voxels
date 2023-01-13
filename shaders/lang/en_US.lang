@@ -198,7 +198,10 @@ option.BLOCKLIGHT_CHECK_INTERVAL=Blocklight Update Interval
 option.BLOCKLIGHT_CHECK_INTERVAL.comment=Minimum time between two blocklight updates at any given position, in frames.
 
 option.BLOCKLIGHT_SHAFT_STRENGTH=Volumetric Blocklight Strength
-option.BLOCKLIGHT_SHAFT_STRENGTH.comment=Brightness of blocklight contribution to volumetric fog 
+option.BLOCKLIGHT_SHAFT_STRENGTH.comment=Brightness of blocklight contribution to volumetric fog.
+
+option.VBL_INTPOL=Volumetric Light Smoothing
+option.VBL_INTPOL.comment=Enables Blocklight filtering on light samples for volumetric blocklight.
 
 option.VBL_NETHER_MULT=Vol. Blocklight Nether Multiplier
 option.VBL_NETHER_MULT.comment=Volumetric Blocklight Strength in the nether relative to its overworld value.
