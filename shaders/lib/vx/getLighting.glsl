@@ -35,8 +35,8 @@ vec3 getOcclusion(vec3 vxPos, vec3 normal, int nlights) {
     for (; isInRange(2 * vxPos, 1) && k < OCCLUSION_CASCADE_COUNT - 1; k++) {
         vxPos *= 2;
     }
-    vec3 occlusion = vec3(0);
     #if OCCLUSION_FILTER > 0
+    vec3 occlusion = vec3(0);
     vxPos += normal - 0.5;
     vec3 floorPos = floor(vxPos);
     float totalInt = 1; // total intensity (calculating weighted average of surrounding occlusion data)
@@ -56,8 +56,7 @@ vec3 getOcclusion(vec3 vxPos, vec3 normal, int nlights) {
         }
     #if OCCLUSION_FILTER > 0
         #ifdef OCCLUSION_BLEED_PREVENTION
-        // skip this corner if it is across a block boundary, to disregard dark spots on the insides of surfaces
-        if (nlights== 3 && length(floor(cornerPos / float(1 << k)) - floor((vxPos + 0.5) / float(1 << k))) > 0.5) {
+        if (length(floor(cornerPos / float(1 << k)) - floor((vxPos + 0.5) / float(1 << k))) > 0.5) {
             totalInt -= intMult;
         } else
         #endif
