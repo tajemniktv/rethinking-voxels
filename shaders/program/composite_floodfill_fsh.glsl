@@ -12,7 +12,7 @@ uniform sampler2D colortex8;
 #define COLORTEX9
 uniform sampler2D colortex9;
 #endif
-#if defined DISTANCE_FIELD && !defined COLORTEX11
+#if (defined DISTANCE_FIELD || defined WAVESIM) && !defined COLORTEX11
 #define COLORTEX11
 uniform sampler2D colortex11;
 #endif
@@ -175,7 +175,7 @@ void main() {
                     texCol.a = pow(texCol.a, TRANSLUCENT_LIGHT_TINT);
                     texCol.rgb /= max(max(0.0001, texCol.r), max(texCol.g, texCol.b));
                     texCol.rgb *= 0.5 + TRANSLUCENT_LIGHT_CONDUCTION / (texCol.r + texCol.g + texCol.b);
-                    colMult = clamp(1 - texCol.a + texCol.a * texCol.rgb, vec3(0), vec3(max(1, TRANSLUCENT_LIGHT_CONDUCTION + 0.02)));
+                    colMult = clamp(1 - texCol.a + texCol.a * texCol.rgb, vec3(0), vec3(max(1.0, TRANSLUCENT_LIGHT_CONDUCTION + 0.02)));
                 } else dataToWrite0.w = 0;
             } else dataToWrite0.w = 0;
         } else if (blockData.cuboid) {
@@ -207,18 +207,29 @@ void main() {
         } else dataToWrite0.xyz = ivec3(65535.0 / 700.0 * blockData.lightcol * blockData.lightlevel * blockData.lightlevel);
 #endif
     #ifdef WAVESIM
+        if (max(pixelCoord.x, pixelCoord.y) < SHADOWRES) {
+            int height;
+            for (height = VXHEIGHT * VXHEIGHT / 2 - 1; height > - VXHEIGHT * VXHEIGHT / 2; height--) {
+                vxData blockData = readVxMap(getVxPixelCoords(ivec3(pixelCoord - vxRange / 2, height).xzy));
+                if (blockData.mat == 31000) {
+                    dataToWrite3.x += 256;
+                    break;
+                }
+            }
+        }
         ivec2 oldCoord = pixelCoord - VXHEIGHT * ivec2(1.001 * (floor(cameraPosition) - floor(previousCameraPosition)));
         vec2 state = texelFetch(colortex11, oldCoord, 0).yz * 2.0 - 1.0;
         float a = 0;
         for (int x = -1; x < 2; x += 2) {
             for (int z = -1; z < 2; z += 2) {
-                vec2 aroundState = texelFetch(colortex11, oldCoord + ivec2(x, z), 0).yz * 2.0 - 1.0;
-                a += aroundState.x - state.x;
+                vec4 aroundData = texelFetch(colortex11, clamp(oldCoord + ivec2(x, z), ivec2(1, 0), ivec2(SHADOWRES - 1)), 0);
+                vec2 aroundState = aroundData.yz * 2.0 - 1.0;
+                a += (aroundState.x - state.x) * ((int(aroundData.x * 65535 + 0.5) / 256) % 2);
             }
         }
-        state.y += a * 0.7;
-        state.x += state.y;
-        state *= 0.9999;
+        state.y += a;
+        state.x += state.y * 0.7;
+        state *= 0.999;
         dataToWrite3.yz = ivec2(65535 * (state * 0.5 + 0.5) + 0.5);
     #endif
     //}
