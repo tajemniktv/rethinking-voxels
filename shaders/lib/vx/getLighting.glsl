@@ -183,7 +183,8 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat, bool doScattering) {
         vec3 occlusionData0 = getOcclusion(vxPosOld, normal);
         vec3[3] occlusionData = vec3[3](vec3(occlusionData0.x, 0, 0), vec3(0, occlusionData0.y, 0), vec3(0, 0, occlusionData0.z));
         #else
-        vec3 occlusionData = getOcclusion(vxPosOld, normal, nlights);
+        vec3 occlusionData = vec3(0);
+        if (nlights > 0) occlusionData = getOcclusion(vxPosOld, normal, nlights);
         #endif
         #endif
         for (int k = 0; k < 3; k++) lightCol += lightCols[k] * occlusionData[k] * pow(brightnesses[k] * BLOCKLIGHT_STRENGTH / 20.0, BLOCKLIGHT_STEEPNESS) * ndotls[k];
