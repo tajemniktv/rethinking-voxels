@@ -158,7 +158,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
                         }
                     #endif
                     #ifdef PP_SUN_SHADOWS
-                    shadowMult *= getSunLight(vxPos, subsurfaceMode != 0);
+                    shadowMult *= getSunLight(vxPos, worldNormal, subsurfaceMode != 0);
                     #else
                     shadowMult *= getSunLight(subsurfaceMode != 0, previousVxPos, worldNormal);
                     #endif

@@ -332,18 +332,23 @@ vec3 getSunLight(vec3 vxPos) {
     return getSunLight(vxPos, false);
 }
 #else
-vec3 getSunLight(vec3 vxPos, bool doScattering) {
+vec3 getSunLight(vec3 vxPos, vec3 normal, bool doScattering) {
     vec3 sunDir = getWorldSunVector();
     sunDir *= sign(sunDir.y);
     vxPos += 0.01 * normalize(sunDir);
     vec3 offset = hash33(vxPos * 50 + 7 * frameCounter) * 2.0 - 1.0;
-    vec4 sunColor = raytrace(vxPos, doScattering, (sunDir + 0.01 * offset) * sqrt(vxRange * vxRange + VXHEIGHT * VXHEIGHT * VXHEIGHT * VXHEIGHT), ATLASTEX);
+    sunDir += 0.01 * offset;
+    if (dot(sunDir, normal) < 0) sunDir -= dot(sunDir, normal) * normal;
+    vec4 sunColor = raytrace(vxPos, doScattering, sunDir * sqrt(vxRange * vxRange + VXHEIGHT * VXHEIGHT * VXHEIGHT * VXHEIGHT), ATLASTEX);
     const float alphaSteepness = 5.0;
     float colorMult = clamp(alphaSteepness - alphaSteepness * sunColor.a, 0, 1);
     float mixFactor = clamp(alphaSteepness * sunColor.a, 0, 1);
     sunColor.rgb = mix(vec3(1), sunColor.rgb * colorMult, mixFactor);
     sunColor.rgb /= sqrt(max(max(sunColor.r, sunColor.g), max(sunColor.b, 0.0001)));
     return sunColor.rgb;
+}
+vec3 getSunLight(vec3 vxPos, bool doScattering) {
+    return getSunLight(vxPos, vec3(0), false);
 }
 vec3 getSunLight(vec3 vxPos) {
     return getSunLight(vxPos, false);

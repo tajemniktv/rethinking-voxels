@@ -50,7 +50,7 @@ vec3 getVxPos(vec3 worldPos) {
 
 // get previous voxel space position from world position
 vec3 getPreviousVxPos(vec3 worldPos) {
-    return worldPos + (cameraPosition - floor(previousCameraPosition));
+    return getVxPos(worldPos) + (floor(cameraPosition) - floor(previousCameraPosition));
 }
 
 // determine if a position is within the voxelisation range

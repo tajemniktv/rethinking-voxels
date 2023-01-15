@@ -139,6 +139,7 @@ vec4 handledata(vxData data, sampler2D atlas, inout vec3 pos, vec3 dir, int n) {
 }
 // voxel ray tracer
 vec4 raytrace(bool lowDetail, inout vec3 pos0, bool doScattering, vec3 dir, inout vec3 translucentHit, sampler2D atlas, bool translucentData) {
+    ivec3 dcamPos = ivec3(1.001 * (floor(cameraPosition) - floor(previousCameraPosition)));
     vec3 progress;
     for (int i = 0; i < 3; i++) {
         //set starting position in each direction
@@ -199,7 +200,8 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, bool doScattering, vec3 dir, inou
             ivec2 vxCoords = getVxPixelCoords(pos);
             voxeldata = readVxMap(vxCoords);
             #ifdef DISTANCE_FIELD
-            dfdata = ivec4(texelFetch(colortex11, vxCoords, 0) * 65525 + 0.5);
+            ivec2 oldCoords = getVxPixelCoords(pos + dcamPos);
+            dfdata = ivec4(texelFetch(colortex11, oldCoords, 0) * 65525 + 0.5);
             #endif
             pos -= eyeOffsets[i];
             if (lowDetail) {
