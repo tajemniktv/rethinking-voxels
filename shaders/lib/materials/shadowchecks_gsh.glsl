@@ -1,16 +1,34 @@
-if (matV[0] < 1000) {
+if (mat0 < 1000) {
     tracemat = false;
+    if (abs(cnormal.y) > 0.99 && area > 0.85) {
+        float blockCenterDist = abs(fract(avgPos.y) - 0.5);
+        if (blockCenterDist > 0.4) mat0 = 1008;
+        else if (cnormal.y > 0) mat0 = 1009;
+        else mat0 = 1010;
+        zpos = 0.52 - blockCenterDist;
+        tracemat = true;
+    } else if (abs(cnormal.y) < 0.01) {
+        if (max(abs(cnormal.x), abs(cnormal.z)) > 0.99 && area > 0.85) {
+            mat0 = 1008;
+            zpos = -0.999;
+            tracemat = true;
+        }
+        else if (abs(abs(cnormal.x) - abs(cnormal.z)) < 0.01) {
+            mat0 = 1004;
+            tracemat = true;
+        }
+    }
 }
-switch(matV[0]) {
+switch(mat0) {
     case 50004:
         coord = vec2(0.5 / shadowMapResolution);
-        zpos = -avgPos.z / (VXHEIGHT * VXHEIGHT);
+        zpos = -avgPos.y / (VXHEIGHT * VXHEIGHT);
         break;
     default:
         coord = getVxCoords(avgPos);
         if (coord.x < 1.0 / shadowMapResolution) return;
 }
-switch (matV[0]) {
+switch (mat0) {
     case 10064:
         if (dot(cnormal, vec3(0, 1, 0)) < 0.95) tracemat = false;
         else avgPos -= 0.05 * cnormal;
@@ -64,7 +82,7 @@ switch (matV[0]) {
         avgPos -= 0.04 * cnormal;
         break;
 }
-if (matV[0] >= 60000) {
+if (mat0 >= 60000) {
     if (cnormal.y < 0.5) tracemat = false;
     avgPos.y -= 0.3;
 }

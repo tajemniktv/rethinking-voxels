@@ -7,6 +7,7 @@ connectSides = false;
 entity = (mat / 10000 == 5);
 //exclude from ray tracing
 notrace = (
+    mat == 1234 ||
     mat == 10072 ||
     mat == 10076 ||
     mat == 10012 ||
@@ -36,6 +37,8 @@ notrace = (
 if (entity) notrace = true;
 //translucent / alpha cutout blocks:
 alphatest = (
+    mat == 1004 ||
+    mat == 1008 ||
     mat == 10000 ||
     mat == 10004 ||
     mat == 10008 ||
@@ -736,6 +739,7 @@ if (emissive) {
 }
 //full cubes
 full = (
+    mat == 1008 ||
     mat == 10008 ||
     mat == 10028 ||
     mat == 10032 ||
@@ -876,6 +880,7 @@ full = (
     mat == 60016
 );
 crossmodel = (
+    mat == 1004 ||
     mat == 10000 ||
     mat == 10004 ||
     mat == 10016 ||
@@ -889,6 +894,8 @@ crossmodel = (
     mat == 10632
 );
 cuboid = (
+    mat == 1009 ||
+    mat == 1010 ||
     (mat > 10032 && mat < 10036) ||
     mat == 10045 ||
     mat == 10046 ||
