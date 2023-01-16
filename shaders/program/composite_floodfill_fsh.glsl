@@ -62,7 +62,7 @@ void main() {
         bool previouslyInRange = length(oldPos - pos) > 0.5 ? isInRange(oldPos, 1) : true;
         ivec4[7] aroundData0;
         ivec4[7] aroundData1;
-#ifdef ADVANCED_LIGHT_TRACING
+#if defined ADVANCED_LIGHT_TRACING || defined DISTANCE_FIELD
         int changed;
         if (previouslyInRange) {
             ivec2 oldCoords = getVxPixelCoords(oldPos);

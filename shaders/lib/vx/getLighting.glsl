@@ -335,10 +335,11 @@ vec3 getSunLight(vec3 vxPos) {
 vec3 getSunLight(vec3 vxPos, vec3 normal, bool doScattering) {
     vec3 sunDir = getWorldSunVector();
     sunDir *= sign(sunDir.y);
+    if (dot(sunDir, normal) < -0.001 && !doScattering) return vec3(0);
     vxPos += 0.01 * normalize(sunDir);
     vec3 offset = hash33(vxPos * 50 + 7 * frameCounter) * 2.0 - 1.0;
     sunDir += 0.01 * offset;
-    if (dot(sunDir, normal) < 0) sunDir -= dot(sunDir, normal) * normal;
+    if (dot(sunDir, normal) < 0 && dot(sunDir, normal) > -0.1) sunDir -= dot(sunDir, normal) * normal;
     vec4 sunColor = raytrace(vxPos, doScattering, sunDir * sqrt(vxRange * vxRange + VXHEIGHT * VXHEIGHT * VXHEIGHT * VXHEIGHT), ATLASTEX);
     const float alphaSteepness = 5.0;
     float colorMult = clamp(alphaSteepness - alphaSteepness * sunColor.a, 0, 1);
