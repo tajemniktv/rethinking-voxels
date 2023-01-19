@@ -49,7 +49,7 @@
     #define VBL_NETHER_MULT 2.0 //[1.0 1.2 1.5 1.7 2.0 2.5 3.0 4.0]
     #define VBL_END_MULT 2.0 //[1.0 1.2 1.5 1.7 2.0 2.5 3.0 4.0]
     #define VBL_INTPOL
-    #define ADVANCED_LIGHT_TRACING
+    #define ADVANCED_LIGHT_TRACING 1 //[0 1]
     #define FF_PROP_MUL 0.9999
     #define FF_PROP_SUB 0.003 //[0.0001 0.0003 0.0005 0.001 0.002 0.003 0.005 0.007 0.01]
     #define BFF_ABSORBTION_AMOUNT 0.05

@@ -149,7 +149,10 @@ value.VXHEIGHT.8=64 Blocks
 value.VXHEIGHT.12=144 Blocks
 value.VXHEIGHT.16=256 Blocks
 
-option.ADVANCED_LIGHT_TRACING=Advanced Light Propagation
+option.ADVANCED_LIGHT_TRACING=Light Propagation Mode
+option.ADVANCED_LIGHT_TRACING.comment=Toggles between two different methods of calculating block light values. Advanced yields sharp shadows from block light, but has a few more issues. Basic doesn't have sharp shadows from blocklight, but still has coloured lights and is a little faster.
+value.ADVANCED_LIGHT_TRACING.0=Basic
+value.ADVANCED_LIGHT_TRACING.1=Advanced
 
 option.PP_BL_SHADOWS=Pixel Perfect Blocklight Shadows
 option.PP_BL_SHADOWS.comment=Perform blocklight occlusion check for every pixel rather than making an occlusion map in the voxel volume. High performance impact.
