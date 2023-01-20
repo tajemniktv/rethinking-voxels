@@ -27,7 +27,7 @@ uniform sampler2D colortex10;
 #include "/lib/vx/raytrace.glsl"
 vec2 tex8size0 = vec2(textureSize(colortex8, 0));
 //#define DEBUG_OCCLUDERS
-#ifdef ADVANCED_LIGHT_TRACING
+#if ADVANCED_LIGHT_TRACING > 0
 #ifndef PP_BL_SHADOWS
 vec3 getOcclusion(vec3 vxPos, vec3 normal, int nlights) {
     int k = 0;

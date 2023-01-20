@@ -95,7 +95,7 @@ void main() {
                         dataToWrite3.x = min(dataToWrite3.x, aroundData3.x % 256 + 1);
                     }
                 #endif
-#ifdef ADVANCED_LIGHT_TRACING
+#if ADVANCED_LIGHT_TRACING > 0
                 int aroundChanged = aroundData0[k].x % 256;
                 changed = max(aroundChanged - 1, changed);
             } else {
@@ -108,7 +108,7 @@ void main() {
 #endif
             }
         }
-#ifdef ADVANCED_LIGHT_TRACING
+#if ADVANCED_LIGHT_TRACING > 0
         // copy data so it is written back to the buffer if unchanged
         dataToWrite0.xzw = aroundData0[0].xzw;
         dataToWrite0.y = int(texelFetch(colortex8, getVxPixelCoords(pos), 0).y * 65535 + 0.5);
