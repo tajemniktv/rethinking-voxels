@@ -204,6 +204,9 @@ option.BLOCKLIGHT_CHECK_INTERVAL.comment=Minimum time between two blocklight upd
 option.BLOCKLIGHT_SHAFT_STRENGTH=Volumetric Blocklight Strength
 option.BLOCKLIGHT_SHAFT_STRENGTH.comment=Brightness of blocklight contribution to volumetric fog.
 
+option.INST_LP=Instant Light Propagation
+option.INST_LP.comment=If this is enabled, Block light will spread instantly. §cUnsupported on MacOS, OptiFine and older hardware. §f
+
 option.VBL_INTPOL=Volumetric Light Smoothing
 option.VBL_INTPOL.comment=Enables Blocklight filtering on light samples for volumetric blocklight.
 

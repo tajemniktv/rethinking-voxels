@@ -16,9 +16,11 @@ uniform int isEyeInWater;
 uniform ivec2 atlasSize;
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
-#if ADVANCED_LIGHT_TRACING > 0 && defined GL_ARB_shader_image_load_store
+#if ADVANCED_LIGHT_TRACING > 0 
+#ifdef INST_LP 
 layout (rgba16) uniform image2D colorimg8;
 layout (rgba16) uniform image2D colorimg9;
+#endif
 #endif
 vec2[9] offsets = vec2[9](
     vec2(0.3, -0.2), vec2(0.2, 0), vec2(0.2, 0.2), vec2(0, 0.23), vec2(-0.2, 0.4), vec2(-0.8, 0), vec2(-0.9, -0.2), vec2(0, -0.2), vec2(0, 0)
@@ -83,7 +85,7 @@ void main() {
         packedData1.x = int(256 * fract(pos.x)) + (int(256 * fract(pos.y)) << 8);
         packedData1.y = int(256 * fract(pos.z));
     }
-    #if ADVANCED_LIGHT_TRACING > 0 && defined GL_ARB_shader_image_load_store
+    #if ADVANCED_LIGHT_TRACING > 0 && defined INST_LP
     if (emissive) {
         vec3 prevPos = pos + floor(cameraPosition) - floor(previousCameraPosition);
         ivec4 prevData = ivec4(imageLoad(colorimg8, getVxPixelCoords(prevPos)) * 65535 + 0.5);

@@ -39,6 +39,7 @@
     #define SMOOTH_LIGHTING 1 //[0 1]
   //#define PP_BL_SHADOWS
   //#define PP_SUN_SHADOWS
+  //#define INST_LP
     #define SUN_SHADOWS
     #define BIG_LIGHTS
     #ifdef NETHER
