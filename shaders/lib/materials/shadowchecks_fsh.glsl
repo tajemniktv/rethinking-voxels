@@ -167,7 +167,9 @@ emissive = (
     mat == 50012 || // glow item frame
     mat == 50020 || // blaze
     mat == 50048 || // glow squid
-    mat == 50080    // allay
+    mat == 50052 || // magma cube
+    mat == 50080 || // allay
+    mat == 50116    // TNT and TNT minecart
 );
 if (emissive) {
     switch (mat) {
@@ -304,6 +306,7 @@ if (emissive) {
             #endif
             break;
         case 10452: // magma block
+        case 50052: // magma cube
             #ifdef HARDCODED_MAGMA_COL
             lightcol = vec3(MAGMA_COL_R, MAGMA_COL_G, MAGMA_COL_B);
             #endif
@@ -506,6 +509,11 @@ if (emissive) {
             lightcol = vec3(ALLAY_COL_R, ALLAY_COL_G, ALLAY_COL_B);
             #endif
             break;
+        case 50116: // TNT
+            #ifdef HARDCODED_TNT_COL
+            lightcol = vec3(TNT_COL_R, TNT_COL_G, TNT_COL_B);
+            #endif
+            break;
     }
     switch (mat) {
         case 1234:
@@ -599,7 +607,10 @@ if (emissive) {
             lightlevel = BRIGHTNESS_SEALANTERN;
             break;
         case 10452: // magma block
-            lightlevel = BRIGHTNESS_MAGMA;
+            lightlevel = BLOCK_BRIGHTNESS_MAGMA;
+            break;
+        case 50052: // magma cube
+            lightlevel = CUBE_BRIGHTNESS_MAGMA;
             break;
         case 10476: // crying obsidian
             lightlevel = BRIGHTNESS_CRYING;
@@ -735,6 +746,8 @@ if (emissive) {
         case 50080: // allay
             lightlevel = BRIGHTNESS_ALLAY;
             break;
+        case 50116: // TNT
+            lightlevel = BRIGHTNESS_TNT;
     }
 }
 //full cubes

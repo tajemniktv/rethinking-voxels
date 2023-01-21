@@ -115,7 +115,7 @@ screen.LAPIS_COL=Lapis Ore
 screen.LAVA_COL=Lava
 screen.LICHEN_COL=Glow Lichen
 screen.LIGHTNING_COL=Lightning Bolt
-screen.MAGMA_COL=Magma Block
+screen.MAGMA_COL=Magma Block / Cube
 screen.PICKLE_COL=Sea Pickle
 screen.PINKFROG_COL=Pearlescent Froglight
 screen.PORTAL_COL=Nether Portal
@@ -130,6 +130,7 @@ screen.SOULTORCH_COL=Soul Torch
 screen.SPAWNER_COL=Spawner
 screen.SQUID_COL=Glow Squid
 screen.TABLE_COL=Enchanting Table
+screen.TNT_COL=TNT
 screen.TORCH_COL=Torch
 screen.YELLOWFROG_COL=Ochre Froglight
 
@@ -485,7 +486,8 @@ option.LOW_BRIGHTNESS_PICKLE=Sea Pickle Brightness (1-2 Pickles)
 option.HIGH_BRIGHTNESS_PICKLE=Sea Pickle Brightness (3-4 Pickles)
 option.BRIGHTNESS_GLOWSTONE=Glowstone Brightness
 option.BRIGHTNESS_SEALANTERN=Sea Lantern Brightness
-option.BRIGHTNESS_MAGMA=Magma Block Brightness
+option.BLOCK_BRIGHTNESS_MAGMA=Magma Block Brightness
+option.CUBE_BRIGHTNESS_MAGMA=Magma Cube Brightness
 option.BRIGHTNESS_CRYING=Crying Obsidian Brightness
 option.BRIGHTNESS_TORCH=Torch Brightness
 option.LANTERN_BRIGHTNESS_TORCH=Lantern Brightness
@@ -521,6 +523,7 @@ option.BRIGHTNESS_ITEMFRAME=Glow Itemframe Brightness
 option.BRIGHTNESS_BLAZE=Blaze Brightness
 option.BRIGHTNESS_SQUID=Glow Squid Brightness
 option.BRIGHTNESS_ALLAY=Allay Brightness
+option.BRIGHTNESS_TNT=TNT Brightness
 option.BRIGHTNESS_CRIMSON=Crimson Stem / Hyphae Brightness
 option.BRIGHTNESS_WARPED=Warped Stem / Hyphae Brightness
 
@@ -548,7 +551,7 @@ option.HARDCODED_PUMPKIN_COL=Override Jack o'Lantern Color
 option.HARDCODED_PICKLE_COL=Override Sea Pickle Color
 option.HARDCODED_GLOWSTONE_COL=Override Glowstone Color
 option.HARDCODED_SEALANTERN_COL=Override Sea Lantern Color
-option.HARDCODED_MAGMA_COL=Override Magma Block Color
+option.HARDCODED_MAGMA_COL=Override Magma Color
 option.HARDCODED_CRYING_COL=Override Crying Obsidian Color
 option.HARDCODED_TORCH_COL=Override Torch Color
 option.LANTERN_HARDCODED_TORCH_COL=Override Lantern Color
@@ -584,6 +587,7 @@ option.HARDCODED_ITEMFRAME_COL=Override Glow Item Frame Color
 option.HARDCODED_BLAZE_COL=Override Blaze Color
 option.HARDCODED_SQUID_COL=Override Glow Squid Color
 option.HARDCODED_ALLAY_COL=Override Allay Color
+option.HARDCODED_TNT_COL=Override TNT Color
 
 
 option.LAVA_COL_R=Red
@@ -724,6 +728,11 @@ option.SQUID_COL_B=Blue
 option.ALLAY_COL_R=Red
 option.ALLAY_COL_G=Green
 option.ALLAY_COL_B=Blue
+option.TNT_COL_R=Red
+option.TNT_COL_G=Green
+option.TNT_COL_B=Blue
+
+
 option.RAIN_PUDDLES=Rain Puddles
 option.RAIN_PUDDLES.comment=Adds water puddles to the terrain during rain. §e[*]§r RP Support option must be set to anything but Basic. §c[-]§r Rain puddles can severely impact performance.
 value.RAIN_PUDDLES.0=OFF

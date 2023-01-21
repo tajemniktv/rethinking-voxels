@@ -26,7 +26,6 @@ switch(mat0) {
         break;
     default:
         coord = getVxCoords(avgPos);
-        if (coord.x < 1.0 / shadowMapResolution) return;
 }
 switch (mat0) {
     case 10064:
@@ -69,6 +68,37 @@ switch (mat0) {
     case 60008:
     case 60012:
         if (area < 0.3) tracemat = false;
+        break;
+    case 50020: // 8 pixels
+        if (abs(area - 0.25) < 0.01 && cnormal.y > 0.7) {
+            avgPos -= 0.25 * cnormal;
+            avgPos0 -= 0.25 * cnormal;
+        } else tracemat = false;
+        break;
+    case 50048: // 12 pixels
+        if (abs(area - 0.5625) < 0.01 && abs(cnormal.y) > 0.0) {
+            avgPos -= 0.5 * cnormal;
+            avgPos0 -= 0.5 * cnormal;
+        } else tracemat = false;
+        break;
+    case 50052: // use only normal
+        if (area > 4.0 && cnormal.y > 0.7) {
+            float l = 0.5 * sqrt(area);
+            avgPos -= l * cnormal;
+            avgPos0 -= l * cnormal;
+        } else tracemat = false;
+        break;
+    case 50080: // 5 pixels
+        if (abs(area - 0.097656) < 0.01 && abs(min(length(posV[1] - posV[0]), length(posV[2] - posV[0])) - 0.3125) < 0.001 && abs(cnormal.y) > 0.7) {
+            avgPos -= 0.1562 * cnormal;
+            avgPos0 -= 0.1562 * cnormal;
+        } else tracemat = false;
+        break;
+    case 50116: // 12 or 16 pixels
+        if ((abs(area - 0.5625) < 0.02 || abs(area - 1.0) < 0.05) && cnormal.z > 0.7) {
+            avgPos -= 0.5 * cnormal;
+            avgPos0 -= 0.5 * cnormal;
+        } else tracemat = false;
         break;
     case 0:
     case 10472:

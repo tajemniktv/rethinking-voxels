@@ -121,7 +121,7 @@ vec4 handledata(vxData data, sampler2D atlas, inout vec3 pos, vec3 dir, int n) {
     // get around floating point errors using an offset
     vec3 offset = 0.001 * eye[n] * sign(dir[n]);
     vec3 blockInnerPos0 = fract(pos + offset) - offset;
-    vec3 blockInnerPos = blockInnerPos0 - vec3(data.midcoord.x, 0, data.midcoord.y);;
+    vec3 blockInnerPos = blockInnerPos0 - vec3(data.midcoord.x, 0, data.midcoord.z);;
     // ray-plane intersections
     float w0 = (-blockInnerPos.x - blockInnerPos.z) / (dir.x + dir.z);
     float w1 = (blockInnerPos.x - blockInnerPos.z) / (dir.z - dir.x);

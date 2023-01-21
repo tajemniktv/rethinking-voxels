@@ -46,6 +46,16 @@ flood fill data:
     g: position of light source 2 z, intensity
     b: position of light source 3 x, y
     a: position of light source 3 z, intensity
+ - colortex10:
+    r: compressed colour data of sun shadow map
+    g: opaque shadow depth
+    b: transparent shadow depth
+    a: height map (last 8 bits free)
+ - colortex11:
+    r: distance field (last 8 bits free)
+    g: wave simulation position
+    b: wave simulation velocity
+    a: free
 */
 
 void main() {
@@ -116,10 +126,14 @@ void main() {
         dataToWrite0.x = changed + 256 * mathash;
         if (changed > 0) {
             // sources will contain nearby light sources, sorted by intensity
-            ivec4 sources[3] = ivec4[3](ivec4(0), ivec4(0), ivec4(0));
+            ivec4 sources[3] = ivec4[3](
+                ivec4(0),
+                ivec4(0),
+                ivec4(0)
+            );
             if (blockData.emissive) {
                 sources[0] = ivec4(128, 128, 128, blockData.lightlevel);
-                dataToWrite0.y = 60000;
+//                dataToWrite0.y = 60000;
             }
             for (int k = 1; k < 7; k++) {
                 // current surrounding (sorted but still compressed) light data
@@ -128,8 +142,9 @@ void main() {
                     //unpack and adjust light data
                     ivec4 thisLight = ivec4(theselights[i].x % 256, theselights[i].x >> 8, theselights[i].y % 256, theselights[i].y >> 8);
                     thisLight.xyz += offsets[k];
+                    vxData thisLightData = readVxMap(getVxPixelCoords(pos + thisLight.xyz - vec3(128.0)));
                     thisLight.w = (aroundData0[k].y >> i) % 2 == 1 ? thisLight.w - 1 : min(thisLight.w - 1, 1);
-                    if (thisLight.w <= 0) break; // ignore light sources with zero intensity
+                    if (!thisLightData.emissive || thisLight.w <= 0) break; // ignore light sources with zero intensity
                     bool newLight = true;
                     for (int j = 0; j < 3; j++) {
                     // check if light source is already registered
