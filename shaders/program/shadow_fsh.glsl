@@ -81,6 +81,7 @@ void main() {
         packedData1.x = int(256 * fract(pos.x)) + (int(256 * fract(pos.y)) << 8);
         packedData1.y = int(256 * fract(pos.z));
     }
+    #if ADVANCED_LIGHT_TRACING > 0
     if (emissive) {
         vec3 prevPos = pos + floor(cameraPosition) - floor(previousCameraPosition);
         ivec4 prevData = ivec4(imageLoad(colorimg8, getVxPixelCoords(prevPos)) * 65535 + 0.5);
@@ -125,6 +126,7 @@ void main() {
             }
         }
     }
+    #endif
     packedData1.y += (blocktype << 8);
     packedData1.zw = ivec2(
         spritelog + 16 * lightlevel + 2048 * int(lmCoord.y * 16),
