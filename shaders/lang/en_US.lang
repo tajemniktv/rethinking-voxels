@@ -136,7 +136,7 @@ screen.YELLOWFROG_COL=Ochre Froglight
 
 #Settings
 option.SHADOWRES=Voxel Volume Size
-option.SHADOWRES.comment=Size of the cuboid in which advanced light calculation is performed. 
+option.SHADOWRES.comment=Size of the cuboid in which advanced light calculation is performed.
 value.SHADOWRES.4096=§5Extreme
 value.SHADOWRES.2048=§9High
 value.SHADOWRES.1024=§aMedium
