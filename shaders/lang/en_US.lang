@@ -164,8 +164,8 @@ option.PP_SUN_SHADOWS.comment=Perform sun occlusion check for every pixel rather
 option.BLOCKLIGHT_SOURCE_SIZE=Blocklight Source Size
 option.BLOCKLIGHT_SOURCE_SIZE.comment=Controls softness of shadows cast by block light sources. Needs pixel perfect shadows.
 
-option.CORRECT_CUBOID_OFFSETS=Cuboid Shadow Softness
-option.CORRECT_CUBOID_OFFSETS=If enabled, shadows cast by cuboid shaped light sources will have correct directional softness.
+option.CORRECT_CUBOID_OFFSETS=Cuboid-aware Shadow Softness
+option.CORRECT_CUBOID_OFFSETS.comment=If enabled, shadows cast by cuboid shaped light sources will have correct directional softness.
 
 option.OCCLUSION_CASCADE_COUNT=Max Blocklight Shadow Res
 option.OCCLUSION_CASCADE_COUNT.comment=Maximum resolution of shadows cast from block light sources.

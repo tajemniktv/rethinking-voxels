@@ -75,13 +75,15 @@ vec3[3] getOcclusion(vec3 vxPos, vec3 normal, vec4[3] lights, bool doScattering)
         if (dot(normal, lights[k].xyz) >= 0.0 || max(max(abs(lights[k].x), abs(lights[k].y)), lights[k].z) < 0.512) {
             vec3 endPos = vxPos;
             vec3 goalPos = vxPos + lights[k].xyz;
-            vec3 offset = hash33(vxPos * 50 + 7 * frameCounter) * 2.0 - 1.0;
+            vec3 offset = hash33(vec3(gl_FragCoord.xy, frameCounter)) * 2.0 - 1.0;
             #ifndef CORRECT_CUBOID_OFFSETS
             lights[k].xyz += BLOCKLIGHT_SOURCE_SIZE * offset;
             #else
             vxData lightData = readVxMap(getVxPixelCoords(goalPos));
             if (lightData.cuboid) {
                 lights[k].xyz += 0.5 * (lightData.upper - lightData.lower) * offset + 0.5 * (lightData.lower + lightData.upper - 1);
+            } else if (lightData.full) {
+                lights[k].xyz += 0.5 * offset;
             } else lights[k].xyz += BLOCKLIGHT_SOURCE_SIZE * offset;
             #endif
             if (doScattering) {
@@ -348,7 +350,7 @@ vec3 getSunLight(vec3 vxPos, vec3 normal, bool doScattering) {
     sunDir *= sign(sunDir.y);
     if (dot(sunDir, normal) < -0.001 && !doScattering) return vec3(0);
     vxPos += 0.01 * normalize(sunDir);
-    vec3 offset = hash33(vxPos * 50 + 7 * frameCounter) * 2.0 - 1.0;
+    vec3 offset = hash33(vec3(gl_FragCoord.xy, frameCounter)) * 2.0 - 1.0;
     sunDir += 0.01 * offset;
     if (dot(sunDir, normal) < 0 && dot(sunDir, normal) > -0.1) sunDir -= dot(sunDir, normal) * normal;
     vec4 sunColor = raytrace(vxPos, doScattering, sunDir * sqrt(vxRange * vxRange + VXHEIGHT * VXHEIGHT * VXHEIGHT * VXHEIGHT), ATLASTEX);
