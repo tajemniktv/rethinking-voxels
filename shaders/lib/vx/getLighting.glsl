@@ -74,24 +74,25 @@ vec3[3] getOcclusion(vec3 vxPos, vec3 normal, vec4[3] lights, bool doScattering)
     for (int k = 0; k < 3; k++) {
         if (dot(normal, lights[k].xyz) >= 0.0 || max(max(abs(lights[k].x), abs(lights[k].y)), lights[k].z) < 0.512) {
             vec3 endPos = vxPos;
-            vec3 goalPos = vxPos + lights[k].xyz;
-            vec3 offset = hash33(vec3(gl_FragCoord.xy, frameCounter)) * 2.0 - 1.0;
+            vec3 goalPos0 = vxPos + lights[k].xyz;
+            vxData lightData = readVxMap(getVxPixelCoords(goalPos0));
+            vec3 offset = hash33(vec3(gl_FragCoord.xy, frameCounter)) * 1.98 - 0.99;
             #ifndef CORRECT_CUBOID_OFFSETS
             lights[k].xyz += BLOCKLIGHT_SOURCE_SIZE * offset;
             #else
-            vxData lightData = readVxMap(getVxPixelCoords(goalPos));
             if (lightData.cuboid) {
                 lights[k].xyz += 0.5 * (lightData.upper - lightData.lower) * offset + 0.5 * (lightData.lower + lightData.upper - 1);
             } else if (lightData.full) {
                 lights[k].xyz += 0.5 * offset;
             } else lights[k].xyz += BLOCKLIGHT_SOURCE_SIZE * offset;
             #endif
+            vec3 goalPos = floor(vxPos + lights[k].xyz) + 0.5;
             if (doScattering) {
                 vec3 scatterOffset = 0.2 * normalize(lights[k].xyz);
                 endPos += scatterOffset;
                 lights[k].xyz -= scatterOffset;
             }
-            int goalMat = readVxMap(goalPos).mat;
+            int goalMat = lightData.mat;
             vec4 rayColor = raytrace(endPos, doScattering, lights[k].xyz, ATLASTEX, true);
             int endMat = readVxMap(endPos).mat;
             float dist = max(max(abs(endPos.x - goalPos.x), abs(endPos.y - goalPos.y)), abs(endPos.z - goalPos.z));

@@ -13,10 +13,10 @@ ivec2 neighbourhoodOffsets[8] = ivec2[8](
 
 void NeighbourhoodClamping(vec3 color, inout vec3 tempColor, float depth, inout float edge) {
 	vec3 minclr = color, maxclr = color;
-
+	float lindepth = min(0.5, GetLinearDepth(depth));
 	for (int i = 0; i < 8; i++) {
 		float depthCheck = texelFetch(depthtex1, texelCoord + neighbourhoodOffsets[i], 0).r;
-		if (abs(GetLinearDepth(depthCheck) - GetLinearDepth(depth)) > 0.09) edge = 10.0;
+		if (abs(min(0.5, GetLinearDepth(depthCheck)) - lindepth) > 0.2 * lindepth) edge = 10.0;
 		vec3 clr = texelFetch(colortex3, texelCoord + neighbourhoodOffsets[i], 0).rgb;
 		minclr = min(minclr, clr); maxclr = max(maxclr, clr);
 	}
@@ -56,11 +56,10 @@ void DoTAA(inout vec3 color, inout vec4 temp) {
 	float lengthVelocity = length(velocity);// * 0.1;
 	float lPrvDepth0 = GetLinearDepth(prvCoord.z);
 	float lPrvDepth1 = GetLinearDepth(tempColor.w);
-	float ddepth = 100 * abs(lPrvDepth0 - lPrvDepth1);// / (lPrvDepth0 + lPrvDepth1);
+	float ddepth = 10 * abs(lPrvDepth0 - lPrvDepth1);// / (lPrvDepth0 + lPrvDepth1);
 	blendFactor *= max(exp(-lengthVelocity) * blendVariable + blendConstant - ddepth * (10 - edge) - length(cameraOffset) * edge, blendMinimum);
 	
 	color = mix(color, tempColor.xyz, blendFactor);
 	temp = vec4(color, depth);
-	//color.x += lengthVelocity;
 	//if (edge > 0.05) color.rgb = vec3(1.0, 0.0, 1.0);
 }

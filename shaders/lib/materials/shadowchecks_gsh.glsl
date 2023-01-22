@@ -76,7 +76,7 @@ switch (mat0) {
         } else tracemat = false;
         break;
     case 50048: // 12 pixels
-        if (abs(area - 0.5625) < 0.01 && abs(cnormal.y) > 0.0) {
+        if (abs(area - 0.5625) < 0.01 && cnormal.y > 0.0) {
             avgPos -= 0.5 * cnormal;
             avgPos0 -= 0.5 * cnormal;
         } else tracemat = false;
