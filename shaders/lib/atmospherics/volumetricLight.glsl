@@ -125,14 +125,16 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 		#endif
 		vec3 blSample = vec3(0.0);
 		vec3 vxPos = getVxPos(playerPos);
-		if (isInRange(playerPos)) {
-			#ifdef SUN_SHADOWS
+		#ifdef SUN_SHADOWS
+		if (isInRange(vxPos, 1)) {
 			vlSample = getSunLight(getPreviousVxPos(playerPos), isEyeInWater == 1);//shadow2D(shadowtex0, shadowPosition.xyz).z;
-			vlSample *= vlSample + 0.1;
-			shadowSample = length(vlSample) > 0.3 ? 1.0 : 0.0;
-			#endif
-			blSample = getBlockLight(vxPos);
+		} else {
+			vlSample = vec3(eyeBrightnessSmooth.y / 240.0);
 		}
+		vlSample *= vlSample + 0.1;
+		shadowSample = length(vlSample) > 0.3 ? 1.0 : 0.0;
+		#endif
+		blSample = getBlockLight(vxPos);
 		if (currentDist > depth0) {
 			#ifdef SUN_SHADOWS
 			vlSample *= translucentMult;

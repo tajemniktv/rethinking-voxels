@@ -50,6 +50,7 @@ uniform sampler2D depthtex1;
 	uniform float frameTimeSmooth;
 
 	uniform ivec2 eyeBrightness;
+	uniform ivec2 eyeBrightnessSmooth;
 	uniform ivec2 atlasSize;
 
 	uniform vec3 skyColor;
