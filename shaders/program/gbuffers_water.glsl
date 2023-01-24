@@ -74,6 +74,10 @@ uniform sampler2D tex;
 	uniform sampler2D depthtex1;
 #endif
 
+#ifdef WAVESIM
+	uniform sampler2D colortex11;
+#endif
+
 #if REFLECTION_QUALITY >= 2
 	uniform mat4 gbufferProjection;
 
@@ -130,15 +134,6 @@ float GetLinearDepth(float depth) {
 	}
 #endif
 
-#if WATER_STYLE >= 3
-	float GetWaterHeightMap(vec2 waterPos, vec3 nViewPos, vec2 wind) {
-		vec2 noiseA = 0.5 - texture2D(noisetex, waterPos - wind * 0.6).rg;
-		vec2 noiseB = 0.5 - texture2D(noisetex, waterPos * 2.0 + wind).rg;
-
-		return noiseA.r - noiseA.r * noiseB.r + noiseB.r * 0.6 + (noiseA.g + noiseB.g) * 2.5;
-	}
-#endif
-
 //Includes//
 #include "/lib/util/dither.glsl"
 #include "/lib/util/spaceConversion.glsl"
@@ -159,6 +154,12 @@ float GetLinearDepth(float depth) {
 
 #ifdef GENERATED_NORMALS
 	#include "/lib/materials/generatedNormals.glsl"
+#endif
+
+#if WATER_STYLE >= 3
+	#define WATERHEIGHT
+	#include "/lib/util/noise.glsl"
+	#undef WATERHEIGHT
 #endif
 
 //Program//

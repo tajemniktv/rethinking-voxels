@@ -78,7 +78,7 @@ const float ambientOcclusionLevel = 1.0;
 //Includes//
 
 //Program//
-//uniform sampler2D shadowcolor0;
+//uniform sampler2D colortex11;
 //uniform vec3 cameraPosition;
 //uniform vec3 previousCameraPosition;
 //#include "/lib/vx/voxelMapping.glsl"
@@ -90,10 +90,11 @@ void main() {
 	#endif
 
 	vec3 color = texture2D(colortex3, texCoordM).rgb;
-//	ivec2 pixelCoord = ivec2(texCoord * textureSize(colortex3, 0)) / 3;
+//	ivec2 pixelCoord = ivec2(texCoord * textureSize(colortex3, 0));
 //	vec3 vxPos = vec3(pixelCoord.x % 16, pixelCoord.y % 16, pixelCoord.x / 16 + 4 * (pixelCoord.y / 16)).xzy - 8;
 //	vec4 light = texelFetch(shadowcolor0, getVxPixelCoords(vxPos), 0);
-//	if (max(pixelCoord.x, pixelCoord.y) < 64 && length(light - vec4(1)) > 0.001) color = light.xyz;
+//	vec4 light = texelFetch(colortex11, pixelCoord, 0);
+//	if (max(pixelCoord.x, pixelCoord.y) < SHADOWRES && (length(light.yz - vec2(0.5)) > 0.001 || max(pixelCoord.x, pixelCoord.y) < SHADOWRES / VXHEIGHT)) color = vec3(light.x, light.yz * 10 - 5) + 0.5;
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = vec4(color, 1.0);
 }

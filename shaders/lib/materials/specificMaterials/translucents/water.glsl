@@ -26,9 +26,13 @@ glColorM = sqrt1(glColorM) * vec3(1.0, 0.85, 0.8);
         vec3 worldPos = playerPos + cameraPosition;
         vec2 waterPos = worldPos.xz * 16.0;
         #if WATER_STYLE < 3
-             waterPos = floor(waterPos);
+            waterPos = floor(waterPos);
         #endif
-             waterPos = 0.002 * (waterPos + worldPos.y * 32.0);
+        #if WATER_STYLE >= 3 && defined WAVESIM
+            waterPos *= 0.002;
+        #else
+            waterPos = 0.002 * (waterPos + worldPos.y * 32.0);
+        #endif
     #endif
 
     #if WATER_QUALITY >= 2
@@ -104,16 +108,17 @@ glColorM = sqrt1(glColorM) * vec3(1.0, 0.85, 0.8);
                 float normalOffset = 0.002;
                 float waveMult = 1.25;
 
-                for (int i = 0; i < 4; i++) {
-                    float height = 0.5 - GetWaterHeightMap(waterPos, nViewPos, wind);
-                    waterPos += parallaxMult * pow2(height);
-                }
+                #ifndef WAVESIM
+                    for (int i = 0; i < 4; i++) {
+                        float height = 0.5 - GetWaterHeightMap(waterPos, nViewPos, wind);
+                        waterPos += parallaxMult * pow2(height);
+                    }
+                #endif
 
                 float h1 = GetWaterHeightMap(waterPos + vec2( normalOffset, 0.0), nViewPos, wind);
                 float h2 = GetWaterHeightMap(waterPos + vec2(-normalOffset, 0.0), nViewPos, wind);
                 float h3 = GetWaterHeightMap(waterPos + vec2(0.0,  normalOffset), nViewPos, wind);
                 float h4 = GetWaterHeightMap(waterPos + vec2(0.0, -normalOffset), nViewPos, wind);
-
                 normalMap.xy = vec2(h1 - h2, h3 - h4) * waveMult;
             #endif
 
