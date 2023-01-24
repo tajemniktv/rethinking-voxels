@@ -13,7 +13,7 @@
 		#ifdef WAVESIM
 			if (mapPosLength > SHADOWRES / 2) {
 		#endif
-				//return waveNoise;
+				return waveNoise;
 		#ifdef WAVESIM
 			}
 		}
