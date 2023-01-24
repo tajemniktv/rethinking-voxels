@@ -1,10 +1,10 @@
 #ifdef WATERHEIGHT
 	float GetWaterHeightMap(vec2 waterPos, vec3 nViewPos, vec2 wind) {
+		float waveNoise = 0;
 		#ifdef WAVESIM
 		vec2 waterPos2 = (89.286 * waterPos - floor(previousCameraPosition.xz)) * VXHEIGHT;
 		float mapPosLength = max(abs(waterPos2.x), abs(waterPos2.y));
 		waterPos2 += SHADOWRES / 2;
-		float waveNoise = 0;
 		if (true || mapPosLength > SHADOWRES / 2 - 10 * VXHEIGHT) {
 		#endif
 			vec2 noiseA = 0.5 - texture2D(noisetex, waterPos - wind * 0.6).rg;
