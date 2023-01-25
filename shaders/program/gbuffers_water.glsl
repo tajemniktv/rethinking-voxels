@@ -74,7 +74,7 @@ uniform sampler2D tex;
 	uniform sampler2D depthtex1;
 #endif
 
-#ifdef WAVESIM
+#if WATER_STYLE >= 4
 	uniform sampler2D colortex11;
 #endif
 

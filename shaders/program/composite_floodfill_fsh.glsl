@@ -12,7 +12,7 @@ uniform sampler2D colortex8;
 #define COLORTEX9
 uniform sampler2D colortex9;
 #endif
-#if (defined DISTANCE_FIELD || defined WAVESIM) && !defined COLORTEX11
+#if (defined DISTANCE_FIELD || WATER_STYLE >= 4) && !defined COLORTEX11
 #define COLORTEX11
 uniform sampler2D colortex11;
 #endif
@@ -29,7 +29,7 @@ ivec2 atlasSize = textureSize(colortex15, 0);
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
 
-#ifdef WAVESIM
+#if WATER_STYLE >= 4
 	uniform sampler2D noisetex;
 	uniform float frameTimeCounter;
 	uniform float frameTime;
@@ -230,7 +230,7 @@ void main() {
 			dataToWrite0.xyz = ivec3(col * 65535.0);
 		} else dataToWrite0.xyz = ivec3(65535.0 / 700.0 * blockData.lightcol * blockData.lightlevel * blockData.lightlevel);
 #endif
-	#ifdef WAVESIM
+	#if WATER_STYLE >= 4
 	#define WAVEHEIGHT 5.0
 		if (max(pixelCoord.x, pixelCoord.y) < SHADOWRES / VXHEIGHT) {
 			int height0 = -128;
@@ -261,7 +261,7 @@ void main() {
 				}
 			}
 			state.y += a * min(frameTime * 10, 0.7) / 4.0;
-			vec3 waterPos = vec3(pixelCoord.x - SHADOWRES / 2, VXHEIGHT * (hasWater - 128), pixelCoord.y - SHADOWRES / 2) / VXHEIGHT;
+			vec3 waterPos = vec3(pixelCoord.x - SHADOWRES / 2, VXHEIGHT * (hasWater - 127), pixelCoord.y - SHADOWRES / 2) / VXHEIGHT;
 			if (hasWater > 0) {
 				for (int i = -1; i < 2; i++) {
 					if (readVxMap(getVxPixelCoords(waterPos + vec3(0, i, 0))).entity) {
@@ -270,14 +270,14 @@ void main() {
 					}
 				}
 			}
-			if (length(waterPos) < 2) {
-				state.y = mix(state.y, 0.2 * dot(waterPos - fract(cameraPosition), cameraPosition - previousCameraPosition), 0.1);
+			if (length(waterPos) < 1) {
+				state.y = mix(state.y, 1.5 * dot(waterPos - fract(cameraPosition), cameraPosition - previousCameraPosition), 0.2);
 			}
 			vec2 wind = vec2(frameTimeCounter * 0.016, 0.0);
 			vec2 waterPos2 = (waterPos.xz + cameraPosition.xz) * 0.3 / 89.286;
-			state.x = mix(state.x, 0.2 + 0.2 * GetWaterHeightMap(waterPos2, vec3(0), wind), 0.01);
+			state.x = mix(state.x, 0.2 + 0.2 * GetWaterHeightMap(waterPos2, vec3(0), wind), 0.1);
 			state.x += state.y;
-			state *= 0.999 - 0.1 * float(hasWater == 0);
+			state *= 0.9997 - 0.1 * float(hasWater == 0);
 			dataToWrite3.yz = ivec2(65535 * (state / WAVEHEIGHT * 0.5 + 0.5) + 0.5);
 		} else {
 			ivec2 oldState = ivec2(texelFetch(colortex11, oldCoord, 0).yz * 65535 + 0.5);

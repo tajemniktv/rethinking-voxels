@@ -338,6 +338,7 @@ option.WATER_STYLE.comment=Determines the style of water. §c[-]§r Water waves 
 value.WATER_STYLE.1=Reimagined
 value.WATER_STYLE.2=Reimagined + Waves
 value.WATER_STYLE.3=Realistic-ish
+value.WATER_STYLE.4=Realistic-ish + Interactive Waves
 
 option.SUN_MOON_HORIZON=Sun/Moon Horizon
 option.SUN_MOON_HORIZON.comment=Prevents the sun/moon from appearing below the horizon line.

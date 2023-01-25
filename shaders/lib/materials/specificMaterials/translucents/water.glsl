@@ -28,7 +28,7 @@ glColorM = sqrt1(glColorM) * vec3(1.0, 0.85, 0.8);
         #if WATER_STYLE < 3
             waterPos = floor(waterPos);
         #endif
-        #if WATER_STYLE >= 3 && defined WAVESIM
+        #if WATER_STYLE >= 4
             waterPos *= 0.002;
         #else
             waterPos = 0.002 * (waterPos + worldPos.y * 32.0);
@@ -107,8 +107,7 @@ glColorM = sqrt1(glColorM) * vec3(1.0, 0.85, 0.8);
                 vec2 parallaxMult = 0.0005 * viewVector.xy / lViewPos;
                 float normalOffset = 0.002;
                 float waveMult = 1.25;
-
-                #ifndef WAVESIM
+                #if WATER_STYLE < 4
                     for (int i = 0; i < 4; i++) {
                         float height = 0.5 - GetWaterHeightMap(waterPos, nViewPos, wind);
                         waterPos += parallaxMult * pow2(height);

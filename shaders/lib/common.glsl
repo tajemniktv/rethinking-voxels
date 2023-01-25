@@ -141,8 +141,7 @@
     #define REFLECTION_QUALITY 3 //[0 2 3]
     #define LIGHTSHAFT_QUALITY 3 //[0 1 2 3 4]
 
-    #define WATER_STYLE 1 //[1 2 3]
-  //#define WAVESIM
+    #define WATER_STYLE 1 //[1 2 3 4]
     #define BORDER_FOG
     #define PIXEL_SHADOW 0 //[0 8 16 32 64 128]
     #define HAND_SWAYING 0 //[0 1 2 3]
