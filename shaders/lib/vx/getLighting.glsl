@@ -131,6 +131,7 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat, bool doScattering) {
         float intMult0 = (1 - abs(fract(vxPos.x) - 0.5)) * (1 - abs(fract(vxPos.y) - 0.5)) * (1 - abs(fract(vxPos.z) - 0.5));
         #endif
         vec3 ndotls;
+        bool wasHere = false;
         bvec3 isHere;
         bool calcNdotLs = (normal == vec3(0));
         vec3[3] lightCols;
@@ -138,7 +139,10 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat, bool doScattering) {
         vec3 brightnesses;
         for (int k = 0; k < 3; k++) {
             lights[k].xyz += 0.5 - fract(vxPos);
-            isHere[k] = (max(max(abs(lights[k].x), abs(lights[k].y)), abs(lights[k].z)) < 0.511);
+            if (!wasHere) {
+                isHere[k] = (max(max(abs(lights[k].x), abs(lights[k].y)), abs(lights[k].z)) < 0.521);
+                wasHere = isHere[k];
+            } else isHere[k] = false;
             vxData lightSourceData = readVxMap(getVxPixelCoords(vxPos + lights[k].xyz));
             if (lightSourceData.entity) {
                 lights[k].xyz += lightSourceData.midcoord - 0.5;
