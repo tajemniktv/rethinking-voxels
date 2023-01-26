@@ -53,7 +53,7 @@ void DoTAA(inout vec3 color, inout vec4 temp) {
 	float blendMinimum = 0.01;
 	float blendVariable = 0.28;
 	float blendConstant = 0.65;
-	float lengthVelocity = length(velocity);// * 0.1;
+	float lengthVelocity = (10 * edge + 1) * length(velocity);
 	float lPrvDepth0 = GetLinearDepth(prvCoord.z);
 	float lPrvDepth1 = GetLinearDepth(tempColor.w);
 	float ddepth = 10 * abs(lPrvDepth0 - lPrvDepth1);// / (lPrvDepth0 + lPrvDepth1);

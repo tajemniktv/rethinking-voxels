@@ -236,7 +236,7 @@ void main() {
 			int height0 = -128;
 			for (int height = min(VXHEIGHT * VXHEIGHT / 2 - 1, 127); height > max(- VXHEIGHT * VXHEIGHT / 2, -128); height--) {
 				vxData blockData = readVxMap(getVxPixelCoords(ivec3(pixelCoord - vxRange / 2, height).xzy));
-				if (blockData.mat == 31000) {
+				if (blockData.mat == 31000 || blockData.mat == 10017) {
 					height0 = height;
 					break;
 				} else if (blockData.entity) {
@@ -260,24 +260,25 @@ void main() {
 					a += (aroundState.x - state.x) * float(aroundWater != 0 && abs(aroundWater - hasWater) < 4);
 				}
 			}
-			state.y += a * min(frameTime * 10, 0.7) / 4.0;
+			state.y += a * min(frameTime * 10, 0.65) / 4.0;
 			vec3 waterPos = vec3(pixelCoord.x - SHADOWRES / 2, VXHEIGHT * (hasWater - 127), pixelCoord.y - SHADOWRES / 2) / VXHEIGHT;
 			if (hasWater > 0) {
 				for (int i = -1; i < 2; i++) {
 					if (readVxMap(getVxPixelCoords(waterPos + vec3(0, i, 0))).entity) {
-						state.y = mix(state.y, 0.2 * sin(frameTimeCounter * 4), 0.1);
+						state.y = mix(state.y, 1.0 * sin(frameTimeCounter * 4) + 0.5 * sin(frameTimeCounter * 12), 0.05);
 						break;
 					}
 				}
 			}
 			if (length(waterPos) < 1) {
-				state.y = mix(state.y, 1.5 * dot(waterPos - fract(cameraPosition), cameraPosition - previousCameraPosition), 0.2);
+				state.y = mix(state.y, 1.0 / frameTime * dot(waterPos - fract(cameraPosition), cameraPosition - previousCameraPosition), 0.01);
 			}
 			vec2 wind = vec2(frameTimeCounter * 0.016, 0.0);
 			vec2 waterPos2 = (waterPos.xz + cameraPosition.xz) * 0.3 / 89.286;
-			state.x = mix(state.x, 0.2 + 0.2 * GetWaterHeightMap(waterPos2, vec3(0), wind), 0.1);
+			state.x += 0.1 * (0.22 + 0.2 * GetWaterHeightMap(waterPos2, vec3(0), wind));
+			state.y -= 0.01 * state.x;
 			state.x += state.y;
-			state *= 0.9997 - 0.1 * float(hasWater == 0);
+			state *= 0.997 - 0.1 * float(hasWater == 0);
 			dataToWrite3.yz = ivec2(65535 * (state / WAVEHEIGHT * 0.5 + 0.5) + 0.5);
 		} else {
 			ivec2 oldState = ivec2(texelFetch(colortex11, oldCoord, 0).yz * 65535 + 0.5);

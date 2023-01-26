@@ -2,7 +2,7 @@
 	float GetWaterHeightMap(vec2 waterPos, vec3 nViewPos, vec2 wind) {
 		float waveNoise = 0;
 		#if WATER_STYLE >= 4
-		vec2 waterPos2 = (89.286 * waterPos - floor(previousCameraPosition.xz) - 0.5) * VXHEIGHT;
+		vec2 waterPos2 = (89.286 * waterPos - floor(previousCameraPosition.xz)) * VXHEIGHT;
 		float mapPosLength = max(abs(waterPos2.x), abs(waterPos2.y));
 		waterPos2 += SHADOWRES / 2;
 		if (true || mapPosLength > SHADOWRES / 2 - 10 * VXHEIGHT) {
