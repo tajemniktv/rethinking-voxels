@@ -20,8 +20,11 @@ void NeighbourhoodClamping(vec3 color, inout vec3 tempColor, float depth, inout 
 		vec3 clr = texelFetch(colortex3, texelCoord + neighbourhoodOffsets[i], 0).rgb;
 		minclr = min(minclr, clr); maxclr = max(maxclr, clr);
 	}
-
+	#if defined PP_BL_SHADOWS || defined PP_SUN_SHADOWS
 	tempColor = mix(tempColor, clamp(tempColor, minclr, maxclr), 0.5);
+	#else
+	tempColor = clamp(tempColor, minclr, maxclr);
+	#endif
 }
 
 void DoTAA(inout vec3 color, inout vec4 temp) {
@@ -50,13 +53,20 @@ void DoTAA(inout vec3 color, inout vec4 temp) {
 	//float blendMinimum = 0.6;
 	//float blendVariable = 0.5;
 	//float blendConstant = 0.4;
+	float blendConstant = 0.65;
+	#if defined PP_SUN_SHADOWS || defined PP_BL_SHADOWS
 	float blendMinimum = 0.01;
 	float blendVariable = 0.28;
-	float blendConstant = 0.65;
 	float lengthVelocity = (10 * edge + 1) * length(velocity);
 	float lPrvDepth0 = GetLinearDepth(prvCoord.z);
 	float lPrvDepth1 = GetLinearDepth(tempColor.w);
-	float ddepth = abs(lPrvDepth0 - lPrvDepth1) * (1 / lPrvDepth0 + 1);// / (lPrvDepth0 + lPrvDepth1);
+	float ddepth = abs(lPrvDepth0 - lPrvDepth1) * (1 / lPrvDepth0 + 1);
+	#else
+	float blendMinimum = 0.3;
+	float blendVariable = 0.25;
+	float lengthVelocity = 100 * length(velocity);
+	float ddepth = 0;
+	#endif
 	blendFactor *= max(exp(-lengthVelocity) * blendVariable + blendConstant - ddepth * (10 - edge) - length(cameraOffset) * edge, blendMinimum);
 	
 	color = mix(color, tempColor.xyz, blendFactor);
