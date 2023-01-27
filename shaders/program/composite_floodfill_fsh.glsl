@@ -89,7 +89,11 @@ void main() {
 			aroundData1[0] = ivec4(texelFetch(colortex9, oldCoords, 0) * 65535 + 0.5);
 			int prevchanged = aroundData0[0].x % 256;
 			changed = (prevchanged == 0) ? 0 : max(prevchanged - 1, 1); // need to update if voxel is new
-		} else changed = 1;
+		} else {
+			aroundData0[0] = ivec4(0);
+			aroundData1[0] = ivec4(0);
+			changed = 1;
+		}
 		// newhash and mathash are hashes of the material ID, which change if the block at the given location changes, so it can be detected
 		int newhash =  blockData.mat > 0 ? blockData.mat % 255 + 1 : 0;
 		int mathash = previouslyInRange ? aroundData0[0].x >> 8 : 0;

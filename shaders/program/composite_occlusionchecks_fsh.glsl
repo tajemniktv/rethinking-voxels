@@ -160,8 +160,11 @@ void main() {
         //write data
         dataToWrite0.y = newOcclusionData;
         #endif
-    }
-    /*RENDERTARGETS:8,10*/
+	/*RENDERTARGETS:8,10*/
     gl_FragData[0] = vec4(dataToWrite0) / 65535.0;
     gl_FragData[1] = vec4(dataToWrite1) / 65535.0;
+	return;
+    }
+	gl_FragData[0] = vec4(0);
+	gl_FragData[1] = vec4(0);
 }
