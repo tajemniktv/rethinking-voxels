@@ -446,8 +446,8 @@ value.HELD_LIGHTING_MODE.0=OFF
 value.HELD_LIGHTING_MODE.1=Subtle
 value.HELD_LIGHTING_MODE.2=Normal
 
-option.BLOCKLIGHT_COLOR_MODE=Blocklight Color
-option.BLOCKLIGHT_COLOR_MODE.comment=Determines the color of the light cast from light sources.
+option.BLOCKLIGHT_COLOR_MODE=Fallback Blocklight Color
+option.BLOCKLIGHT_COLOR_MODE.comment=Determines the color of the light cast from light sources if they are far away from the player.
 value.BLOCKLIGHT_COLOR_MODE.9=Cold
 value.BLOCKLIGHT_COLOR_MODE.10=Natural
 value.BLOCKLIGHT_COLOR_MODE.11=Warm
