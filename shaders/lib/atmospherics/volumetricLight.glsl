@@ -126,7 +126,7 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 		vec3 blSample = vec3(0.0);
 		vec3 vxPos = getVxPos(playerPos);
 		#ifdef SUN_SHADOWS
-		if (isInRange(vxPos, 1)) {
+		if (isInRange(vxPos, 2)) {
 			vlSample = getSunLight(getPreviousVxPos(playerPos), isEyeInWater == 1);//shadow2D(shadowtex0, shadowPosition.xyz).z;
 		#ifndef END
 		} else {

@@ -69,8 +69,7 @@ flood fill data:
 
 void main() {
 	vec2 debugData = vec2(0);
-	vec2 tex8size = vec2(textureSize(colortex8, 0));
-	ivec2 pixelCoord = ivec2(texCoord * tex8size);
+	ivec2 pixelCoord = ivec2(gl_FragCoord.xy + 0.01);
 	ivec4 dataToWrite0;
 	ivec4 dataToWrite1;
 	ivec4 dataToWrite3 = ivec4(255, 0, 0, 0);
@@ -78,7 +77,7 @@ void main() {
 		vxData blockData = readVxMap(pixelCoord);
 		vec3 pos = getVxPos(pixelCoord);
 		vec3 oldPos = pos + (floor(cameraPosition) - floor(previousCameraPosition));
-		bool previouslyInRange = length(oldPos - pos) > 0.5 ? isInRange(oldPos, 1) : true;
+		bool previouslyInRange = isInRange(oldPos);
 		ivec4[7] aroundData0;
 		ivec4[7] aroundData1;
 #if defined ADVANCED_LIGHT_TRACING || defined DISTANCE_FIELD
@@ -86,11 +85,12 @@ void main() {
 		if (previouslyInRange) {
 			ivec2 oldCoords = getVxPixelCoords(oldPos);
 			aroundData0[0] = ivec4(texelFetch(colortex8, oldCoords, 0) * 65535 + 0.5);
+			if (aroundData0[0] == ivec4(0)) aroundData0[0] = ivec4(0, 7, 0, 0);
 			aroundData1[0] = ivec4(texelFetch(colortex9, oldCoords, 0) * 65535 + 0.5);
 			int prevchanged = aroundData0[0].x % 256;
 			changed = (prevchanged == 0) ? 0 : max(prevchanged - 1, 1); // need to update if voxel is new
 		} else {
-			aroundData0[0] = ivec4(0);
+			aroundData0[0] = ivec4(0, 7, 0, 0);
 			aroundData1[0] = ivec4(0);
 			changed = 1;
 		}
@@ -110,9 +110,11 @@ void main() {
 #endif
 		for (int k = 1; k < 7; k++) {
 			vec3 aroundPos = oldPos + offsets[k];
-			ivec2 aroundCoords = getVxPixelCoords(aroundPos);
-			if (isInRange(aroundPos, 1)) {
+			bool clamped;
+			ivec2 aroundCoords = getVxPixelCoords(aroundPos, clamped);
+			if (isInRange(aroundPos) && !clamped) {
 				aroundData0[k] = ivec4(texelFetch(colortex8, aroundCoords, 0) * 65535 + 0.5);
+				if (aroundData0[k] == ivec4(0)) aroundData0[k] = ivec4(0, 7, 0, 0);
 				aroundData1[k] = ivec4(texelFetch(colortex9, aroundCoords, 0) * 65535 + 0.5);
 				#ifdef DISTANCE_FIELD
 					if (mathash == 0) {
@@ -124,8 +126,9 @@ void main() {
 				int aroundChanged = aroundData0[k].x % 256;
 				changed = max(aroundChanged - 1, changed);
 			} else {
-				aroundData0[k] = ivec4(0);
+				aroundData0[k] = ivec4(0, 7, 0, 0);
 				aroundData1[k] = ivec4(0);
+				if (isInRange(pos + offsets[k])) changed = max(changed, 1);
 #else
 			} else {
 				aroundData0[k] = ivec4(0, 0, 0, 127);
@@ -135,8 +138,10 @@ void main() {
 		}
 #if ADVANCED_LIGHT_TRACING > 0
 		// copy data so it is written back to the buffer if unchanged
-		dataToWrite0.xzw = aroundData0[0].xzw;
-		dataToWrite0.y = int(texelFetch(colortex8, getVxPixelCoords(pos), 0).y * 65535 + 0.5);
+		dataToWrite0.zw = aroundData0[0].zw;
+		ivec4 oldData = ivec4(texelFetch(colortex8, pixelCoord, 0) * 65535 + 0.5);
+		if (oldData == ivec4(0)) dataToWrite0.y = 65535;
+		else dataToWrite0.y = oldData.y;
 		dataToWrite1 = aroundData1[0];
 		if (changed > 0) {
 			// sources will contain nearby light sources, sorted by intensity
@@ -145,14 +150,37 @@ void main() {
 				ivec4(aroundData1[0].x % 256, aroundData1[0].x >> 8, aroundData1[0].y % 256, aroundData1[0].y >> 8),
 				ivec4(aroundData1[0].z % 256, aroundData1[0].z >> 8, aroundData1[0].w % 256, aroundData1[0].w >> 8)
 			);
-			ivec4 oldSources[3] = sources;
+			ivec4 oldSources[3];
+			for (int k = 0; k < 3; k++)oldSources[k] = sources[k];
+			ivec3 sourceMap = ivec3(0, 1, 2);
 			for (int k = 0; k < 3; k++) {
-				if (sources[k].w > 0) {
+				if (sources[k].w > 0 && sourceMap[k] != -1) {
 					vec3 sourcePos = pos + sources[k].xyz - vec3(128.0);
 					vxData sourceData = readVxMap(getVxPixelCoords(sourcePos));
-					if (!isInRange(sourcePos) || !sourceData.emissive) {
-						for (int i = 1; i >= k; i--) sources[i] = sources[i+1];
+					bool known = false;
+					for (int j = 0; j < k; j++) if (sources[j].xyz == sources[k].xyz) known = true;
+					if (known || !isInRange(sourcePos) || !sourceData.emissive) {
+						for (int i = k; i < 2; i++) {
+							sources[i] = sources[i+1];
+							sourceMap[i] = sourceMap[i+1];
+						}
 						sources[2] = ivec4(0);
+						sourceMap[2] = -1;
+						k--;
+					} else {
+						bool occluded = (aroundData0[0].y >> sourceMap[k]) % 2 == 0;
+						if (occluded) {
+							sources[k].w = 1;
+							ivec4 thisSource = sources[k];
+							int thisMap = sourceMap[k];
+							int i;
+							for (i = k; i < 2 && sources[i+1].w > 1; i++) {
+								sources[i] = sources[i+1];
+								sourceMap[i] = sourceMap[i+1];
+							}
+							sources[i] = thisSource;
+							sourceMap[i] = thisMap;
+						}
 					}
 				}
 			}
@@ -168,8 +196,11 @@ void main() {
 				for (int i = 0; i < 3; i++) {
 					//unpack and adjust light data
 					ivec4 thisLight = ivec4(theselights[i].x % 256, theselights[i].x >> 8, theselights[i].y % 256, theselights[i].y >> 8);
+					if (thisLight.w <= 1) break;
 					thisLight.xyz += offsets[k];
-					vxData thisLightData = readVxMap(getVxPixelCoords(pos + thisLight.xyz - vec3(128.0)));
+					vec3 lightPos = pos + thisLight.xyz - vec3(128.0);
+					if (!isInRange(lightPos)) break;
+					vxData thisLightData = readVxMap(getVxPixelCoords(lightPos));
 					thisLight.w = (aroundData0[k].y >> i) % 2 == 1 ? thisLight.w - 1 : min(thisLight.w - 1, 1);
 					if (!thisLightData.emissive || thisLight.w <= 0) break; // ignore light sources with zero intensity
 					bool newLight = true;
@@ -191,7 +222,7 @@ void main() {
 					}
 				}
 			}
-			for (int k = 0; k < 3; k++) if (oldSources[k] != sources[k]) changed = max(changed, max(sources[k].w, oldSources[k].w));
+			//for (int k = 0; k < 3; k++) if (oldSources[k] != sources[k]) changed = max(changed, max(sources[k].w, oldSources[k].w));
 			// write new light data
 			dataToWrite0.zw = ivec2(
 				sources[0].x + (sources[0].y << 8),

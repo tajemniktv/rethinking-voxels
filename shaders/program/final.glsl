@@ -95,9 +95,8 @@ void main() {
 //	vec4 light = texelFetch(colortex8, getVxPixelCoords(vxPos), 0);
 //	vec4 light = texelFetch(colortex8, pixelCoord, 0);
 //	ivec4 iLight = ivec4(light * 65535 + 0.5);
-//	light.xyz = vec3(iLight.z % 256, iLight.z >> 8, iLight.w % 256) - 128;
-//	if (iLight.x >> 8 != 0) light.xyz = vec3(8, -8, -8);
-//	if (max(pixelCoord.x, pixelCoord.y) < SHADOWRES) color = (light.xyz / 16 + 0.5) * ((iLight.x % 256) / 2.0 * 0.5 + 0.5);
+//	light.xyz = vec3(iLight.y % 2, iLight.y / 2 % 2, iLight.y / 4 % 2);
+//	if (max(pixelCoord.x, pixelCoord.y) < SHADOWRES && iLight.x % 256 > 0) color = light.xyz;
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = vec4(color, 1.0);
 }

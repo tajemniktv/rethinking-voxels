@@ -102,7 +102,7 @@ vec3[3] getOcclusion(vec3 vxPos, vec3 normal, vec4[3] lights, bool doScattering)
                 rayColor.rgb /= sqrt(rayBrightness);
                 rayColor.rgb *= clamp(4 - 4 * rayColor.a, 0, 1);
                 #ifdef DEBUG_OCCLUDERS
-                    if (false && frameCounter % 100 < 50) occlusion[k] = rayColor.rgb;
+                    if (frameCounter % 100 > 50) occlusion[k] = rayColor.rgb;
                     else occlusion[k][k] = 1.0;
                 #else
                 occlusion[k] = rayColor.rgb;
@@ -197,7 +197,7 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat, bool doScattering) {
             vec3[3] occlusionData = getOcclusion(vxPos, normal, lights, doScattering);
         #else
             #ifdef DEBUG_OCCLUDERS
-                vec3 occlusionData0 = getOcclusion(vxPos, normal, nlights);
+                vec3 occlusionData0 = getOcclusion(vxPosOld, normal, nlights);
                 vec3[3] occlusionData = vec3[3](vec3(occlusionData0.x, 0, 0), vec3(0, occlusionData0.y, 0), vec3(0, 0, occlusionData0.z));
             #else
                 vec3 occlusionData = vec3(0);

@@ -36,8 +36,6 @@ ivec2 atlasSize = textureSize(colortex15, 0);
 uniform ivec2 eyeBrightness;
 #endif
 
-vec2 tex8size = vec2(textureSize(colortex8, 0));
-
 ivec3[7] offsets = ivec3[7](ivec3(0), ivec3(-1, 0, 0), ivec3(0, -1, 0), ivec3(0, 0, -1), ivec3(1, 0, 0), ivec3(0, 1, 0), ivec3(0, 0, 1));
 vec3[6] randomOffsets = vec3[6](vec3(0.64, -0.05, 0.46), vec3(0.39, -0.93, 0.92), vec3(-0.52, -0.42, -0.06), vec3(0.28, 0.11, 0.51), vec3(0.87, 0.6, 0.3), vec3(-0.15, 0.04, -0.97));
 
@@ -49,7 +47,7 @@ vec3[6] randomOffsets = vec3[6](vec3(0.64, -0.05, 0.46), vec3(0.39, -0.93, 0.92)
 void main() {
     ivec4 dataToWrite0;
     ivec4 dataToWrite1;
-    ivec2 pixelCoord = ivec2(texCoord * tex8size);
+    ivec2 pixelCoord = ivec2(gl_FragCoord.xy);
     if (max(pixelCoord.x, pixelCoord.y) < shadowMapResolution) {
         dataToWrite0 = ivec4(texelFetch(colortex8, pixelCoord, 0) * 65535 + 0.5);
         dataToWrite1 = ivec4(texelFetch(colortex10, pixelCoord, 0) * 65535 + 0.5);
@@ -117,10 +115,10 @@ void main() {
             int occlusionData = (length(offset) < 0.5) ? dataToWrite0.y : int(texelFetch(colortex8, getVxPixelCoords(oldPos0), 0).g * 65535 + 0.5);
             occlusionData = (occlusionData >> 3 * k) % 8;
             bool doBlockLight = (int(pos.y) % BLOCKLIGHT_CHECK_INTERVAL == frameCounter % BLOCKLIGHT_CHECK_INTERVAL);
-            if (k == 0 || doBlockLight || !isInRange(oldPos0)) {
+            if (doBlockLight || !isInRange(oldPos0, 1)) {
                 ivec4 lightData0 = ivec4(texelFetch(colortex8, getVxPixelCoords(pos), 0) * 65535 + 0.5);
                 ivec4 lightData1 = ivec4(texelFetch(colortex9, getVxPixelCoords(pos), 0) * 65535 + 0.5);
-                int changed = isInRange(oldPos0) ? lightData0.x % 256 : 1;
+                int changed = (isInRange(oldPos0, 1)) ? lightData0.x % 256 : 2;
                 if (changed > 0) {
                     occlusionData = 0;
                     // unpack light sources
@@ -133,8 +131,8 @@ void main() {
                     // check for each light source if it is occluded
                     for (int i = 0; i < 3; i++) {
                         if (intensities[i] == 0) {
-                            occlusionData += 1 << i;
-                            continue;
+                            for (int j = i; j < 3; j++) occlusionData += 1 << j;
+                            break;
                         }
                         vec3 lightDir = lights[i] - 127.5 - fract(pos);
                         vec3 endPos = pos;

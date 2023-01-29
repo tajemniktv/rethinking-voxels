@@ -6,12 +6,18 @@
 const int vxRange = 2 * (shadowMapResolution / (2 * VXHEIGHT));
 
 // convert 3D position in voxel space to 2D position on the voxel map
-ivec2 getVxPixelCoords(vec3 voxelPos) {
+ivec2 getVxPixelCoords(vec3 voxelPos, out bool clamped) {
     voxelPos.y += VXHEIGHT * VXHEIGHT / 2;
     ivec2 coords = ivec2(voxelPos.xz + vxRange / 2);
     coords.x += int(voxelPos.y) % VXHEIGHT * vxRange;
     coords.y += int(voxelPos.y) / VXHEIGHT * vxRange;
-    return clamp(coords, ivec2(1, 0), ivec2(shadowMapResolution - 1));
+	ivec2 clampCoords = clamp(coords, ivec2(1, 0), ivec2(shadowMapResolution - 1));
+	clamped = (clampCoords != coords);
+    return clampCoords;
+}
+ivec2 getVxPixelCoords(vec3 voxelPos) {
+	bool clamped;
+	return getVxPixelCoords(voxelPos, clamped);
 }
 
 vec2 getVxCoords(vec3 voxelPos, vec2 size) {
