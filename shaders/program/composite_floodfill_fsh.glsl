@@ -86,12 +86,11 @@ void main() {
 		if (previouslyInRange) {
 			ivec2 oldCoords = getVxPixelCoords(oldPos);
 			aroundData0[0] = ivec4(texelFetch(colortex8, oldCoords, 0) * 65535 + 0.5);
-			if (aroundData0[0] == ivec4(0)) aroundData0[0] = ivec4(0, 7, 0, 0);
 			aroundData1[0] = ivec4(texelFetch(colortex9, oldCoords, 0) * 65535 + 0.5);
 			int prevchanged = aroundData0[0].x % 256;
 			changed = (prevchanged == 0) ? 0 : max(prevchanged - 1, 1); // need to update if voxel is new
 		} else {
-			aroundData0[0] = ivec4(0, 7, 0, 0);
+			aroundData0[0] = ivec4(0);
 			aroundData1[0] = ivec4(0);
 			changed = 1;
 		}
@@ -127,7 +126,7 @@ void main() {
 				int aroundChanged = aroundData0[k].x % 256;
 				changed = max(aroundChanged - 1, changed);
 			} else {
-				aroundData0[k] = ivec4(0, 7, 0, 0);
+				aroundData0[k] = ivec4(0);
 				aroundData1[k] = ivec4(0);
 				if (isInRange(pos + offsets[k])) changed = max(changed, 1);
 #else
@@ -145,33 +144,30 @@ void main() {
 		else dataToWrite0.y = oldData.y;
 		dataToWrite1 = aroundData1[0];
 		if (changed > 0) {
-			// sources will contain nearby light sources, sorted by intensity
+			// sources contains nearby light sources, sorted by intensity
 			ivec4 sources[3] = ivec4[3](
 				ivec4(aroundData0[0].z % 256, aroundData0[0].z >> 8, aroundData0[0].w % 256, aroundData0[0].w >> 8),
 				ivec4(aroundData1[0].x % 256, aroundData1[0].x >> 8, aroundData1[0].y % 256, aroundData1[0].y >> 8),
 				ivec4(aroundData1[0].z % 256, aroundData1[0].z >> 8, aroundData1[0].w % 256, aroundData1[0].w >> 8)
 			);
 			ivec4 oldSources[3] = sources;
-			for (int k = 0; k < 3; k++) {
-				if (sources[k].w > 0) {
-					vec3 sourcePos = pos + sources[k].xyz - vec3(128.0);
-					vxData sourceData = readVxMap(getVxPixelCoords(sourcePos));
-					bool known = false;
-					for (int j = 0; j < k; j++) if (sources[j].xyz == sources[k].xyz) known = true;
-					if (known || !isInRange(sourcePos) || !sourceData.emissive) {
-						for (int i = k; i < 2; i++) {
-							sources[i] = sources[i+1];
-						}
-						sources[2] = ivec4(0);
-						k--;
+			for (int k = 0; k < 3 && sources[k].w > 0; k++) {
+				vec3 sourcePos = pos + sources[k].xyz - vec3(128.0);
+				vxData sourceData = readVxMap(getVxPixelCoords(sourcePos));
+				bool known = false;
+				for (int j = 0; j < k; j++) if (sources[j].xyz == sources[k].xyz) known = true;
+				if (known || !isInRange(sourcePos) || !sourceData.emissive) {
+					for (int i = k; i < 2; i++) {
+						sources[i] = sources[i+1];
 					}
+					sources[2] = ivec4(0);
+					k--;
 				}
 			}
 			if (blockData.emissive) {
 				int j = 3;
 				for (; j > 0 && sources[j-1].w < blockData.lightlevel; j--);
 				if (j < 3 && sources[j-1].xyz != ivec3(128)) sources[j] = ivec4(128, 128, 128, blockData.lightlevel);
-//				dataToWrite0.y = 60000;
 			}
 			int propval = propagates(blockData);
 			for (int k = 1; k < 7; k++) {
