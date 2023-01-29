@@ -63,7 +63,6 @@ void main() {
             }
             lightcol = lightcol0.rgb / max(max(lightcol0.r, lightcol0.g), lightcol0.b) * maxbrightness;
         }
-        if (emissive && isEyeInWater == 1) lightlevel = lightlevel * 4 / 3;
         if (!emissive) lightcol = vertexCol.rgb;
 		ivec4 packedData0 = ivec4(
 			int(lightcol.r * 255.9) + int(lightcol.g * 255.9) * 256,

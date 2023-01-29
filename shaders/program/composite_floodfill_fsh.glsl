@@ -96,20 +96,22 @@ void main() {
 		}
 		// newhash and mathash are hashes of the material ID, which change if the block at the given location changes, so it can be detected
 		int newhash =  blockData.mat > 0 ? blockData.mat % 255 + 1 : 0;
-		int mathash = previouslyInRange ? aroundData0[0].x >> 8 : 0;
+		int mathash = previouslyInRange ? aroundData0[0].x >> 8 : -1;
 		// if the material changed, then propagate that
 		if (mathash != newhash) {
 			// the change will not have any effects if it occurs further away than the light level at its location, because any light that passes through that location has faded out by then
-			changed = blockData.emissive ? blockData.lightlevel : aroundData0[0].w >> 8;
+			changed = max(changed, blockData.emissive ? blockData.lightlevel : aroundData0[0].w >> 8);
 			mathash = newhash;
 		}
+		#ifdef DISTANCE_FIELD
 		if (mathash != 0) dataToWrite3.x = 0;
+		#endif
 		//check for changes in surrounding voxels and propagate them
 #endif
 		for (int k = 1; k < 7; k++) {
 			vec3 aroundPos = oldPos + offsets[k];
 			ivec2 aroundCoords = getVxPixelCoords(aroundPos);
-			if (isInRange(aroundPos)) {
+			if (isInRange(aroundPos, 1)) {
 				aroundData0[k] = ivec4(texelFetch(colortex8, aroundCoords, 0) * 65535 + 0.5);
 				aroundData1[k] = ivec4(texelFetch(colortex9, aroundCoords, 0) * 65535 + 0.5);
 				#ifdef DISTANCE_FIELD
@@ -136,16 +138,28 @@ void main() {
 		dataToWrite0.xzw = aroundData0[0].xzw;
 		dataToWrite0.y = int(texelFetch(colortex8, getVxPixelCoords(pos), 0).y * 65535 + 0.5);
 		dataToWrite1 = aroundData1[0];
-		dataToWrite0.x = changed + 256 * mathash;
 		if (changed > 0) {
 			// sources will contain nearby light sources, sorted by intensity
 			ivec4 sources[3] = ivec4[3](
-				ivec4(0),
-				ivec4(0),
-				ivec4(0)
+				ivec4(aroundData0[0].z % 256, aroundData0[0].z >> 8, aroundData0[0].w % 256, aroundData0[0].w >> 8),
+				ivec4(aroundData1[0].x % 256, aroundData1[0].x >> 8, aroundData1[0].y % 256, aroundData1[0].y >> 8),
+				ivec4(aroundData1[0].z % 256, aroundData1[0].z >> 8, aroundData1[0].w % 256, aroundData1[0].w >> 8)
 			);
+			ivec4 oldSources[3] = sources;
+			for (int k = 0; k < 3; k++) {
+				if (sources[k].w > 0) {
+					vec3 sourcePos = pos + sources[k].xyz - vec3(128.0);
+					vxData sourceData = readVxMap(getVxPixelCoords(sourcePos));
+					if (!isInRange(sourcePos) || !sourceData.emissive) {
+						for (int i = 1; i >= k; i--) sources[i] = sources[i+1];
+						sources[2] = ivec4(0);
+					}
+				}
+			}
 			if (blockData.emissive) {
-				sources[0] = ivec4(128, 128, 128, blockData.lightlevel);
+				int j = 3;
+				for (; j > 0 && sources[j-1].w < blockData.lightlevel; j--);
+				if (j < 3 && sources[j-1].xyz != ivec3(128)) sources[j] = ivec4(128, 128, 128, blockData.lightlevel);
 //				dataToWrite0.y = 60000;
 			}
 			for (int k = 1; k < 7; k++) {
@@ -161,25 +175,23 @@ void main() {
 					bool newLight = true;
 					for (int j = 0; j < 3; j++) {
 					// check if light source is already registered
-						if (length(vec3(thisLight.xyz - sources[j].xyz)) < 0.2) {
+						if (thisLight.xyz == sources[j].xyz) {
 							newLight = false;
-							if (j > 0 && sources[j-1].w < thisLight.w) {
-								sources[j] = sources[j-1];
-								sources[j-1] = thisLight;
-							}
-							else if (sources[j].w < thisLight.w) sources[j] = thisLight;
 							break;
 						}
 					}
 					if (newLight) {
 						// sort by intensity, to keep the brightest light sources
 						int j = 3;
-						while (j > 0 && thisLight.w >= sources[j - 1].w) j--;
+						while (j > 0 && thisLight.w > sources[j - 1].w) j--;
 						for (int l = 1; l >= j; l--) sources[l + 1] = sources[l];
-						if (j < 3) sources[j] = thisLight;
+						if (j < 3) {
+							sources[j] = thisLight;
+						}
 					}
 				}
 			}
+			for (int k = 0; k < 3; k++) if (oldSources[k] != sources[k]) changed = max(changed, max(sources[k].w, oldSources[k].w));
 			// write new light data
 			dataToWrite0.zw = ivec2(
 				sources[0].x + (sources[0].y << 8),
@@ -190,6 +202,7 @@ void main() {
 				sources[2].x + (sources[2].y << 8),
 				sources[2].z + (sources[2].w << 8));
 		}
+		dataToWrite0.x = changed + 256 * mathash;
 #else
 		vec3 colMult = vec3(1);
 		if (blockData.emissive || !blockData.trace || blockData.crossmodel) dataToWrite0.w = 127;
