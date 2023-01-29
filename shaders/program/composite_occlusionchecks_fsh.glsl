@@ -115,10 +115,11 @@ void main() {
             int occlusionData = (length(offset) < 0.5) ? dataToWrite0.y : int(texelFetch(colortex8, getVxPixelCoords(oldPos0), 0).g * 65535 + 0.5);
             occlusionData = (occlusionData >> 3 * k) % 8;
             bool doBlockLight = (int(pos.y) % BLOCKLIGHT_CHECK_INTERVAL == frameCounter % BLOCKLIGHT_CHECK_INTERVAL);
-            if (doBlockLight || !isInRange(oldPos0, 1)) {
+            if (k == 0 || doBlockLight || !isInRange(oldPos0)) {
                 ivec4 lightData0 = ivec4(texelFetch(colortex8, getVxPixelCoords(pos), 0) * 65535 + 0.5);
                 ivec4 lightData1 = ivec4(texelFetch(colortex9, getVxPixelCoords(pos), 0) * 65535 + 0.5);
-                int changed = (isInRange(oldPos0, 1)) ? lightData0.x % 256 : 2;
+                int changed = lightData0.x % 256;
+                if (!isInRange(oldPos0)) changed = max(changed, 1);
                 if (changed > 0) {
                     occlusionData = 0;
                     // unpack light sources
@@ -137,7 +138,7 @@ void main() {
                         vec3 lightDir = lights[i] - 127.5 - fract(pos);
                         vec3 endPos = pos;
                         vec3 goalPos = pos + lightDir;
-                        float rayAlpha = raytrace(k == 0, endPos, lightDir + 0.01 * randomOffsets[frameCounter % 6], colortex15, true).w;
+                        float rayAlpha = raytrace(endPos, lightDir + 0.01 * randomOffsets[frameCounter % 6], colortex15, true).w;
                         vxData endBlock = readVxMap(getVxPixelCoords(endPos));
                         vxData goalBlock = readVxMap(getVxPixelCoords(goalPos));
                         float dist = max(max(abs(endPos.x - goalPos.x), abs(endPos.y - goalPos.y)), abs(endPos.z - goalPos.z));

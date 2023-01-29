@@ -40,6 +40,7 @@ uniform vec3 previousCameraPosition;
 
 #include "/lib/vx/voxelMapping.glsl"
 #include "/lib/vx/voxelReading.glsl"
+#include "/lib/vx/lightPropagation.glsl"
 
 ivec3[7] offsets = ivec3[7](ivec3(0), ivec3(-1, 0, 0), ivec3(0, -1, 0), ivec3(0, 0, -1), ivec3(1, 0, 0), ivec3(0, 1, 0), ivec3(0, 0, 1));
 
@@ -150,11 +151,9 @@ void main() {
 				ivec4(aroundData1[0].x % 256, aroundData1[0].x >> 8, aroundData1[0].y % 256, aroundData1[0].y >> 8),
 				ivec4(aroundData1[0].z % 256, aroundData1[0].z >> 8, aroundData1[0].w % 256, aroundData1[0].w >> 8)
 			);
-			ivec4 oldSources[3];
-			for (int k = 0; k < 3; k++)oldSources[k] = sources[k];
-			ivec3 sourceMap = ivec3(0, 1, 2);
+			ivec4 oldSources[3] = sources;
 			for (int k = 0; k < 3; k++) {
-				if (sources[k].w > 0 && sourceMap[k] != -1) {
+				if (sources[k].w > 0) {
 					vec3 sourcePos = pos + sources[k].xyz - vec3(128.0);
 					vxData sourceData = readVxMap(getVxPixelCoords(sourcePos));
 					bool known = false;
@@ -162,25 +161,9 @@ void main() {
 					if (known || !isInRange(sourcePos) || !sourceData.emissive) {
 						for (int i = k; i < 2; i++) {
 							sources[i] = sources[i+1];
-							sourceMap[i] = sourceMap[i+1];
 						}
 						sources[2] = ivec4(0);
-						sourceMap[2] = -1;
 						k--;
-					} else {
-						bool occluded = (aroundData0[0].y >> sourceMap[k]) % 2 == 0;
-						if (occluded) {
-							sources[k].w = 1;
-							ivec4 thisSource = sources[k];
-							int thisMap = sourceMap[k];
-							int i;
-							for (i = k; i < 2 && sources[i+1].w > 1; i++) {
-								sources[i] = sources[i+1];
-								sourceMap[i] = sourceMap[i+1];
-							}
-							sources[i] = thisSource;
-							sourceMap[i] = thisMap;
-						}
 					}
 				}
 			}
@@ -190,19 +173,21 @@ void main() {
 				if (j < 3 && sources[j-1].xyz != ivec3(128)) sources[j] = ivec4(128, 128, 128, blockData.lightlevel);
 //				dataToWrite0.y = 60000;
 			}
+			int propval = propagates(blockData);
 			for (int k = 1; k < 7; k++) {
+				if ((propval >> ((k-1)%6))%2 == 0) continue;
 				// current surrounding (sorted but still compressed) light data
 				ivec2[3] theselights = ivec2[3](aroundData0[k].zw, aroundData1[k].xy, aroundData1[k].zw);
 				for (int i = 0; i < 3; i++) {
 					//unpack and adjust light data
 					ivec4 thisLight = ivec4(theselights[i].x % 256, theselights[i].x >> 8, theselights[i].y % 256, theselights[i].y >> 8);
-					if (thisLight.w <= 1) break;
+					if (thisLight.w <= 1) break; // ignore light sources with zero intensity
 					thisLight.xyz += offsets[k];
 					vec3 lightPos = pos + thisLight.xyz - vec3(128.0);
-					if (!isInRange(lightPos)) break;
+					if (!isInRange(lightPos)) continue;
 					vxData thisLightData = readVxMap(getVxPixelCoords(lightPos));
-					thisLight.w = (aroundData0[k].y >> i) % 2 == 1 ? thisLight.w - 1 : min(thisLight.w - 1, 1);
-					if (!thisLightData.emissive || thisLight.w <= 0) break; // ignore light sources with zero intensity
+					thisLight.w--;
+					if (!thisLightData.emissive) continue;
 					bool newLight = true;
 					for (int j = 0; j < 3; j++) {
 					// check if light source is already registered
@@ -215,6 +200,7 @@ void main() {
 						// sort by intensity, to keep the brightest light sources
 						int j = 3;
 						while (j > 0 && thisLight.w > sources[j - 1].w) j--;
+						if (j > 0 && sources[j-1].w == thisLight.w && (aroundData0[k].y >> i) % 2 == 1) j--;
 						for (int l = 1; l >= j; l--) sources[l + 1] = sources[l];
 						if (j < 3) {
 							sources[j] = thisLight;
@@ -236,32 +222,7 @@ void main() {
 		dataToWrite0.x = changed + 256 * mathash;
 #else
 		vec3 colMult = vec3(1);
-		if (blockData.emissive || !blockData.trace || blockData.crossmodel) dataToWrite0.w = 127;
-		else if (blockData.full) {
-			if (blockData.alphatest) {
-			vec4 texCol = texture2DLod(colortex15, blockData.texcoord, 0);
-			   if (texCol.a < 0.2) {
-					dataToWrite0.w = 127;
-				} else if (texCol.a < 0.8) {
-					dataToWrite0.w = 127;
-					texCol.a = pow(texCol.a, TRANSLUCENT_LIGHT_TINT);
-					texCol.rgb /= max(max(0.0001, texCol.r), max(texCol.g, texCol.b));
-					texCol.rgb *= 0.5 + TRANSLUCENT_LIGHT_CONDUCTION / (texCol.r + texCol.g + texCol.b);
-					colMult = clamp(1 - texCol.a + texCol.a * texCol.rgb, vec3(0), vec3(max(1.0, TRANSLUCENT_LIGHT_CONDUCTION + 0.02)));
-				} else dataToWrite0.w = 0;
-			} else dataToWrite0.w = 0;
-		} else if (blockData.cuboid) {
-			dataToWrite0.w = 0;
-			for (int k = 1; k < 7; k++) {
-				if ((blockData.lower[(k-1)%3] < 0.02 && k < 4) || (blockData.upper[(k-1)%3] > 0.98 && k >= 4)) {
-					bool seals = true;
-					for (int i = (k+3)%3; i != (k+2)%3; i = (i+1)%3) {
-						if (blockData.lower[i] > 0.02 || blockData.upper[i] < 0.98) seals = false;
-					}
-					if (!seals) dataToWrite0.w += 1<<(k-1);
-				} else dataToWrite0.w += 1<<(k-1);
-			}
-		} else dataToWrite0.w = 127;
+		dataToWrite0.w = propagates(blockData, colMult);
 		if (!blockData.emissive) {
 			vec3 col = vec3(0);
 			float propSum = 0.0001;
@@ -278,6 +239,7 @@ void main() {
 			dataToWrite0.xyz = ivec3(col * 65535.0);
 		} else dataToWrite0.xyz = ivec3(65535.0 / 700.0 * blockData.lightcol * blockData.lightlevel * blockData.lightlevel);
 #endif
+
 	#if WATER_STYLE >= 4
 	#define WAVEHEIGHT 5.0
 		if (max(pixelCoord.x, pixelCoord.y) < SHADOWRES / VXHEIGHT) {
