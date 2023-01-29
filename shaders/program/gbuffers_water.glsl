@@ -74,7 +74,8 @@ uniform sampler2D tex;
 	uniform sampler2D depthtex1;
 #endif
 
-#if WATER_STYLE >= 4
+#if WATER_STYLE >= 4 && !defined COLORTEX11
+	#define COLORTEX11
 	uniform sampler2D colortex11;
 #endif
 
