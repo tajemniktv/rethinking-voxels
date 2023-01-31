@@ -57,7 +57,7 @@ void DoTAA(inout vec3 color, inout vec4 temp) {
 	#if defined PP_SUN_SHADOWS || defined PP_BL_SHADOWS
 	float blendMinimum = 0.01;
 	float blendVariable = 0.28;
-	float lengthVelocity = (10 * edge + 1) * length(velocity);
+	float lengthVelocity = (10 * edge + 0.1) * length(velocity);
 	float lPrvDepth0 = GetLinearDepth(prvCoord.z);
 	float lPrvDepth1 = GetLinearDepth(tempColor.w);
 	float ddepth = abs(lPrvDepth0 - lPrvDepth1) * (1 / abs(lPrvDepth0) + 1);
@@ -71,6 +71,6 @@ void DoTAA(inout vec3 color, inout vec4 temp) {
 	
 	color = mix(color, tempColor.xyz, blendFactor);
 	temp = vec4(color, depth);
-	//if (edge > 0.05) color.b = 1.0;
-	//if (ddepth > 0.02) color.r = 1.0;
+//	if (edge > 0.05) color.b = 1.0;
+//	if (ddepth > 0.02) color.r = 1.0;
 }

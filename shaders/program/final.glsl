@@ -82,6 +82,7 @@ const float ambientOcclusionLevel = 1.0;
 //uniform vec3 cameraPosition;
 //uniform vec3 previousCameraPosition;
 //#include "/lib/vx/voxelMapping.glsl"
+//#include "/lib/vx/voxelReading.glsl"
 void main() {
 	vec2 texCoordM = texCoord;
 
@@ -97,6 +98,10 @@ void main() {
 //	ivec4 iLight = ivec4(light * 65535 + 0.5);
 //	light.xyz = vec3(iLight.z % 256, iLight.z >> 8, iLight.w % 256) - 128;
 //	light.xyz = light.xyz * 0.07 + 0.5;
+//	if (iLight.x / 256 != 0) {
+//		vxData blockData = readVxMap(getVxPixelCoords(vxPos));
+//		light.xyz = vec3(blockData.full, blockData.alphatest, abs(blockData.mat - 1008) / 20);
+//	}
 //	if (max(pixelCoord.x, pixelCoord.y) < 64 && iLight.w >> 8 > 0) color = light.xyz;
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = vec4(color, 1.0);
