@@ -34,6 +34,7 @@ ivec2 atlasSize = textureSize(colortex15, 0);
 
 #if CAVE_SUNLIGHT_FIX >= 2
 uniform ivec2 eyeBrightness;
+uniform int isEyeInWater;
 #endif
 
 ivec3[7] offsets = ivec3[7](ivec3(0), ivec3(-1, 0, 0), ivec3(0, -1, 0), ivec3(0, 0, -1), ivec3(1, 0, 0), ivec3(0, 1, 0), ivec3(0, 0, 1));
@@ -57,7 +58,7 @@ void main() {
             for (; height > -VXHEIGHT * VXHEIGHT / 2; height--) {
                 vxData thisBlock = readVxMap(getVxPixelCoords(vec3(pixelCoord.x, height, pixelCoord.y) + vec3(-vxRange / 2.0 + 0.5, 0.5, -vxRange / 2.0 + 0.5)));
                 #if CAVE_SUNLIGHT_FIX >= 2
-                if (eyeBrightness.y < 80 && thisBlock.mat > 1000 && thisBlock.skylight == 0) {
+                if (eyeBrightness.y < 80 && isEyeInWater == 0 && thisBlock.mat > 1000 && thisBlock.skylight == 0) {
                     height = VXHEIGHT * VXHEIGHT / 2;
                     break;
                 }
