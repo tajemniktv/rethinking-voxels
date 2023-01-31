@@ -250,14 +250,14 @@ if (emissive) {
             #endif
             break;
         case 10612: // redstone ore
-        case 10616:
         case 10620:
-        case 10624:
-            #ifdef ORE_HARDCODED_REDSTONE_COL
-            lightcol = vec3(REDSTONE_COL_R, REDSTONE_COL_G, REDSTONE_COL_B);
-            #endif
-            break;
     #endif
+    case 10616: // lit redstone ore
+    case 10624:
+        #ifdef ORE_HARDCODED_REDSTONE_COL
+        lightcol = vec3(REDSTONE_COL_R, REDSTONE_COL_G, REDSTONE_COL_B);
+        #endif
+        break;
     #ifdef GLOWING_MINERAL_BLOCKS
         case 10336: // emerald block
             #ifdef BLOCK_HARDCODED_EMERALD_COL
@@ -570,11 +570,11 @@ if (emissive) {
         case 10620:
             lightlevel = OREUNLIT_BRIGHTNESS_REDSTONE;
             break;
-        case 10616:
-        case 10624:
-            lightlevel = ORELIT_BRIGHTNESS_REDSTONE;
-            break;
     #endif
+    case 10616: // lit redstone ore
+    case 10624:
+        lightlevel = ORELIT_BRIGHTNESS_REDSTONE;
+        break;
     #ifdef GLOWING_MINERAL_BLOCKS
         case 10336: // emerald block
             lightlevel = BLOCK_BRIGHTNESS_EMERALD;
@@ -1186,16 +1186,16 @@ if (cuboid) {
             bounds[1].y = 1;
             break;
         case 10720:
-            bounds[0].z = 12;
+            bounds[0].z = 15;
             break;
         case 10721:
-            bounds[1].z = 4;
+            bounds[1].z = 1;
             break;
         case 10722:
-            bounds[1].x = 4;
+            bounds[1].x = 1;
             break;
         case 10723:
-            bounds[0].x = 12;
+            bounds[0].x = 15;
             break;
         case 10728:
             bounds[0] = ivec3(5, 0, 5);
