@@ -2,6 +2,12 @@
 #define RAYTRACE
 #include "/lib/vx/voxelMapping.glsl"
 #include "/lib/vx/voxelReading.glsl"
+#if CAVE_SUNLIGHT_FIX > 0
+#ifndef COLORTEX10
+#define COLORTEX10
+uniform sampler2D colortex10;
+#endif
+#endif
 #ifdef DISTANCE_FIELD
 #ifndef COLORTEX11
 #define COLORTEX11
@@ -234,8 +240,8 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, bool doScattering, vec3 dir, inou
             }
             #if CAVE_SUNLIGHT_FIX > 0
             if (!isInRange(pos, 2)) {
-                int height = int(texelFetch(colortex10, ivec2(pos.xz + floor(cameraPosition.xz) - floor(previousCameraPosition.xz) + vxRange / 2), 0).w * 65535 + 0.5) % 256 - VXHEIGHT * VXHEIGHT / 2;
-                if (pos.y + floor(cameraPosition.y) - floor(previousCameraPosition.y) < height) {
+                int height0 = int(texelFetch(colortex10, ivec2(pos.xz + floor(cameraPosition.xz) - floor(previousCameraPosition.xz) + vxRange / 2), 0).w * 65535 + 0.5) % 256 - VXHEIGHT * VXHEIGHT / 2;
+                if (pos.y + floor(cameraPosition.y) - floor(previousCameraPosition.y) < height0) {
                     raycolor.a = 1;
                 }
             }

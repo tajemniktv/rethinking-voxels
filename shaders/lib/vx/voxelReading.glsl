@@ -1,6 +1,16 @@
 #ifndef READING
 #define READING
 
+#ifndef SHADOWCOL0
+#define SHADOWCOL0
+uniform sampler2D shadowcolor0;
+#endif
+
+#ifndef SHADOWCOL1
+#define SHADOWCOL1
+uniform sampler2D shadowcolor1;
+#endif
+
 #include "/lib/vx/voxelMapping.glsl"
 
 struct vxData {
