@@ -167,7 +167,10 @@ void main() {
 			if (blockData.emissive) {
 				int j = 3;
 				for (; j > 0 && sources[j-1].w < blockData.lightlevel; j--);
-				if (j < 3 && sources[j-1].xyz != ivec3(128)) sources[j] = ivec4(128, 128, 128, blockData.lightlevel);
+				if (j < 3 && sources[j-1].xyz != ivec3(128)) {
+					for (int i = 1; i >= j; i--) sources[i+1] = sources[i];
+					sources[j] = ivec4(128, 128, 128, blockData.lightlevel);
+				}
 			}
 			int propval = propagates(blockData);
 			for (int k = 1; k < 7; k++) {
@@ -180,7 +183,7 @@ void main() {
 					if (thisLight.w <= 1) break; // ignore light sources with zero intensity
 					thisLight.xyz += offsets[k];
 					vec3 lightPos = pos + thisLight.xyz - vec3(128.0);
-					if (!isInRange(lightPos)) continue;
+					if (thisLight.xyz == sources[i].xyz || !isInRange(lightPos)) continue;
 					vxData thisLightData = readVxMap(getVxPixelCoords(lightPos));
 					thisLight.w--;
 					if (!thisLightData.emissive) continue;
@@ -197,7 +200,7 @@ void main() {
 						int j = 3;
 						while (j > 0 && thisLight.w > sources[j - 1].w) j--;
 						if (j > 0 && sources[j-1].w == thisLight.w && (aroundData0[k].y >> i) % 2 == 1) j--;
-						for (int l = 1; l >= j; l--) sources[l + 1] = sources[l];
+						for (int l = 1; l >= j; l--) sources[l+1] = sources[l];
 						if (j < 3) {
 							sources[j] = thisLight;
 						}
@@ -236,21 +239,22 @@ void main() {
 		} else dataToWrite0.xyz = ivec3(65535.0 / 700.0 * blockData.lightcol * blockData.lightlevel * blockData.lightlevel);
 #endif
 
-	#if WATER_STYLE >= 4
-	#define WAVEHEIGHT 5.0
-		if (max(pixelCoord.x, pixelCoord.y) < SHADOWRES / VXHEIGHT) {
-			int height0 = -128;
-			for (int height = min(VXHEIGHT * VXHEIGHT / 2 - 1, 127); height > max(- VXHEIGHT * VXHEIGHT / 2, -128); height--) {
-				vxData blockData = readVxMap(getVxPixelCoords(ivec3(pixelCoord - vxRange / 2, height).xzy));
-				if (blockData.mat == 31000 || blockData.mat == 10017) {
-					height0 = height;
-					break;
-				} else if (blockData.entity) {
-					height0 = height;
-				}
+	// calculate a water map
+	if (max(pixelCoord.x, pixelCoord.y) < SHADOWRES / VXHEIGHT) {
+		int height0 = -128;
+		for (int height = min(VXHEIGHT * VXHEIGHT / 2 - 1, 127); height > max(- VXHEIGHT * VXHEIGHT / 2, -128); height--) {
+			vxData blockData = readVxMap(getVxPixelCoords(ivec3(pixelCoord - vxRange / 2, height).xzy));
+			if (blockData.mat == 31000 || blockData.mat == 10017) {
+				height0 = height;
+				break;
+			} else if (blockData.entity) {
+				height0 = height;
 			}
-			dataToWrite3.x += 256 * (height0 + 128);
 		}
+		dataToWrite3.x += 256 * (height0 + 128);
+	}
+	#if WATER_STYLE >= 4
+		#define WAVEHEIGHT 5.0
 		ivec2 oldCoord = pixelCoord + VXHEIGHT * ivec2(1.001 * (floor(cameraPosition) - floor(previousCameraPosition)).xz);
 		int hasWater = int(texelFetch(colortex11, oldCoord / VXHEIGHT, 0).x * 65535 + 0.5) >> 8;
 		if (true || hasWater != 0) {
