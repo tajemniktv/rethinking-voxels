@@ -98,10 +98,12 @@ void main() {
 		int newhash =  blockData.mat > 0 ? blockData.mat % 255 + 1 : 0;
 		int mathash = previouslyInRange ? aroundData0[0].x >> 8 : -1;
 		// if the material changed, then propagate that
+		bool thisBlockChanged = false;
 		if (mathash != newhash) {
 			// the change will not have any effects if it occurs further away than the light level at its location, because any light that passes through that location has faded out by then
 			changed = max(changed, max(blockData.emissive ? blockData.lightlevel : aroundData0[0].w >> 8, 2));
 			mathash = newhash;
+			thisBlockChanged = true;
 		}
 		#ifdef DISTANCE_FIELD
 		if (mathash != 0) dataToWrite3.x = 0;
@@ -224,7 +226,7 @@ void main() {
 					}
 				}
 			}
-			for (int k = 0; k < 3; k++) if (oldSources[k] != sources[k]) changed = max(changed, max(sources[k].w, oldSources[k].w));
+			if (thisBlockChanged) for (int k = 0; k < 3; k++) if (oldSources[k] != sources[k]) changed = max(changed, max(sources[k].w, oldSources[k].w));
 			// write new light data
 			dataToWrite0.zw = ivec2(
 				sources[0].x + (sources[0].y << 8),
