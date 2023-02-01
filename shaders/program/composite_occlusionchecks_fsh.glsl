@@ -47,22 +47,16 @@ vec3[6] randomOffsets = vec3[6](vec3(0.64, -0.05, 0.46), vec3(0.39, -0.93, 0.92)
 
 void main() {
     ivec4 dataToWrite0;
-    ivec4 dataToWrite1;
+    ivec4 dataToWrite2;
     ivec2 pixelCoord = ivec2(gl_FragCoord.xy);
     if (max(pixelCoord.x, pixelCoord.y) < shadowMapResolution) {
         dataToWrite0 = ivec4(texelFetch(colortex8, pixelCoord, 0) * 65535 + 0.5);
-        dataToWrite1 = ivec4(texelFetch(colortex10, pixelCoord, 0) * 65535 + 0.5);
+        dataToWrite2 = ivec4(texelFetch(colortex10, pixelCoord, 0) * 65535 + 0.5);
         // height map
         if (max(pixelCoord.x, pixelCoord.y) < vxRange) {
             int height = VXHEIGHT * VXHEIGHT / 2 - 1;
             for (; height > -VXHEIGHT * VXHEIGHT / 2; height--) {
                 vxData thisBlock = readVxMap(getVxPixelCoords(vec3(pixelCoord.x, height, pixelCoord.y) + vec3(-vxRange / 2.0 + 0.5, 0.5, -vxRange / 2.0 + 0.5)));
-                #if CAVE_SUNLIGHT_FIX >= 2
-                if (eyeBrightness.y < 80 && isEyeInWater == 0 && thisBlock.mat > 1000 && thisBlock.skylight == 0) {
-                    height = VXHEIGHT * VXHEIGHT / 2;
-                    break;
-                }
-                #endif
                 bool isGround = !(
                     thisBlock.mat == 10160 ||
                     thisBlock.mat == 10168 ||
@@ -72,9 +66,14 @@ void main() {
                     thisBlock.mat == 10200 ||
                     thisBlock.mat == 10208
                 );
-                if ((thisBlock.full && !thisBlock.alphatest && isGround)) break;
+                if ((thisBlock.full && !thisBlock.alphatest && isGround)) {
+                    #if CAVE_SUNLIGHT_FIX >= 2
+                        if (eyeBrightness.y < 80 && isEyeInWater == 0 && thisBlock.skylight == 0) height = VXHEIGHT * VXHEIGHT / 2;
+                    #endif
+                    break;
+                }
             }
-            dataToWrite1.w = (dataToWrite1.w >> 8 << 8) + clamp(height + (VXHEIGHT * VXHEIGHT / 2), 0, 255);
+            dataToWrite2.w = (dataToWrite2.w >> 8 << 8) + clamp(height + (VXHEIGHT * VXHEIGHT / 2), 0, 255);
         }
         vec3 pos0 = getVxPos(pixelCoord);
         vec3 pos = pos0;
@@ -103,9 +102,9 @@ void main() {
             float causticFactor = clamp(transMat == 31000 ? getCaustics(transPos + floor(cameraPosition)) * 5.0 : 1, 0.0, 3.9);
 
             // pack shadow map data
-            dataToWrite1.r = int(sunRayColor.r * 15.5) + (int(sunRayColor.g * 15.5) << 4) + (int(sunRayColor.b * 15.5) << 8) + (int(causticFactor * 4.0) << 12);
-            dataToWrite1.g = int((0.5 + dot(sunPos, sunMoonDir) / (1.5  * vxRange)) * 65535 + 0.5);
-            dataToWrite1.b = int((0.5 + dot(transPos.y > -9999 ? transPos : sunPos, sunMoonDir) / (1.5  * vxRange)) * 65535 + 0.5);
+            dataToWrite2.r = int(sunRayColor.r * 15.5) + (int(sunRayColor.g * 15.5) << 4) + (int(sunRayColor.b * 15.5) << 8) + (int(causticFactor * 4.0) << 12);
+            dataToWrite2.g = int((0.5 + dot(sunPos, sunMoonDir) / (1.5  * vxRange)) * 65535 + 0.5);
+            dataToWrite2.b = int((0.5 + dot(transPos.y > -9999 ? transPos : sunPos, sunMoonDir) / (1.5  * vxRange)) * 65535 + 0.5);
         #endif
         #if ADVANCED_LIGHT_TRACING > 0
         int newOcclusionData = 0;
@@ -162,7 +161,7 @@ void main() {
         #endif
 	/*RENDERTARGETS:8,10*/
     gl_FragData[0] = vec4(dataToWrite0) / 65535.0;
-    gl_FragData[1] = vec4(dataToWrite1) / 65535.0;
+    gl_FragData[1] = vec4(dataToWrite2) / 65535.0;
 	return;
     }
 	gl_FragData[0] = vec4(0);

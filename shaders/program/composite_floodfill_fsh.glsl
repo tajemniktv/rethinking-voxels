@@ -100,7 +100,7 @@ void main() {
 		// if the material changed, then propagate that
 		if (mathash != newhash) {
 			// the change will not have any effects if it occurs further away than the light level at its location, because any light that passes through that location has faded out by then
-			changed = max(changed, blockData.emissive ? blockData.lightlevel : aroundData0[0].w >> 8);
+			changed = max(changed, max(blockData.emissive ? blockData.lightlevel : aroundData0[0].w >> 8, 2));
 			mathash = newhash;
 		}
 		#ifdef DISTANCE_FIELD
@@ -145,12 +145,17 @@ void main() {
 		dataToWrite1 = aroundData1[0];
 		if (changed > 0) {
 			// sources contains nearby light sources, sorted by intensity
-			ivec4 sources[3] = ivec4[3](
+			ivec4 sources[3];
+			if (blockData.full) sources = ivec4[3](ivec4(0), ivec4(0), ivec4(0));
+			else sources = ivec4[3](
 				ivec4(aroundData0[0].z % 256, aroundData0[0].z >> 8, aroundData0[0].w % 256, aroundData0[0].w >> 8),
 				ivec4(aroundData1[0].x % 256, aroundData1[0].x >> 8, aroundData1[0].y % 256, aroundData1[0].y >> 8),
 				ivec4(aroundData1[0].z % 256, aroundData1[0].z >> 8, aroundData1[0].w % 256, aroundData1[0].w >> 8)
 			);
-			ivec4 oldSources[3] = sources;
+			ivec4 oldSources[3];
+			for (int k = 0; k < 3; k++) oldSources[k] = sources[k];
+			int k2 = 0;
+			int nlights = 0;
 			for (int k = 0; k < 3 && sources[k].w > 0; k++) {
 				vec3 sourcePos = pos + sources[k].xyz - vec3(128.0);
 				vxData sourceData = readVxMap(getVxPixelCoords(sourcePos));
@@ -162,7 +167,15 @@ void main() {
 					}
 					sources[2] = ivec4(0);
 					k--;
+				} else if ((aroundData0[0].y >> k2) % 2 == 0) {
+					sources[k].w--;
+					for (int i = k; i < 2 && sources[i].w < sources[i+1].w; i++) {
+						ivec4 temp = sources[i];
+						sources[i] = sources[i+1];
+						sources[i+1] = temp;
+					}
 				}
+				k2++;
 			}
 			if (blockData.emissive) {
 				int j = 3;
@@ -174,7 +187,7 @@ void main() {
 			}
 			int propval = propagates(blockData);
 			for (int k = 1; k < 7; k++) {
-				if ((propval >> ((k-1)%6))%2 == 0) continue;
+				if ((propval >> (k-1))%2 == 0) continue;
 				// current surrounding (sorted but still compressed) light data
 				ivec2[3] theselights = ivec2[3](aroundData0[k].zw, aroundData1[k].xy, aroundData1[k].zw);
 				for (int i = 0; i < 3; i++) {
@@ -182,11 +195,15 @@ void main() {
 					ivec4 thisLight = ivec4(theselights[i].x % 256, theselights[i].x >> 8, theselights[i].y % 256, theselights[i].y >> 8);
 					if (thisLight.w <= 1) break; // ignore light sources with zero intensity
 					thisLight.xyz += offsets[k];
+					if (thisLight.xyz == sources[i].xyz) {
+						sources[i].w = max(thisLight.w - 1, sources[i].w);
+						continue;
+					}
 					vec3 lightPos = pos + thisLight.xyz - vec3(128.0);
-					if (thisLight.xyz == sources[i].xyz || !isInRange(lightPos)) continue;
+					if (!isInRange(lightPos)) continue;
 					vxData thisLightData = readVxMap(getVxPixelCoords(lightPos));
-					thisLight.w--;
 					if (!thisLightData.emissive) continue;
+					thisLight.w--;
 					bool newLight = true;
 					for (int j = 0; j < 3; j++) {
 					// check if light source is already registered
@@ -207,7 +224,7 @@ void main() {
 					}
 				}
 			}
-			//for (int k = 0; k < 3; k++) if (oldSources[k] != sources[k]) changed = max(changed, max(sources[k].w, oldSources[k].w));
+			for (int k = 0; k < 3; k++) if (oldSources[k] != sources[k]) changed = max(changed, max(sources[k].w, oldSources[k].w));
 			// write new light data
 			dataToWrite0.zw = ivec2(
 				sources[0].x + (sources[0].y << 8),
