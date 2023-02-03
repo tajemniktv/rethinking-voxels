@@ -157,7 +157,9 @@ value.ADVANCED_LIGHT_TRACING.1=Advanced
 
 option.BL_SHADOW_MODE=Blocklight Shadow Mode
 option.BL_SHADOW_MODE.comment=Controls the way in which the shadows that are cast from block light sources is rendered. Shadow Volume uses the same data that is used for volumetric block light. Half Res calculates the shadows at the end of rendering one frame and applies it to the scene in the next one, meaning that it has problems in movement. Per-Pixel calculates shadows for every pixel that is rendered and then some, meaning that it has the highest visual fidelity, but the worst performance.
-
+value.BL_SHADOW_MODE.0=Shadow Volume
+value.BL_SHADOW_MODE.1=Half-Res
+value.BL_SHADOW_MODE.2=Per-Pixel
 option.PP_SUN_SHADOWS=Pixel Perfect Sun Shadows
 option.PP_SUN_SHADOWS.comment=Perform sun occlusion check for every pixel rather than rendering a shadow map. High performance impact.
 
