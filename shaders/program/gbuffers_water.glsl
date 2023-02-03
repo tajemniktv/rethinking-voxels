@@ -51,6 +51,8 @@ uniform vec3 previousCameraPosition;
 
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;
+uniform mat4 gbufferPreviousProjection;
+uniform mat4 gbufferPreviousModelView;
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
 uniform float viewWidth;
@@ -117,6 +119,7 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 #endif
 
 //Common Functions//
+#define LINDEPTH
 float GetLinearDepth(float depth) {
 	return (2.0 * near) / (far + near - depth * (far - near));
 }
@@ -183,7 +186,7 @@ void main() {
 	#endif
 
 	#if defined OVERWORLD && CLOUD_QUALITY > 0
-		float cloudLinearDepth = texelFetch(gaux1, texelCoord, 0).r;
+		float cloudLinearDepth = texelFetch(gaux1, texelCoord, 0).a;
 
 		if (pow2(cloudLinearDepth + OSIEBCA * dither) * far < min(lViewPos, far)) discard;
 	#endif

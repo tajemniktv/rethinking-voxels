@@ -37,6 +37,7 @@ uniform mat4 shadowProjection;
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex1;
+uniform sampler2D colortex5;
 uniform sampler2D colortex7;
 uniform sampler2D depthtex0;
 uniform sampler2D noisetex;
@@ -51,8 +52,6 @@ uniform sampler2D noisetex;
 
 #ifdef PBR_REFLECTIONS
 	uniform mat4 gbufferModelView;
-	
-	uniform sampler2D colortex5;
 #endif
 
 #ifdef AURORA_BOREALIS
@@ -225,7 +224,7 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 void main() {
 	vec3 color = texelFetch(colortex0, texelCoord, 0).rgb;
 	float z0   = texelFetch(depthtex0, texelCoord, 0).r;
-
+	vec3 normal = vec3(0);
 	vec4 screenPos = vec4(texCoord, z0, 1.0);
 	vec4 viewPos = gbufferProjectionInverse * (screenPos * 2.0 - 1.0);
 	viewPos /= viewPos.w;
@@ -257,6 +256,7 @@ void main() {
 	
 	if (z0 < 1.0) {
 		vec3 texture5 = texelFetch(colortex1, texelCoord, 0).rgb;
+		normal = texelFetch(colortex5, texelCoord, 0).rgb;
 
 		#if defined SSAO || defined WORLD_OUTLINE
 			float linearZ0 = GetLinearDepth(z0);
@@ -279,7 +279,7 @@ void main() {
 
 		#ifdef PBR_REFLECTIONS
 			float skyLightFactor = texture5.b;
-			vec3 normalM = mat3(gbufferModelView) * texelFetch(colortex5, texelCoord, 0).rgb;
+			vec3 normalM = mat3(gbufferModelView) * normal;
 
 			float fresnel = clamp(1.0 + dot(normalM, nViewPos), 0.0, 1.0);
 
@@ -404,7 +404,11 @@ void main() {
 
 	/*DRAWBUFFERS:045*/
     gl_FragData[0] = vec4(color, 1.0);
-	gl_FragData[1] = vec4(cloudLinearDepth, 0.0, 0.0, 1.0);
+	#if BL_SHADOW_MODE == 1
+		gl_FragData[1] = vec4(normal * 0.5 + 0.5, cloudLinearDepth);
+	#else
+		gl_FragData[1] = vec4(0.0, 0.0, 0.0, cloudLinearDepth);
+	#endif
 	gl_FragData[2] = vec4(sqrt(color) - 1.0, 1.0);
 	#ifdef TEMPORAL_FILTER
 		/*DRAWBUFFERS:0457*/
@@ -458,7 +462,7 @@ void main() {
 	sunVec = GetSunVector();
 
 	#ifdef SCENE_AWARE_LIGHT_SHAFTS
-		vlFactor = texelFetch(colortex4, ivec2(viewWidth-1, viewHeight-1), 0).r;
+		vlFactor = texelFetch(colortex4, ivec2(viewWidth-1, viewHeight-1), 0).a;
 
 		#ifdef END
 			if (frameCounter % int(0.06666 / frameTimeSmooth + 0.5) == 0) { // Change speed is not too different above 10 fps

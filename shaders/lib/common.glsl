@@ -37,7 +37,11 @@
     #define OCCLUSION_BLEED_PREVENTION
     #define CAVE_SUNLIGHT_FIX 2 // [0 1 2]
     #define SMOOTH_LIGHTING 1 //[0 1]
-  //#define PP_BL_SHADOWS
+    #define BL_SHADOW_MODE 0 //[0 1 2]
+
+    #if BL_SHADOW_MODE == 2
+        #define PP_BL_SHADOWS
+    #endif
   //#define PP_SUN_SHADOWS
   //#define CORRECT_CUBOID_OFFSETS
     #define BLOCKLIGHT_SOURCE_SIZE 0.1 //[0.0 0.02 0.05 0.1 0.2 0.3 0.5]

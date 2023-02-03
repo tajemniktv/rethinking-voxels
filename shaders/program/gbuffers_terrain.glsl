@@ -42,6 +42,11 @@ uniform vec3 previousCameraPosition;
 
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;
+#if BL_SHADOW_MODE == 1
+uniform float near, far;
+uniform mat4 gbufferPreviousProjection;
+uniform mat4 gbufferPreviousModelView;
+#endif
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
 
@@ -315,7 +320,7 @@ void main() {
 	gl_FragData[0] = color;
 	gl_FragData[1] = vec4(smoothnessD, materialMask, skyLightFactor, 1.0);
 
-	#if REFLECTION_QUALITY >= 3 && RP_MODE != 0
+	#if (REFLECTION_QUALITY >= 3 && RP_MODE != 0) || BL_SHADOW_MODE == 1
 		/* DRAWBUFFERS:015 */
 		gl_FragData[2] = vec4(normalM, 1.0);
 	#endif

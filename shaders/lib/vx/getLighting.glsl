@@ -22,6 +22,13 @@ uniform sampler2D colortex9;
 uniform sampler2D colortex10;
 #endif
 #endif
+#if BL_SHADOW_MODE == 1 && !defined PP_BL_SHADOWS
+#ifndef COLORTEX12
+#define COLORTEX12
+uniform sampler2D colortex12;
+#endif
+#endif
+
 #include "/lib/vx/voxelReading.glsl"
 #include "/lib/vx/voxelMapping.glsl"
 #include "/lib/vx/raytrace.glsl"
@@ -114,8 +121,17 @@ vec3[3] getOcclusion(vec3 vxPos, vec3 normal, vec4[3] lights, bool doScattering)
 }
 #endif
 // get the blocklight value at a given position. optionally supply a normal vector to account for dot product shading
-vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat, bool doScattering) {
+#if BL_SHADOW_MODE == 1 && !defined PP_BL_SHADOWS && !defined GBUFFERS_HAND
+vec3 getBlockLight0(vec3 vxPos, vec3 normal, int mat, bool doScattering)
+#else
+vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat, bool doScattering)
+#endif
+    {
+    #ifdef FF_IS_UPDATED
+    vec3 vxPosOld = vxPos;
+    #else
     vec3 vxPosOld = vxPos + floor(cameraPosition) - floor(previousCameraPosition);
+    #endif
     if (isInRange(vxPosOld) && isInRange(vxPos)) {
         vec3 lightCol = vec3(0);
         ivec2 vxCoordsFF = getVxPixelCoords(vxPosOld);
@@ -140,7 +156,11 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat, bool doScattering) {
         for (int k = 0; k < 3; k++) {
             lights[k].xyz += 0.5 - fract(vxPos);
             if (!wasHere) {
+                #ifdef VX_NORMAL_MARGIN
+                isHere[k] = (max(max(abs(lights[k].x), abs(lights[k].y)), abs(lights[k].z)) < 0.5 + VX_NORMAL_MARGIN);
+                #else
                 isHere[k] = (max(max(abs(lights[k].x), abs(lights[k].y)), abs(lights[k].z)) < 0.521);
+                #endif
                 wasHere = isHere[k];
             } else isHere[k] = false;
             vxData lightSourceData = readVxMap(getVxPixelCoords(vxPos + lights[k].xyz));
@@ -156,7 +176,7 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat, bool doScattering) {
             #else
             brightnesses[k] = lights[k].w;
             #endif
-            ndotls[k] = ((isHere[k] && (lightSourceData.mat / 10000 * 10000 + (lightSourceData.mat % 2000) / 4 * 4 == mat || true)) || calcNdotLs) ? 1 : max(0, dot(normalize(lights[k].xyz), normal));
+            ndotls[k] = ((isHere[k] && (true || lightSourceData.mat / 10000 * 10000 + (lightSourceData.mat % 2000) / 4 * 4 == mat)) || calcNdotLs) ? 1 : max(0, dot(normalize(lights[k].xyz), normal));
             lightCols[k] = lightSourceData.lightcol * (lightSourceData.emissive ? 1.0 : 0.0);
             lightMats[k] = lightSourceData.mat;
             #if SMOOTH_LIGHTING == 1
@@ -208,6 +228,24 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat, bool doScattering) {
         return lightCol;
     } else return vec3(0);
 }
+#if BL_SHADOW_MODE == 1 && !defined PP_BL_SHADOWS && !defined GBUFFERS_HAND
+#include "/lib/util/reprojection.glsl"
+
+float GetLinearDepth0(float depth) {
+	return (2.0 * near) / (far + near - depth * (far - near));
+}
+vec3 getBlockLight(vec3 vxPos, vec3 worldNormal, int mat, bool doScattering) {
+    vec3 screenPos = gl_FragCoord.xyz / vec3(textureSize(colortex12, 0), 1);
+    vec3 prevPos = Reprojection3D(screenPos, cameraPosition - previousCameraPosition);
+    if (prevPos.x < 0 || prevPos.y < 0 || prevPos.x > 1 || prevPos.y > 1) return getBlockLight0(vxPos, worldNormal, mat, doScattering);
+    vec4 prevCol = texture2D(colortex12, prevPos.xy);
+    float prevLinDepth0 = GetLinearDepth0(prevPos.z);
+    float prevLinDepth1 = GetLinearDepth0(prevCol.a);
+    float ddepth = abs(prevLinDepth0 - prevLinDepth1) / abs(prevLinDepth0);
+    if (ddepth > 0.01) return getBlockLight0(vxPos, worldNormal, mat, doScattering);
+    return prevCol.xyz * 2;
+}
+#endif
 #else
 vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat, bool doScattering) { // doScattering doesn't do anything in basic light propagation mode
     vxPos += normal * 0.5;

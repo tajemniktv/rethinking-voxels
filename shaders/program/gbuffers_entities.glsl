@@ -37,6 +37,11 @@ uniform vec4 entityColor;
 
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;
+#if BL_SHADOW_MODE == 1
+uniform float near, far;
+uniform mat4 gbufferPreviousProjection;
+uniform mat4 gbufferPreviousModelView;
+#endif
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
 

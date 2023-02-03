@@ -24,7 +24,7 @@ flat in vec4 glColor;
 uniform int isEyeInWater;
 uniform int frameCounter;
 
-uniform float far;
+uniform float near, far;
 uniform float viewWidth;
 uniform float viewHeight;
 uniform float nightVision;
@@ -40,6 +40,10 @@ uniform vec3 previousCameraPosition;
 
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;
+#if BL_SHADOW_MODE == 1
+uniform mat4 gbufferPreviousProjection;
+uniform mat4 gbufferPreviousModelView;
+#endif
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
 
@@ -104,7 +108,7 @@ void main() {
 	#endif
 
 	#if defined OVERWORLD && CLOUD_QUALITY > 0
-		float cloudLinearDepth = texelFetch(gaux1, texelCoord, 0).r;
+		float cloudLinearDepth = texelFetch(gaux1, texelCoord, 0).a;
 
 		if (cloudLinearDepth > 0.0) // Because Iris changes the pipeline position of opaque particles
 		if (pow2(cloudLinearDepth + OSIEBCA * dither) * far < min(lViewPos, far)) discard;

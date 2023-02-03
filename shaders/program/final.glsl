@@ -23,13 +23,13 @@ uniform sampler2D colortex3;
 
 //Pipeline Constants//
 /*
-const int colortex0Format = R11F_G11F_B10F; //main color
+const int colortex0Format = R11F_G11F_B10F;	//main color
 const int colortex1Format = RGB8;			//smoothnessD & materialMask & skyLightFactor
-const int colortex2Format = RGBA16;		    //taa
-const int colortex3Format = RGB8;		    //*cloud texture on deferred* & translucentMult & bloom & final color
-const int colortex4Format = R8;				//volumetric cloud linear depth & volumetric light factor
+const int colortex2Format = RGBA16;			//taa
+const int colortex3Format = RGB8;			//*cloud texture on deferred* & translucentMult & bloom & final color
+const int colortex4Format = RGBA8;			//volumetric cloud linear depth & volumetric light factor
 const int colortex5Format = RGB8_SNORM;		//normalM & scene image for water reflections
-const int colortex6Format = R8;		        //*cloud texture on gbuffers*
+const int colortex6Format = R8;				//*cloud texture on gbuffers*
 #ifdef TEMPORAL_FILTER
 const int colortex7Format = RGBA16F;		//temporal filter
 #endif
@@ -40,8 +40,7 @@ const int colortex8Format = RGBA16;
 const int colortex9Format = RGBA16;
 const int colortex10Format = RGBA16;
 const int colortex11Format = RGBA16;
-
-//colortex7
+const int colortex12Format = RGBA16;		//previous frame lighting
 */
 
 const bool colortex0Clear = true;
@@ -55,6 +54,7 @@ const bool colortex8Clear = false;
 const bool colortex9Clear = false;
 const bool colortex10Clear = false;
 const bool colortex11Clear = false;
+const bool colortex12Clear = false;
 #ifdef TEMPORAL_FILTER
 const bool colortex6Clear = false;
 const bool colortex7Clear = false;
@@ -78,11 +78,7 @@ const float ambientOcclusionLevel = 1.0;
 //Includes//
 
 //Program//
-//uniform sampler2D colortex8;
-//uniform vec3 cameraPosition;
-//uniform vec3 previousCameraPosition;
-//#include "/lib/vx/voxelMapping.glsl"
-//#include "/lib/vx/voxelReading.glsl"
+//uniform sampler2D colortex2;
 void main() {
 	vec2 texCoordM = texCoord;
 
@@ -91,18 +87,8 @@ void main() {
 	#endif
 
 	vec3 color = texture2D(colortex3, texCoordM).rgb;
-//	ivec2 pixelCoord = ivec2(texCoord * textureSize(colortex3, 0)) / 5;
-//	vec3 vxPos = vec3(pixelCoord.x % 16, pixelCoord.y % 16, pixelCoord.x / 16 + 4 * (pixelCoord.y / 16)).xzy - 8;
-//	vec4 light = texelFetch(colortex8, getVxPixelCoords(vxPos), 0);
-//	vec4 light = texelFetch(colortex8, pixelCoord, 0);
-//	ivec4 iLight = ivec4(light * 65535 + 0.5);
-//	light.xyz = vec3(iLight.z % 256, iLight.z >> 8, iLight.w % 256) - 128;
-//	light.xyz = light.xyz * 0.07 + 0.5;
-//	if (iLight.x / 256 != 0) {
-//		vxData blockData = readVxMap(getVxPixelCoords(vxPos));
-//		light.xyz = vec3(blockData.full, blockData.alphatest, abs(blockData.mat - 1008) / 20);
-//	}
-//	if (max(pixelCoord.x, pixelCoord.y) < 64 && iLight.w >> 8 > 0) color = light.xyz;
+//	vec3 lightCol = texture2D(colortex2, texCoord).aaa;
+//	if (texCoord.x < 0.5 && texCoord.y < 0.5) color = lightCol;
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = vec4(color, 1.0);
 }

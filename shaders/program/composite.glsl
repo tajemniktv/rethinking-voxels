@@ -34,6 +34,7 @@ uniform sampler2D depthtex1;
 	#ifndef VBL_INTPOL
 	#undef OCCLUSION_FILTER
 	#endif
+	#undef BL_SHADOW_MODE
 	#undef PP_BL_SHADOWS
 	#undef PP_SUN_SHADOWS
 	uniform int frameCounter;
@@ -63,6 +64,7 @@ uniform sampler2D depthtex1;
 	uniform mat4 shadowProjection;
 
 	uniform sampler2D colortex3;
+	uniform sampler2D colortex4;
 	uniform sampler2D noisetex;
 #endif
 
@@ -109,6 +111,7 @@ uniform sampler2D depthtex1;
 //Program//
 void main() {
 	vec3 color = texelFetch(colortex0, texelCoord, 0).rgb;
+	vec3 tex4val = texelFetch(colortex4, texelCoord, 0).rgb;
 	float z0 = texelFetch(depthtex0, texelCoord, 0).r;
 	float z1 = texelFetch(depthtex1, texelCoord, 0).r;
 
@@ -182,8 +185,8 @@ void main() {
 	gl_FragData[0] = vec4(color, 1.0);
 	
 	#if defined SCENE_AWARE_LIGHT_SHAFTS && LIGHTSHAFT_QUALITY > 0
-		/* DRAWBUFFERS:04 */
-		gl_FragData[1] = vec4(vlFactorM, 0.0, 0.0, 1.0);
+		/* DRAWBUFFERS:04*/
+		gl_FragData[1] = vec4(tex4val, vlFactorM);
 	#endif
 }
 
@@ -227,7 +230,7 @@ void main() {
 	#endif
 
 	#ifdef SCENE_AWARE_LIGHT_SHAFTS
-		vlFactor = texelFetch(colortex4, ivec2(viewWidth-1, viewHeight-1), 0).r;
+		vlFactor = texelFetch(colortex4, ivec2(viewWidth-1, viewHeight-1), 0).a;
 	#else
 		vlFactor = 0.0;
 	#endif
