@@ -34,7 +34,6 @@ ivec2 offsets[4] = ivec2[4](ivec2(0, 0), ivec2(0, 1), ivec2(1, 1), ivec2(1, 0));
 
 #include "/lib/vx/voxelMapping.glsl"
 #include "/lib/vx/voxelReading.glsl"
-#include "/lib/vx/raytrace.glsl"
 #define PP_BL_SHADOWS
 #define FF_IS_UPDATED
 #define VX_NORMAL_MARGIN 0.08

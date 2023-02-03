@@ -207,7 +207,11 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, bool doScattering, vec3 dir, inou
             ivec2 vxCoords = getVxPixelCoords(pos);
             voxeldata = readVxMap(vxCoords);
             #ifdef DISTANCE_FIELD
+            #ifdef FF_IS_UPDATED
+            ivec2 oldCoords = vxCoords;
+            #else
             ivec2 oldCoords = getVxPixelCoords(pos + dcamPos);
+            #endif
             dfdata = ivec4(texelFetch(colortex11, oldCoords, 0) * 65525 + 0.5);
             #endif
             pos -= eyeOffsets[i];
