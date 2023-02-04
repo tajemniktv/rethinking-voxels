@@ -1179,7 +1179,7 @@ if (cuboid) {
             bounds[1] = ivec3(9, 10, 9);
             break;
         case 10644:
-            bounds[1].y = 3;
+            bounds[1].y = 2;
             break;
         case 12153:
         case 10669:
