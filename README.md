@@ -19,5 +19,6 @@ zndrmn has helped me with choosing default light colours and organising their se
 
 Modded light source ID contributors:
 
- - discord user GulliUlli
- - github user Stormcruzerlore
+ - discord user `GulliUlli`
+ - github user `Stormcruzerlore`
+ - discord user `Chell Sky`
