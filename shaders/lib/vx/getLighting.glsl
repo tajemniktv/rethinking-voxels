@@ -235,9 +235,10 @@ float GetLinearDepth0(float depth) {
 	return (2.0 * near) / (far + near - depth * (far - near));
 }
 vec3 getBlockLight(vec3 vxPos, vec3 worldNormal, int mat, bool doScattering) {
+    vxData blockData = readVxMap(vxPos - 0.05 * worldNormal);
     vec3 screenPos = gl_FragCoord.xyz / vec3(textureSize(colortex12, 0), 1);
     vec3 prevPos = Reprojection3D(screenPos, cameraPosition - previousCameraPosition);
-    if (prevPos.x < 0 || prevPos.y < 0 || prevPos.x > 1 || prevPos.y > 1) return getBlockLight0(vxPos, worldNormal, mat, doScattering);
+    if (prevPos.x < 0 || prevPos.y < 0 || prevPos.x > 1 || prevPos.y > 1 || blockData.emissive) return getBlockLight0(vxPos, worldNormal, mat, doScattering);
     vec4 prevCol = texture2D(colortex12, prevPos.xy);
     float prevLinDepth0 = GetLinearDepth0(prevPos.z);
     float prevLinDepth1 = GetLinearDepth0(prevCol.a);
