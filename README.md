@@ -1,7 +1,7 @@
 # Rethinking Voxels
 Hello!
 
-You are looking at rethinking-voxels, a minecraft shaderpack. It is an edited version of Complementary Reimagined, and it follows the same visual style, but it also has coloured lights and more VL.
+You are looking at rethinking-voxels, a minecraft shaderpack. It is an edited version of Complementary Reimagined, and it follows the same visual style, but it also has coloured lights with ray-traced shadows and more VL.
 
 ## How to Install
 
