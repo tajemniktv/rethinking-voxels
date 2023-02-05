@@ -208,7 +208,11 @@
     #define SHADOW_FILTERING
 
     // Disable PERPENDICULAR_TWEAKS if you change sunPathRotation to anything but 0.0 or else you will get incorrect lighting
-    const float sunPathRotation = 0.0;
+    #ifdef PP_SUN_SHADOWS
+        const float sunPathRotation = 1.0;
+    #else
+        const float sunPathRotation = 0.0;
+    #endif
     #define PERPENDICULAR_TWEAKS
     #define SIDE_SHADOWING
 
