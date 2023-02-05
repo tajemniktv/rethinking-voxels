@@ -6,4 +6,4 @@ cat shaders/block.properties | grep -e 'block.1234=' | sed 's/^block.1234=//' | 
 cat lightlist0.tmp | sort -u | tr '\n' ' ' > lightlist.tmp
 rm lightlist0.tmp
 echo '' >> lightlist.tmp
-cat shaders/block.properties | sed 's/#.*$//' | sed 's/^.*([0-9]=|$)//' | tr -d '\r' | tr ' ' '\n' | grep -e '[a-z]' | sort | uniq -d
+cat shaders/block.properties | sed 's/#.*$//' | sed 's/^.*[0-9]=//' | tr -d '\r' | tr ' ' '\n'# | grep -e '[a-z]' | sort | uniq -d

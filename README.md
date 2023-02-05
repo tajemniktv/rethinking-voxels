@@ -5,7 +5,7 @@ You are looking at rethinking-voxels, a minecraft shaderpack. It is an edited ve
 
 ## How to Install
 
-To install this shaderpack, you need to have minecraft 1.19.2 or later, and a shader loader (either [Iris](https://irisshaders.net) (recommended) or [OptiFine](https://optifine.net)). Please do not report bugs that occur when running the shaderpack on testing versions of either shader loader.
+To install this shaderpack, you need to have minecraft 1.19.2 or later (older versions may work, but are unsupported), and a shader loader (either [Iris](https://irisshaders.net) (recommended) or [OptiFine](https://optifine.net)). Please do not report bugs that occur when running the shaderpack on testing versions of either shader loader.
 
 Once you have a shader loader installed, you can either clone this repository into your shaderpacks folder, or download it from [Modrinth](https://modrinth.com/shader/rethinking-voxels)
 

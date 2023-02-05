@@ -8,6 +8,7 @@ entity = (mat / 10000 == 5);
 //exclude from ray tracing
 notrace = (
     mat == 1234 ||
+    mat == 1235 ||
     mat == 10072 ||
     mat == 10076 ||
     mat == 10012 ||
@@ -83,6 +84,7 @@ if (mat / 10000 == 3 && mat != 31016) alphatest = true;
 //light sources
 emissive = (
     mat == 1234  || // generic light source
+    mat == 1235  || // generic light source (fallback colour)
     mat == 10024 || // brewing stand
     mat == 10056 || // lava cauldron
     mat == 10068 || // lava
@@ -174,6 +176,8 @@ emissive = (
 );
 if (emissive) {
     switch (mat) {
+        case 1235: // fallback with hardcoded colour
+            lightcol = blocklightCol;
         case 10024: // brewing stand
             #ifdef HARDCODED_BREWINGSTAND_COL
             lightcol = vec3(BREWINGSTAND_COL_R, BREWINGSTAND_COL_G, BREWINGSTAND_COL_B);
@@ -518,6 +522,7 @@ if (emissive) {
     }
     switch (mat) {
         case 1234:
+        case 1235:
             lightlevel = int(24 * lmCoord.x);
             break;
         case 10024: // brewing stand
