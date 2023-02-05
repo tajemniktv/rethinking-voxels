@@ -1,5 +1,3 @@
-#extension GL_ARB_shader_image_load_store : enable
-
 #include "/lib/common.glsl"
 
 in vec2 texCoord;
