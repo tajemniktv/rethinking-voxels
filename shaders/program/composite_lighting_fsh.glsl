@@ -10,13 +10,12 @@ vec2 view = vec2(viewWidth, viewHeight);
 
 uniform int frameCounter;
 
-uniform ivec2 atlasSize;
-
 uniform sampler2D colortex1;
 uniform sampler2D colortex4;
 uniform sampler2D colortex5;
 
 uniform sampler2D colortex15;
+ivec2 atlasSize = textureSize(colortex15, 0);
 #define ATLASTEX colortex15
 
 uniform sampler2D depthtex0;
