@@ -37,7 +37,7 @@
     #define OCCLUSION_BLEED_PREVENTION
     #define CAVE_SUNLIGHT_FIX 2 // [0 1 2]
     #define SMOOTH_LIGHTING 1 //[0 1]
-    #define BL_SHADOW_MODE 0 //[0 1 2]
+    #define BL_SHADOW_MODE 1 //[0 1 2]
 
     #if BL_SHADOW_MODE == 2
         #define PP_BL_SHADOWS
@@ -138,7 +138,7 @@
 
     #define SHADOW_QUALITY 2 //[1 2 3 4]
 
-    //#define ENTITY_SHADOWS
+    #define ENTITY_SHADOWS
     #define SSAO
     #define CLOUD_QUALITY 3 //[0 1 2 3 4]
     #define WATER_QUALITY 2 //[1 2]
