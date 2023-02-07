@@ -66,6 +66,9 @@ flood fill data:
 	g: wave simulation position
 	b: wave simulation velocity
 	a: free
+ - colortex12:
+	rgb: previous frame lighting
+	a: depth (same as colortex2.a)
 */
 
 void main() {

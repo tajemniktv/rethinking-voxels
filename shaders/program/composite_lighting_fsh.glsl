@@ -48,9 +48,14 @@ void main() {
     vec4 viewPos = gbufferProjectionInverse * pos0;
     vec4 playerPos = gbufferModelViewInverse * viewPos;
     playerPos /= playerPos.w;
-    vec3 vxPos = playerPos.xyz + fract(cameraPosition);
-    vec3 normal = int(texelFetch(colortex1, pixelCoord, 0).g * 255.1) != 4 || depth0 < 0.56? texelFetch(colortex4, pixelCoord, 0).rgb * 2 - 1 : vec3(0);
-    vec3 blockLight = getBlockLight(vxPos + 0.02 * normal, normal, 0) * 0.5;
+    vec3 normal = int(texelFetch(colortex1, pixelCoord, 0).g * 255.1) != 4 || depth0 < 0.56 ? texelFetch(colortex4, pixelCoord, 0).rgb * 2 - 1 : vec3(0);
+    vec3 vxPos = playerPos.xyz + fract(cameraPosition) + 0.02 * normal;
+    #if PIXEL_SHADOW > 0
+    vec3 vxPos0 = vxPos;
+    vxPos = (floor(PIXEL_SHADOW * vxPos) + 0.5) / PIXEL_SHADOW;
+    vxPos += dot(normal, vxPos0 - vxPos) * normal;
+    #endif
+    vec3 blockLight = getBlockLight(vxPos, normal, 0) * 0.5;
 
     /*RENDERTARGETS:4*/
     gl_FragData[0] = vec4(blockLight, tex4val);
