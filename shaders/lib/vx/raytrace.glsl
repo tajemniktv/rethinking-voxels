@@ -119,7 +119,7 @@ vec4 handledata(vxData data, sampler2D atlas, inout vec3 pos, vec3 dir, int n) {
         ivec2 texcoord = ivec2(data.texcoord * atlasSize + (data.spritesize - 0.5) * spritecoord);
         vec4 color = texelFetch(atlas, texcoord, 0);
         if (!data.alphatest) color.a = 1;
-        else if (color.a > 0.1 && color.a < 0.9) color.a = pow(color.a, TRANSLUCENT_LIGHT_TINT);
+        else if (color.a > 0.1 && color.a < 0.9) color.a = min(pow(color.a, TRANSLUCENT_LIGHT_TINT), 0.8);
         // multiply by vertex color for foliage, water etc
         color.rgb *= data.emissive ? vec3(1) : data.lightcol;
         return color;
@@ -195,7 +195,7 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, bool doScattering, vec3 dir, inou
     bool oldFull = voxeldata.full;
     bool wasInRange = false;
     // main loop
-    while (w < 1 && k < 2000 && raycolor.a < 0.99) {
+    while (w < 1 && k < 2000 && raycolor.a < 0.999) {
         oldRayColor = raycolor;
         pos = pos0 + (min(w, 1.0)) * dir + eyeOffsets[i];
         #ifdef DISTANCE_FIELD
