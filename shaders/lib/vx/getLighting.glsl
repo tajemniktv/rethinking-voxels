@@ -238,12 +238,17 @@ vec3 getBlockLight(vec3 vxPos, vec3 worldNormal, int mat, bool doScattering) {
     vxData blockData = readVxMap(vxPos - 0.05 * worldNormal);
     vec3 screenPos = gl_FragCoord.xyz / vec3(textureSize(colortex12, 0), 1);
     vec3 prevPos = Reprojection3D(screenPos, cameraPosition - previousCameraPosition);
-    if (prevPos.x < 0 || prevPos.y < 0 || prevPos.x > 1 || prevPos.y > 1 || blockData.emissive) return getBlockLight0(vxPos, worldNormal, mat, doScattering);
-    vec4 prevCol = texture2D(colortex12, prevPos.xy);
-    float prevLinDepth0 = GetLinearDepth0(prevPos.z);
-    float prevLinDepth1 = GetLinearDepth0(prevCol.a);
-    float ddepth = abs(prevLinDepth0 - prevLinDepth1) / abs(prevLinDepth0);
-    if (ddepth > 0.01) return getBlockLight0(vxPos, worldNormal, mat, doScattering);
+    bool valid = true;
+    vec4 prevCol;
+    if (prevPos.x < 0 || prevPos.y < 0 || prevPos.x > 1 || prevPos.y > 1 || blockData.emissive) valid = false;
+    else {
+        prevCol = texture2D(colortex12, prevPos.xy);
+        float prevLinDepth0 = GetLinearDepth0(prevPos.z);
+        float prevLinDepth1 = GetLinearDepth0(prevCol.a);
+        float ddepth = abs(prevLinDepth0 - prevLinDepth1) / abs(prevLinDepth0);
+        if (ddepth > 0.01) valid = false;
+    }
+    if (!valid) return getBlockLight0(vxPos, worldNormal, mat, doScattering);
     return prevCol.xyz * 2;
 }
 #endif
