@@ -157,7 +157,6 @@ void main() {
 			ivec4 oldSources[3];
 			for (int k = 0; k < 3; k++) oldSources[k] = sources[k];
 			int k2 = 0;
-			int nlights = 0;
 			for (int k = 0; k < 3 && sources[k].w > 0; k++) {
 				vec3 sourcePos = pos + sources[k].xyz - vec3(128.0);
 				vxData sourceData = readVxMap(getVxPixelCoords(sourcePos));
@@ -182,7 +181,7 @@ void main() {
 			if (blockData.emissive) {
 				int j = 3;
 				for (; j > 0 && sources[j-1].w < blockData.lightlevel; j--);
-				if (j < 3 && sources[j-1].xyz != ivec3(128)) {
+				if (j < 3 && (j == 0 || sources[j-1].xyz != ivec3(128))) {
 					for (int i = 1; i >= j; i--) sources[i+1] = sources[i];
 					sources[j] = ivec4(128, 128, 128, blockData.lightlevel);
 				}
@@ -211,6 +210,7 @@ void main() {
 					// check if light source is already registered
 						if (thisLight.xyz == sources[j].xyz) {
 							newLight = false;
+							sources[j].w = max(thisLight.w - 1, sources[j].w);
 							break;
 						}
 					}
