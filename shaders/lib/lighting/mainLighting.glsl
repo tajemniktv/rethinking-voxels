@@ -339,10 +339,20 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     #else
     vec3 bigLighting = vec3(0);
     #endif
+    #if ADVANCED_LIGHT_TRACING > 0 && defined GI
+    vec3 giLighting = vec3(0);
+    if (isInRange(vxPos)) {
+        giLighting = getGI(vxPos, worldNormal, mat, true);
+        giLighting *= clamp(shadowLength / 8.0, 0, 1);
+    }
+    #else
+    #define giLighting 0
+    #endif
     #if HELD_LIGHTING_MODE >= 1
     blockLighting = sqrt(blockLighting * blockLighting + heldLight * heldLight);
     #endif
-    vec3 sceneLighting = shadowLighting * shadowMult + (ambientColor + bigLighting) * ambientMult;
+
+    vec3 sceneLighting = giLighting + shadowLighting * shadowMult + (ambientColor + bigLighting) * ambientMult;
     float dotSceneLighting = dot(sceneLighting, sceneLighting);
     
     // Vanilla Ambient Occlusion

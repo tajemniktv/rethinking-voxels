@@ -1,5 +1,5 @@
 #version 330 compatibility
 
-#define NETHER
+#define OVERWORLD
 
 #include "/program/composite_floodfill_fsh.glsl"

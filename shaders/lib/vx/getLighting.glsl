@@ -28,12 +28,57 @@ uniform sampler2D colortex10;
 uniform sampler2D colortex12;
 #endif
 #endif
+#if (ADVANCED_LIGHT_TRACING == 0 || defined GI) && !defined COLORTEX13
+#define COLORTEX13
+uniform sampler2D colortex13;
+#endif
 
 #include "/lib/vx/voxelReading.glsl"
 #include "/lib/vx/voxelMapping.glsl"
 #include "/lib/vx/raytrace.glsl"
 vec2 tex8size0 = vec2(textureSize(colortex8, 0));
 //#define DEBUG_OCCLUDERS
+#if ADVANCED_LIGHT_TRACING == 0
+vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat, bool doScattering) // doScattering doesn't do anything in basic light propagation mode
+#else
+vec3 getGI(vec3 vxPos, vec3 normal, int mat, bool doScattering)
+#endif
+{
+    vxPos += normal * 0.5;
+    vec3 lightCol = vec3(0);
+    #if ADVANCED_LIGHT_TRACING > 0
+    vec3 lightCol1 = vec3(0);
+    #endif
+    vec3 vxPosOld = vxPos + floor(cameraPosition) - floor(previousCameraPosition);
+    #if ADVANCED_LIGHT_TRACING > 0
+    vec3 vxPosOld1 = vxPosOld + 0.5 * normal;
+    #endif
+    vec3 floorPos = floor(vxPosOld);
+    vec3 offsetDir = sign(fract(vxPos) - 0.5);
+    float totalInt1 = 0.00001;
+    for (int k = 0; k < 8; k++) {
+        vec3 offset = vec3(k%2, (k>>1)%2, (k>>2)%2);
+        vec3 cornerPos = floorPos + offset * offsetDir + 0.5;
+        if (!isInRange(cornerPos)) continue;
+        ivec2 cornerVxCoordsFF = getVxPixelCoords(cornerPos);
+        vec4 cornerLightData = texelFetch(colortex13, cornerVxCoordsFF, 0);
+        float intMult = (1 - abs(cornerPos.x - vxPosOld.x)) * (1 - abs(cornerPos.y - vxPosOld.y)) * (1 - abs(cornerPos.z - vxPosOld.z));
+        #if ADVANCED_LIGHT_TRACING > 0
+        float intMult1 = (1 - abs(cornerPos.x - vxPosOld1.x)) * (1 - abs(cornerPos.y - vxPosOld1.y)) * (1 - abs(cornerPos.z - vxPosOld1.z));
+        #endif
+        lightCol += intMult * cornerLightData.xyz;
+        #if ADVANCED_LIGHT_TRACING > 0
+        if (length(cornerLightData.xyz) < 0.001) cornerLightData.xyz = vec3(0);
+        lightCol1 += intMult1 * cornerLightData.xyz;
+        totalInt1 += intMult1;
+        #endif
+    }
+    #if ADVANCED_LIGHT_TRACING > 0
+    return 6 * max(lightCol1 - 0.7 * lightCol, vec3(0));
+    #else
+    return 3 * lightCol;
+    #endif
+}
 #if ADVANCED_LIGHT_TRACING > 0
 #ifndef PP_BL_SHADOWS
 vec3 getOcclusion(vec3 vxPos, vec3 normal, int nlights) {
@@ -252,26 +297,6 @@ vec3 getBlockLight(vec3 vxPos, vec3 worldNormal, int mat, bool doScattering) {
     return prevCol.xyz * 2;
 }
 #endif
-#else
-vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat, bool doScattering) { // doScattering doesn't do anything in basic light propagation mode
-    vxPos += normal * 0.5;
-    vec3 lightCol = vec3(0);
-    float totalInt = 0.0001;
-    vec3 vxPosOld = vxPos + floor(cameraPosition) - floor(previousCameraPosition);
-    vec3 floorPos = floor(vxPosOld);
-    vec3 offsetDir = sign(fract(vxPos) - 0.5);
-    for (int k = 0; k < 8; k++) {
-        vec3 offset = vec3(k%2, (k>>1)%2, (k>>2)%2);
-        vec3 cornerPos = floorPos + offset * offsetDir + 0.5;
-        if (!isInRange(cornerPos)) continue;
-        ivec2 cornerVxCoordsFF = getVxPixelCoords(cornerPos);
-        vec4 cornerLightData0 = texelFetch(colortex8, cornerVxCoordsFF, 0);
-        float intMult = (1 - abs(cornerPos.x - vxPosOld.x)) * (1 - abs(cornerPos.y - vxPosOld.y)) * (1 - abs(cornerPos.z - vxPosOld.z));
-        lightCol += intMult * cornerLightData0.xyz;
-        totalInt += intMult;
-    }
-    return 3 * lightCol;// / totalInt;
-}
 #endif
 vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat) {
     return getBlockLight(vxPos, normal, mat, false);

@@ -41,6 +41,7 @@ const int colortex9Format = RGBA16;
 const int colortex10Format = RGBA16;
 const int colortex11Format = RGBA16;
 const int colortex12Format = RGBA16;		//previous frame lighting
+const int colortex13Format = RGBA16;
 */
 
 const bool colortex0Clear = true;
@@ -55,6 +56,7 @@ const bool colortex9Clear = false;
 const bool colortex10Clear = false;
 const bool colortex11Clear = false;
 const bool colortex12Clear = false;
+const bool colortex13Clear = false;
 #ifdef TEMPORAL_FILTER
 const bool colortex6Clear = false;
 const bool colortex7Clear = false;
@@ -78,7 +80,7 @@ const float ambientOcclusionLevel = 1.0;
 //Includes//
 
 //Program//
-//uniform sampler2D colortex2;
+//uniform sampler2D colortex13;
 void main() {
 	vec2 texCoordM = texCoord;
 
@@ -87,8 +89,9 @@ void main() {
 	#endif
 
 	vec3 color = texture2D(colortex3, texCoordM).rgb;
-//	vec3 lightCol = texture2D(colortex2, texCoord).aaa;
-//	if (texCoord.x < 0.5 && texCoord.y < 0.5) color = lightCol;
+//	ivec2 pixelCoord = ivec2(texCoord * textureSize(colortex3, 0));
+//	vec4 lightCol = texelFetch(colortex13, pixelCoord, 0);
+//	if (max(pixelCoord.x, pixelCoord.y) < SHADOWRES) color = lightCol.xyz * 10;
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = vec4(color, 1.0);
 }

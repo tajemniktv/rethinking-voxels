@@ -227,6 +227,9 @@ option.VBL_END_MULT.comment=Volumetric Blocklight Strength in the end relative t
 option.FF_PROP_SUB=Blocklight Falloff Steepness
 option.FF_PROP_SUB.comment=Controls how fast blocklight becomes dark around a light source. Doesn't work with Advanced Light Propagation.
 
+option.GI=Global Illumination
+option.GI.comment=Allows light that falls on a surface to illuminate its surroundings.
+
 option.GLOWING_MINERAL_BLOCKS=Glowing Mineral Blocks
 option.GLOWING_MINERAL_BLOCKS.comment=Toggles Light emission of Emerald, Redstone and Lapis blocks.
 
