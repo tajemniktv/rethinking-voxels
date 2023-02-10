@@ -84,7 +84,11 @@ void LottesTonemap(inout vec3 color) {
 }
 
 void BSLTonemap(inout vec3 color) {
-	color = T_EXPOSURE * color;
+	#ifdef GI
+	color *= T_EXPOSURE / 1.4;
+	#else
+	color *= T_EXPOSURE;
+	#endif
 	color = color / pow(pow(color, vec3(TM_WHITE_CURVE)) + 1.0, vec3(1.0 / TM_WHITE_CURVE));
 	color = pow(color, mix(vec3(T_LOWER_CURVE), vec3(T_UPPER_CURVE), sqrt(color)));
 	
