@@ -16,11 +16,11 @@ uniform sampler2D colortex9;
 #define COLORTEX11
 uniform sampler2D colortex11;
 #endif
+#ifndef COLORTEX13
+	#define COLORTEX13
+	uniform sampler2D colortex13;
+#endif
 #ifdef GI
-	#ifndef COLORTEX13
-		#define COLORTEX13
-		uniform sampler2D colortex13;
-	#endif
 	uniform mat4 gbufferProjectionInverse;
 	uniform mat4 gbufferModelViewInverse;
 	uniform mat4 gbufferPreviousModelView;
@@ -29,6 +29,9 @@ uniform sampler2D colortex11;
 	uniform float far;
 	uniform vec3 fogColor;
 	uniform vec3 skyColor;
+	#if defined PP_BL_SHADOWS || defined PP_SUN_SHADOWS
+	uniform float frameCounter;
+	#endif
 #endif
 #ifndef SHADOWCOL0
 #define SHADOWCOL0
@@ -40,6 +43,7 @@ uniform sampler2D shadowcolor1;
 #endif
 uniform sampler2D colortex15; // texture atlas
 ivec2 atlasSize = textureSize(colortex15, 0);
+#define ATLASTEX colortex15
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
 
@@ -299,14 +303,18 @@ void main() {
 			col /= mix(propSum, 6.0, BFF_ABSORBTION_AMOUNT);
 			col = colMult * sqrt(col);
 			col *= FF_PROP_MUL * max(0.0, (length(col) - FF_PROP_SUB) / (length(col) + 0.0001));
-			#if ADVANCED_LIGHT_TRACING > 0
 			if (nextBlockData.mat > 0) {
+			#if ADVANCED_LIGHT_TRACING > 0
 				vec3 blockLight = vec3(0);
 				for (int k = 0; k < 3 && sources[k].w > 0; k++) {
 					vxData lightData = readVxMap(getVxPixelCoords(pos + sources[k].xyz - 128));
 					int sourceDist = abs(sources[k].x - 128) + abs(sources[k].y - 128) + abs(sources[k].z - 128);
 					blockLight += (aroundData0[0].y >> k) % 2 * lightData.lightcol * (lightData.lightlevel - sourceDist) / 16.0;
 				}
+			#elif defined GI
+				vec3 blockLight = log(5 * col + 1);
+			#endif
+			#ifdef GI
 				#ifdef SUN_SHADOWS
 				vec3 sunLight = lightColor * getSunLight(oldPos + 0.4 * offsets[normal]) * max(-dot(offsets[normal], sunVec) * sign(sunVec.y) - offsets[normal].y * 0.5, 0);
 				#else
@@ -317,10 +325,14 @@ void main() {
 				float texBrightness = length(texCol);//max(texCol.x, max(texCol.y, texCol.z));
 				texCol /= sqrt(texBrightness);
 				if (!nextBlockData.emissive) texCol *= nextBlockData.lightcol;
-				col = max(col, mix(col, (0.7 * blockLight + sunLight) * texCol, 0.15));
-				col = mix(col, oldCol, 0.5);
-			}
+				#if ADVANCED_LIGHT_TRACING > 0
+					col = max(col, mix(col, (0.7 * blockLight + sunLight) * texCol, 0.15));
+					col = mix(col, oldCol, 0.5);
+				#else
+					col = mix(col, (0.7 * blockLight + sunLight) * texCol, 0.25);
+				#endif
 			#endif
+			}
 			dataToWrite5.xyz = ivec3(col * 65535.0);
 		#if ADVANCED_LIGHT_TRACING == 0
 		} else dataToWrite5.xyz = ivec3(65535.0 / 700.0 * blockData.lightcol * blockData.lightlevel * blockData.lightlevel);
