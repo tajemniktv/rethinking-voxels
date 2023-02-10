@@ -46,11 +46,13 @@ vec3 getGI(vec3 vxPos, vec3 normal, int mat, bool doScattering)
 {
     vxPos += normal * 0.5;
     vec3 lightCol = vec3(0);
-    #if ADVANCED_LIGHT_TRACING > 0
+    //#if ADVANCED_LIGHT_TRACING > 0
+    #ifdef GI
     vec3 lightCol1 = vec3(0);
     #endif
     vec3 vxPosOld = vxPos + floor(cameraPosition) - floor(previousCameraPosition);
-    #if ADVANCED_LIGHT_TRACING > 0
+    //#if ADVANCED_LIGHT_TRACING > 0
+    #ifdef GI
     vec3 vxPosOld1 = vxPosOld + 0.5 * normal;
     #endif
     vec3 floorPos = floor(vxPosOld);
@@ -63,18 +65,24 @@ vec3 getGI(vec3 vxPos, vec3 normal, int mat, bool doScattering)
         ivec2 cornerVxCoordsFF = getVxPixelCoords(cornerPos);
         vec4 cornerLightData = texelFetch(colortex13, cornerVxCoordsFF, 0);
         float intMult = (1 - abs(cornerPos.x - vxPosOld.x)) * (1 - abs(cornerPos.y - vxPosOld.y)) * (1 - abs(cornerPos.z - vxPosOld.z));
-        #if ADVANCED_LIGHT_TRACING > 0
+        //#if ADVANCED_LIGHT_TRACING > 0
+        #ifdef GI
         float intMult1 = (1 - abs(cornerPos.x - vxPosOld1.x)) * (1 - abs(cornerPos.y - vxPosOld1.y)) * (1 - abs(cornerPos.z - vxPosOld1.z));
         #endif
         lightCol += intMult * cornerLightData.xyz;
-        #if ADVANCED_LIGHT_TRACING > 0
+        //#if ADVANCED_LIGHT_TRACING > 0
+        #ifdef GI
         if (length(cornerLightData.xyz) < 0.001) cornerLightData.xyz = vec3(0);
         lightCol1 += intMult1 * cornerLightData.xyz;
         totalInt1 += intMult1;
         #endif
     }
+    #ifdef GI
     #if ADVANCED_LIGHT_TRACING > 0
     return 6 * max(lightCol1 - 0.7 * lightCol, vec3(0));
+    #else
+    return 6 * max(lightCol1 - 0.4 * lightCol, vec3(0));
+    #endif
     #else
     return 3 * lightCol;
     #endif
