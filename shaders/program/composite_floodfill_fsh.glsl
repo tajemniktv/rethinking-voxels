@@ -311,8 +311,6 @@ void main() {
 					int sourceDist = abs(sources[k].x - 128) + abs(sources[k].y - 128) + abs(sources[k].z - 128);
 					blockLight += (aroundData0[0].y >> k) % 2 * lightData.lightcol * (lightData.lightlevel - sourceDist) / 16.0;
 				}
-			#elif defined GI
-				vec3 blockLight = log(5 * col + 1);
 			#endif
 			#ifdef GI
 				#ifdef SUN_SHADOWS
@@ -329,7 +327,7 @@ void main() {
 					col = max(col, mix(col, (0.7 * blockLight + sunLight) * texCol, 0.15));
 					col = mix(col, oldCol, 0.5);
 				#else
-					col = mix(col, (sunLight) * texCol, 0.15);
+					col = max(col, mix(col, (sunLight) * texCol, 0.15));
 				#endif
 			#endif
 			}
