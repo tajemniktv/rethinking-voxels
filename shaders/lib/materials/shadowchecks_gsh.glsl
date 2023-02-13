@@ -104,6 +104,7 @@ switch (mat0) {
         } else tracemat = false;
         break;
     case 0:
+    case 1000:
     case 10472:
     case 50016:
     //case 50996:
