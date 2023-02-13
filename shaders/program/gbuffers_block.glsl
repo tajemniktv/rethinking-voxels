@@ -167,7 +167,7 @@ void main() {
 	gl_FragData[1] = vec4(0.0, materialMask, 0.0, 1.0);
 	#if BL_SHADOW_MODE == 1
 		/* DRAWBUFFERS:015 */
-		gl_FragData[2] = vec4(normalM, 1.0);
+		gl_FragData[2] = vec4(normalize(ViewToPlayer(1000*normal)), 1.0);
 	#endif
 }
 
