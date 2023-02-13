@@ -329,7 +329,7 @@ void main() {
 					col = max(col, mix(col, (0.7 * blockLight + sunLight) * texCol, 0.15));
 					col = mix(col, oldCol, 0.5);
 				#else
-					col = mix(col, (0.7 * blockLight + sunLight) * texCol, 0.25);
+					col = mix(col, (1.3 * blockLight + sunLight) * texCol, 0.15);
 				#endif
 			#endif
 			}

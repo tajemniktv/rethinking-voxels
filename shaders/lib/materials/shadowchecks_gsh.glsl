@@ -32,10 +32,13 @@ switch (mat0) {
         if (dot(cnormal, vec3(0, 1, 0)) < 0.95) tracemat = false;
         else avgPos -= 0.05 * cnormal;
         break;
-
+    case 10008:
+        if (max(abs(cnormal.x), max(abs(cnormal.y), abs(cnormal.y))) < 0.99) zpos = 0.5 * zpos + 0.5;
     case 31000:
         zpos = 0.3 * zpos + 0.7;
     case 10068:
+    case 10124:
+    case 10132:
         if (area < 0.8) tracemat = false;
     case 10584:
     case 10588:
