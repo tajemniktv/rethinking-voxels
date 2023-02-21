@@ -44,37 +44,29 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat, bool doScattering) // doSca
 vec3 getGI(vec3 vxPos, vec3 normal, int mat, bool doScattering)
 #endif
 {
-    vxPos += normal * 0.5;
+    vxPos += 0.5 * normal;
     vec3 lightCol = vec3(0);
-    //#if ADVANCED_LIGHT_TRACING > 0
+    vec3 vxPosOld = vxPos + floor(cameraPosition) - floor(previousCameraPosition) - 0.5;
+    vec3 floorPos = floor(vxPosOld);
+    vec3 fractPos = fract(vxPosOld);
     #ifdef GI
     vec3 lightCol1 = vec3(0);
-    #endif
-    vec3 vxPosOld = vxPos + floor(cameraPosition) - floor(previousCameraPosition);
-    //#if ADVANCED_LIGHT_TRACING > 0
-    #ifdef GI
     vec3 vxPosOld1 = vxPosOld + 0.5 * normal;
+    vec3 fractPos1 = fractPos + 0.5 * normal;
     #endif
-    vec3 floorPos = floor(vxPosOld);
-    vec3 offsetDir = sign(fract(vxPos) - 0.5);
-    float totalInt1 = 0.00001;
     for (int k = 0; k < 8; k++) {
         vec3 offset = vec3(k%2, (k>>1)%2, (k>>2)%2);
-        vec3 cornerPos = floorPos + offset * offsetDir + 0.5;
+        vec3 cornerPos = floorPos + offset;
         if (!isInRange(cornerPos)) continue;
         ivec2 cornerVxCoordsFF = getVxPixelCoords(cornerPos);
         vec4 cornerLightData = texelFetch(colortex13, cornerVxCoordsFF, 0);
-        float intMult = (1 - abs(cornerPos.x - vxPosOld.x)) * (1 - abs(cornerPos.y - vxPosOld.y)) * (1 - abs(cornerPos.z - vxPosOld.z));
-        //#if ADVANCED_LIGHT_TRACING > 0
-        #ifdef GI
-        float intMult1 = (1 - abs(cornerPos.x - vxPosOld1.x)) * (1 - abs(cornerPos.y - vxPosOld1.y)) * (1 - abs(cornerPos.z - vxPosOld1.z));
-        #endif
+        vec3 dist = 1 - (offset + (1 - 2 * offset) * fractPos);
+        float intMult = dist.x * dist.y * dist.z;//(1 - abs(cornerPos.x - vxPosOld.x)) * (1 - abs(cornerPos.y - vxPosOld.y)) * (1 - abs(cornerPos.z - vxPosOld.z));
         lightCol += intMult * cornerLightData.xyz;
-        //#if ADVANCED_LIGHT_TRACING > 0
         #ifdef GI
-        if (length(cornerLightData.xyz) < 0.001) cornerLightData.xyz = vec3(0);
-        lightCol1 += intMult1 * cornerLightData.xyz;
-        totalInt1 += intMult1;
+            vec3 dist1 = 1 - (offset + (1 - 2 * offset) * fractPos1);
+            float intMult1 = dist1.x * dist1.y * dist1.z;
+            lightCol1 += intMult1 * cornerLightData.xyz;
         #endif
     }
     #ifdef GI
