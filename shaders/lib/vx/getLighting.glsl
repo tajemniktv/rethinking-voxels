@@ -71,7 +71,7 @@ vec3 getGI(vec3 vxPos, vec3 normal, int mat, bool doScattering)
     }
     #ifdef GI
     #if ADVANCED_LIGHT_TRACING > 0
-    return 6 * max(lightCol1 - 0.7 * lightCol, vec3(0));
+    return 6 * max(lightCol1 - 0.5 * lightCol, vec3(0));
     #else
     return 6 * max(lightCol1 - 0.4 * lightCol, vec3(0));
     #endif
