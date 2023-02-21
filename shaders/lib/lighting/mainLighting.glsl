@@ -341,10 +341,9 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     #endif
     #if ADVANCED_LIGHT_TRACING > 0 && defined GI
     vec3 giLighting = vec3(0);
-    if (isInRange(vxPos)) {
-        giLighting = getGI(vxPos, worldNormal, mat, true);
-        giLighting *= clamp(shadowLength / 8.0, 0, 1);
-    }
+    vec3 clampedVxPos = clamp(vxPos, -0.5 * vec3(vxRange, VXHEIGHT * VXHEIGHT, vxRange) + 1, 0.5 * vec3(vxRange, VXHEIGHT * VXHEIGHT, vxRange) - 1);
+    giLighting = getGI(clampedVxPos, worldNormal, mat, true);
+    //giLighting *= clamp(shadowLength / 8.0, 0, 1);
     #else
     #define giLighting 0
     #endif
