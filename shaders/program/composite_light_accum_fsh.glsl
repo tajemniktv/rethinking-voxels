@@ -6,6 +6,7 @@ in vec2 texCoord;
 
 uniform int frameCounter;
 
+uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 uniform sampler2D colortex2;
 uniform sampler2D colortex4;
@@ -36,7 +37,7 @@ void main() {
 	float blendFactor = float(prevPos.x > 0.0 && prevPos.x < 1.0 &&
 	                          prevPos.y > 0.0 && prevPos.y < 1.0);
 	float prevDepth0 = GetLinearDepth(prevPos.z);
-	float prevDepth1 = GetLinearDepth(texture2D(colortex2, prevPos.xy).a);
+	float prevDepth1 = GetLinearDepth(texture2D(colortex12, prevPos.xy).a);
 	float ddepth = abs(prevDepth0 - prevDepth1) / abs(prevDepth0);
 	float offCenterLength = length(fract(view * HRTexCoord) - 0.5);
 	blendFactor *= clamp(0.5 + 0.5 * offCenterLength - 3 * float(ddepth > 0.2), 0, 1);
