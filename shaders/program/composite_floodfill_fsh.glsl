@@ -29,8 +29,9 @@ uniform sampler2D colortex11;
 	uniform float far;
 	uniform vec3 fogColor;
 	uniform vec3 skyColor;
+	#define PP_BL_SHADOWS
 	#if defined PP_BL_SHADOWS || defined PP_SUN_SHADOWS
-	uniform float frameCounter;
+	uniform int frameCounter;
 	#endif
 #endif
 #ifndef SHADOWCOL0

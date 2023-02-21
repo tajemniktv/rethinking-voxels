@@ -50,9 +50,10 @@ uniform mat4 gbufferModelViewInverse;
 uniform float near, far;
 uniform mat4 gbufferPreviousProjection;
 uniform mat4 gbufferPreviousModelView;
+#endif
+
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
-#endif
 
 uniform sampler2D tex;
 
