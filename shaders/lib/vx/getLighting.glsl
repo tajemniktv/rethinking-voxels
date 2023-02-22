@@ -51,9 +51,12 @@ vec3 getGI(vec3 vxPos, vec3 normal, int mat, bool doScattering)
     vec3 fractPos = fract(vxPosOld);
     #ifdef GI
     vec3 lightCol1 = vec3(0);
-    vec3 vxPosOld1 = vxPosOld + 0.5 * normal;
-    vec3 fractPos1 = fractPos + 0.5 * normal;
+    #define NORMAL_OFFSET 0.1
+    vec3 vxPosOld1 = vxPosOld + NORMAL_OFFSET * normal;
+    vec3 fractPos1 = fractPos + NORMAL_OFFSET * normal;
     #endif
+    float totalInt = 0.0001;
+    float totalInt1 = 0.0001;
     for (int k = 0; k < 8; k++) {
         vec3 offset = vec3(k%2, (k>>1)%2, (k>>2)%2);
         vec3 cornerPos = floorPos + offset;
@@ -62,18 +65,25 @@ vec3 getGI(vec3 vxPos, vec3 normal, int mat, bool doScattering)
         vec4 cornerLightData = texelFetch(colortex13, cornerVxCoordsFF, 0);
         vec3 dist = 1 - (offset + (1 - 2 * offset) * fractPos);
         float intMult = dist.x * dist.y * dist.z;//(1 - abs(cornerPos.x - vxPosOld.x)) * (1 - abs(cornerPos.y - vxPosOld.y)) * (1 - abs(cornerPos.z - vxPosOld.z));
-        lightCol += intMult * cornerLightData.xyz;
-        #ifdef GI
-            vec3 dist1 = 1 - (offset + (1 - 2 * offset) * fractPos1);
-            float intMult1 = dist1.x * dist1.y * dist1.z;
-            lightCol1 += intMult1 * cornerLightData.xyz;
-        #endif
+        if (length(cornerLightData) > 0.001) {
+            lightCol += intMult * cornerLightData.xyz;
+            totalInt += intMult;
+            #ifdef GI
+                vec3 dist1 = 1 - (offset + (1 - 2 * offset) * fractPos1);
+                float intMult1 = dist1.x * dist1.y * dist1.z;
+                lightCol1 += intMult1 * cornerLightData.xyz;
+                totalInt1 += intMult1;
+            #endif
+        }
     }
+    lightCol /= totalInt;
+    lightCol1 /= totalInt1;
     #ifdef GI
+    vec3 dLightdn = (1.0 / NORMAL_OFFSET) * (lightCol1 - lightCol);
     #if ADVANCED_LIGHT_TRACING > 0
-    return 6 * max(lightCol1 - 0.7 * lightCol, vec3(0));
+    return lightCol + max(vec3(0), GI_STRENGTH * dLightdn);//16 * max(lightCol1 - 0.9 * lightCol, vec3(0));
     #else
-    return 6 * max(lightCol1 - 0.4 * lightCol, vec3(0));
+    return 2 * lightCol + max(vec3(0), GI_STRENGTH * dLightdn);
     #endif
     #else
     return 3 * lightCol;

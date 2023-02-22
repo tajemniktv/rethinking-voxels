@@ -306,7 +306,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
 
             #if defined PERPENDICULAR_TWEAKS && defined SIDE_SHADOWING
                 // Fake GI
-                ambientColor = mix(ambientColor, shadowLighting, (0.05 + 0.03 * subsurfaceMode) * absNdotN * lightmapY2);
+                //ambientColor = mix(ambientColor, shadowLighting, (0.05 + 0.03 * subsurfaceMode) * absNdotN * lightmapY2);
                 //ambientColor += sunsetClearLightColor * 0.1 * pow2((dot(sunVec, eastVec) > 0.0 ? NdotE : -NdotE) + 1.0) * pow2(pow2(1.0 - nightFactor)) * invRainFactor;
 
                 // Epic hack to get a bit more natural looking lighting during noon
@@ -341,9 +341,10 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     #endif
     #if ADVANCED_LIGHT_TRACING > 0 && defined GI
     vec3 giLighting = vec3(0);
-    vec3 clampedVxPos = clamp(vxPos, -0.5 * vec3(vxRange, VXHEIGHT * VXHEIGHT, vxRange) + 1, 0.5 * vec3(vxRange, VXHEIGHT * VXHEIGHT, vxRange) - 1);
-    giLighting = getGI(clampedVxPos, worldNormal, mat, true);
-    //giLighting *= clamp(shadowLength / 8.0, 0, 1);
+    if (isInRange(vxPos)) {
+        giLighting = getGI(vxPos, worldNormal, mat, true);
+        giLighting *= clamp(shadowLength / 8.0, 0, 1);
+    }
     #else
     #define giLighting 0
     #endif
@@ -351,9 +352,9 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     blockLighting = sqrt(blockLighting * blockLighting + heldLight * heldLight);
     #endif
 
-    vec3 sceneLighting = giLighting + shadowLighting * shadowMult + (ambientColor + bigLighting) * ambientMult;
+    vec3 sceneLighting = shadowLighting * shadowMult + (ambientColor + bigLighting) * ambientMult;
     float dotSceneLighting = dot(sceneLighting, sceneLighting);
-    
+
     // Vanilla Ambient Occlusion
     float vanillaAO = 1.0;
     if (subsurfaceMode != 0) vanillaAO = min1(glColor.a * 1.15);
@@ -384,7 +385,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     #endif
 
     // Final Lighting
-    color.rgb *= directionShade * vanillaAO * (blockLighting + sceneLighting + minLighting + nightVisionLighting) + emission;
+    color.rgb *= directionShade * vanillaAO * (giLighting * vanillaAO + blockLighting + sceneLighting + minLighting + nightVisionLighting) + emission;
     //color.rgb = mix(color.rgb, sceneLighting * 0.5, clamp01(0.004 * dotSceneLighting * vanillaAO)); // Extra Highlight
     color.rgb += lightHighlight;
     

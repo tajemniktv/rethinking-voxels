@@ -306,6 +306,9 @@ void main() {
 			col *= FF_PROP_MUL * max(0.0, (length(col) - FF_PROP_SUB) / (length(col) + 0.0001));
 			if (nextBlockData.mat > 0) {
 			#if ADVANCED_LIGHT_TRACING > 0
+				#ifdef TRANSLUCENT_GI_TINT
+				vec3 blockLight = getBlockLight(pos); 
+				#else
 				vec3 blockLight = vec3(0);
 				for (int k = 0; k < 3 && sources[k].w > 0; k++) {
 					vxData lightData = readVxMap(getVxPixelCoords(pos + sources[k].xyz - 128));

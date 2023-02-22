@@ -62,6 +62,12 @@ screen.VX_STUFF=Voxelisation Settings
 screen.VX_STUFF.comment=Settings that relate to everything that uses the voxel volume. This includes its size, but also shadow settings and more.
 screen.VX_PERF_STUFF=Voxel-related Performance Settings
 
+screen.ADV_LIGHTPROP_STUFF=Adv. Light Prop. Settings
+screen.ADV_LIGHTPROP_STUFF.comment=Settings that relate to Advanced Light Propagation Mode
+
+screen.BASIC_LIGHTPROP_STUFF=Basic. Light Prop. Settings
+screen.BASIC_LIGHTPROP_STUFF.comment=Settings that relate to Basic Light Propagation Mode
+
 screen.LIGHTCOLS=Light Colors
 screen.LIGHTCOLS.comment=Settings that are about changing light colors.
 
@@ -191,6 +197,9 @@ value.SMOOTH_LIGHTING.0=Low
 value.SMOOTH_LIGHTING.1=Best
 value.SMOOTH_LIGHTING.2=Slow
 
+option.TRANSLUCENT_GI_TINT=Translucent GI tint
+option.TRANSLUCENT_GI_TINT.comment=Allows GI from block light which was colored by a translucent material to also respect that color change
+
 option.TRANSLUCENT_LIGHT_TINT=Translucent Light Tint
 option.TRANSLUCENT_LIGHT_TINT.comment=Controls how much light is tinted when going through translucent materials. Lower means more saturated.
 
@@ -227,8 +236,8 @@ option.VBL_END_MULT.comment=Volumetric Blocklight Strength in the end relative t
 option.FF_PROP_SUB=Blocklight Falloff Steepness
 option.FF_PROP_SUB.comment=Controls how fast blocklight becomes dark around a light source. Doesn't work with Advanced Light Propagation.
 
-option.GI=Global Illumination
-option.GI.comment=Allows light that falls on a surface to illuminate its surroundings.
+option._STRENGTH=GI Strength
+option.GI_STRENGTH.comment=Adjusts the strength of Global Illumination. This effect allows light that falls on a surface to illuminate its surroundings.
 
 option.GLOWING_MINERAL_BLOCKS=Glowing Mineral Blocks
 option.GLOWING_MINERAL_BLOCKS.comment=Toggles Light emission of Emerald, Redstone and Lapis blocks.
