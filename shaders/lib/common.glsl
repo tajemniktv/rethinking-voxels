@@ -189,7 +189,8 @@
 
     #define BLOCKLIGHT_COLOR_MODE 10 //[9 10 11]
     #define MINIMUM_LIGHT_MODE 2 //[0 1 2 3 4]
-    #define HELD_LIGHTING_MODE 2 //[0 1 2]
+    #define HELD_LIGHTING_MODE 1 //[0 1 2]
+  //#define HELD_LIGHT_OCCLUSION_CHECK
 
     #define NO_WAVING_INDOORS
     #define WAVING_FOLIAGE

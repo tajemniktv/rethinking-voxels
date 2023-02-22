@@ -240,7 +240,16 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
             lViewPosL *= 1.5;
         #endif
         heldLight0 = max(0.0, (heldLight0 - lViewPosL) * 0.066666);
-        heldLight *= heldLight0;
+        if (heldLight0 > 0.01) {
+        vec3 heldLightPos = ViewToPlayer(vec3(0.2, 0, -0.2)) + fract(cameraPosition) - vec3(0, 0.2, 0);
+        
+        vec3 vxPos1 = vxPos + 0.01 * worldNormal;
+        vec3 dir = heldLightPos - vxPos;
+        heldLight *= heldLight0 * max(0.0, dot(-normalize(vxPos1 - fract(cameraPosition)), worldNormal));
+        #ifdef HELD_LIGHT_OCCLUSION_CHECK
+        if (length(heldLight) > 0.01) heldLight *= (1 - raytrace(vxPos1, dir + 0.3 * hash33(vec3(gl_FragCoord.xy, frameCounter)), ATLASTEX).a);
+        #endif
+        } else heldLight = vec3(0);
     #endif
     float lightmapXM;
     if (!noSmoothLighting) {

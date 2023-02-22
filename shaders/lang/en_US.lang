@@ -460,6 +460,9 @@ value.HELD_LIGHTING_MODE.0=OFF
 value.HELD_LIGHTING_MODE.1=Subtle
 value.HELD_LIGHTING_MODE.2=Normal
 
+option.HELD_LIGHT_OCCLUSION_CHECK=Held Light Shadows
+option.HELD_LIGHT_OCCLUSION_CHECK.comment=Allows light cast from hand-held items to receive shadows. §c[-]§r High Performance Impact
+
 option.BLOCKLIGHT_COLOR_MODE=Fallback Blocklight Color
 option.BLOCKLIGHT_COLOR_MODE.comment=Determines the color of the light cast from light sources if they are far away from the player.
 value.BLOCKLIGHT_COLOR_MODE.9=Cold

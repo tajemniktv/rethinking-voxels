@@ -54,7 +54,7 @@ uniform sampler2D gaux1;
 	uniform sampler2D gaux3;
 #endif
 
-#if defined PP_BL_SHADOWS || defined PP_SUN_SHADOWS
+#if defined PP_BL_SHADOWS || defined PP_SUN_SHADOWS || (defined HELD_LIGHT_OCCLUSION_CHECK && HELD_LIGHTING_MODE > 0)
 	#define ATLASTEX tex
 #endif
 
