@@ -315,6 +315,7 @@ void main() {
 					int sourceDist = abs(sources[k].x - 128) + abs(sources[k].y - 128) + abs(sources[k].z - 128);
 					blockLight += (aroundData0[0].y >> k) % 2 * lightData.lightcol * (lightData.lightlevel - sourceDist) / 16.0;
 				}
+				#endif
 			#endif
 			#ifdef GI
 				#ifdef SUN_SHADOWS

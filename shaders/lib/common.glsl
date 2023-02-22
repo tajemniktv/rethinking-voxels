@@ -60,8 +60,8 @@
     #define FF_PROP_MUL 0.9999
     #define FF_PROP_SUB 0.003 //[0.0001 0.0003 0.0005 0.001 0.002 0.003 0.005 0.007 0.01]
     #define BFF_ABSORBTION_AMOUNT 0.05
-    #define GI_STRENGTH 3.0 //[0 1.5 2.0 3.0 4.0 5.0 10.0]
-    #if GI_STRENGTH > 0
+    #define GI_STRENGTH 3 //[0 1 2 3 4 5 10]
+    #if GI_STRENGTH != 0
         #define GI
     #endif
     #define TRANSLUCENT_GI_TINT

@@ -55,8 +55,8 @@ vec3 getGI(vec3 vxPos, vec3 normal, int mat, bool doScattering)
     vec3 vxPosOld1 = vxPosOld + NORMAL_OFFSET * normal;
     vec3 fractPos1 = fractPos + NORMAL_OFFSET * normal;
     #endif
-    float totalInt = 0.0001;
-    float totalInt1 = 0.0001;
+    float totalInt = 0.001;
+    float totalInt1 = 0.001;
     for (int k = 0; k < 8; k++) {
         vec3 offset = vec3(k%2, (k>>1)%2, (k>>2)%2);
         vec3 cornerPos = floorPos + offset;
@@ -79,11 +79,11 @@ vec3 getGI(vec3 vxPos, vec3 normal, int mat, bool doScattering)
     lightCol /= totalInt;
     lightCol1 /= totalInt1;
     #ifdef GI
-    vec3 dLightdn = (1.0 / NORMAL_OFFSET) * (lightCol1 - lightCol);
+    vec3 dLightdn = clamp((1.0 / NORMAL_OFFSET) * (lightCol1 - lightCol), vec3(0), vec3(1));
     #if ADVANCED_LIGHT_TRACING > 0
-    return lightCol + max(vec3(0), GI_STRENGTH * dLightdn);//16 * max(lightCol1 - 0.9 * lightCol, vec3(0));
+    return lightCol + GI_STRENGTH * dLightdn;
     #else
-    return 2 * lightCol + max(vec3(0), GI_STRENGTH * dLightdn);
+    return 2 * lightCol + GI_STRENGTH * dLightdn;
     #endif
     #else
     return 3 * lightCol;
