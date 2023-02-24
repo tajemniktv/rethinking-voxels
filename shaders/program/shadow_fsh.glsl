@@ -36,7 +36,7 @@ void main() {
         // check for a relatively saturated colour among the brighter parts of the texture, then use that as emission colour
         if (emissive && length(lightcol) < 0.001) {
             vec4[10] lightcols0;
-            vec4 lightcol0 = texture2D(tex, texCoord);
+            vec4 lightcol0 = texture2D(tex, texCoord) * vec4(vertexCol.rgb, 1);
             lightcol0.rgb *= lightcol0.a;
             const vec3 avoidcol = vec3(1); // pure white is unsaturated and should be avoided
             float avgbrightness = max(lightcol0.x, max(lightcol0.y, lightcol0.z));
@@ -45,7 +45,7 @@ void main() {
             lightcols0[9] = lightcol0;
             float maxbrightness = avgbrightness;
             for (int i = 0; i < 9; i++) {
-                lightcols0[i] = texture2D(tex, texCoord + offsets[i] * spriteSize / atlasSize) * vertexCol;
+                lightcols0[i] = texture2D(tex, texCoord + offsets[i] * spriteSize / atlasSize) * vec4(vertexCol.rgb, 1);
                 lightcols0[i].xyz *= lightcols0[i].w;
                 lightcols0[i].xyz += 0.00001;
                 float thisbrightness = max(lightcols0[i].x, max(lightcols0[i].y, lightcols0[i].z));
