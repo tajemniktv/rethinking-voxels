@@ -77,13 +77,15 @@ vec3 getGI(vec3 vxPos, vec3 normal, int mat, bool doScattering)
         }
     }
     lightCol /= totalInt;
+    lightCol = log(lightCol + 1);
     #ifdef GI
     lightCol1 /= totalInt1;
+    lightCol1 = log(lightCol1 + 1);
     vec3 dLightdn = clamp((1.0 / NORMAL_OFFSET) * (lightCol1 - lightCol), vec3(0), vec3(1));
     #if ADVANCED_LIGHT_TRACING > 0
-    return lightCol + GI_STRENGTH * dLightdn;
+    return lightCol + 2 * GI_STRENGTH * dLightdn;
     #else
-    return 2 * lightCol + GI_STRENGTH * dLightdn;
+    return 2 * lightCol + 2 * GI_STRENGTH * dLightdn;
     #endif
     #else
     return 3 * lightCol;
