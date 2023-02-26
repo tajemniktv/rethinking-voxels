@@ -125,7 +125,7 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 
 		vec3 blSample = vec3(0.0);
 		vec3 vxPos = getVxPos(playerPos);
-		#if SHADOW_QUALITY > 0
+		#ifdef REALTIME_SHADOWS
 			float shadowSample = 1.0;
 			vec3 vlSample = vec3(1.0);
 
@@ -140,7 +140,7 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 			shadowSample = dot(vlSample, vec3(1)) > 0.5 ? 1.0 : 0.0;
 		#endif
 		if (currentDist > depth0)  {
-			#if SHADOW_QUALITY > 0
+			#ifdef REALTIME_SHADOWS
 				vlSample *= translucentMult;
 			#endif
 			blSample *= translucentMult;
@@ -155,7 +155,7 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 		#endif
 	}
 
-	#if defined OVERWORLD && LIGHTSHAFT_BEHAVIOUR == 1 && SHADOW_QUALITY > 0
+	#if defined OVERWORLD && LIGHTSHAFT_BEHAVIOUR == 1 && defined REALTIME_SHADOWS
 		if (viewWidth + viewHeight - gl_FragCoord.x - gl_FragCoord.y < 1.5) {
 			if (frameCounter % int(0.06666 / frameTimeSmooth + 0.5) == 0) { // Change speed is not too different above 10 fps
 				if (eyeBrightness.y < 180) {

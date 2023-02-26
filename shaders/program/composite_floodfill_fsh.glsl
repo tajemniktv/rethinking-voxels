@@ -62,7 +62,7 @@ uniform vec3 previousCameraPosition;
 #include "/lib/vx/lightPropagation.glsl"
 #ifdef GI
 	#include "/lib/vx/getLighting.glsl"
-	#if SHADOW_QUALITY > 0
+	#ifdef REALTIME_SHADOWS
 	vec3 sunVec = getWorldSunVector();
 	float SdotU = sunVec.y;
 	float sunVisibility = clamp(SdotU + 0.0625, 0.0, 0.125) / 0.125;
@@ -318,7 +318,7 @@ void main() {
 				#endif
 			#endif
 			#ifdef GI
-				#if SHADOW_QUALITY > 0
+				#ifdef REALTIME_SHADOWS
 				vec3 sunLight = lightColor * getSunLight(oldPos + 0.4 * offsets[normal]) * max(-dot(offsets[normal], sunVec) * sign(sunVec.y) - offsets[normal].y * 0.5, 0);
 				#else
 				vec3 sunLight = vec3(0);

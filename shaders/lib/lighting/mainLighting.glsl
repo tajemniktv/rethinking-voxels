@@ -56,7 +56,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     // Shadows
     #if defined OVERWORLD || defined END
         float NdotL = dot(normalM, lightVec);
-        #if SHADOW_QUALITY == 0
+        #ifndef REALTIME_SHADOWS
             if (subsurfaceMode == 1) {
                 NdotU = 1.0;
                 NdotUmax0 = 1.0;
@@ -95,7 +95,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
         #endif
 
         if (shadowMult.r > 0.00001) {
-            #if SHADOW_QUALITY > 0
+            #ifdef REALTIME_SHADOWS
                 if (NdotLM > 0.0001) {
                     vec3 shadowMultBeforeLighting = shadowMult;
                     float shadowLength = min(vxRange / 2.0 - abs(vxPos.x), min(VXHEIGHT * VXHEIGHT - 2.0 * abs(vxPos.y), vxRange / 2.0 - abs(vxPos.z)));
@@ -308,7 +308,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     #ifdef OVERWORLD
         ambientMult = vec3(mix(lightmapYM, pow2(lightmapYM) * lightmapYM, rainFactor));
 
-        #if SHADOW_QUALITY == 0
+        #ifndef REALTIME_SHADOWS
             float tweakFactor = 1.0 + 0.6 * (1.0 - pow2(pow2(pow2(noonFactor))));
             shadowLighting /= tweakFactor;
             ambientMult *= mix(tweakFactor, 1.0, 0.5 * NdotUmax0);

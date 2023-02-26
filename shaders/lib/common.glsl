@@ -142,6 +142,7 @@
         #define CUSTOM_PBR
     #endif
 
+    #define REALTIME_SHADOWS
     #define SHADOW_QUALITY 2 //[0 1 2 3 4 5]
     #define ENTITY_SHADOWS
     #define SSAO
@@ -316,7 +317,7 @@
     #ifdef END
         #undef BLOOM_FOG
     #endif
-    #if SHADOW_QUALITY == 0 || !defined OVERWORLD
+    #if !defined REALTIME_SHADOWS || !defined OVERWORLD
         #undef CAVE_SUNLIGHT_FIX
     #endif
     #if defined GBUFFERS_TEXTURED || defined GBUFFERS_BASIC
@@ -413,7 +414,7 @@
         vec3 caveFogColor = caveFogColorRaw;
     #endif
 
-    #if LIGHTSHAFT_QUALITY > 0 && SHADOW_QUALITY > 0
+    #if LIGHTSHAFT_QUALITY > 0 && defined REALTIME_SHADOWS
         vec3 waterFogColor = vec3(0.07, 0.08, 0.11) * vec3(1.0 + vsBrightness);
     #else
         vec3 waterFogColor = vec3(0.15, 0.26, 0.3) * vec3(1.0 + 0.5 * vsBrightness);

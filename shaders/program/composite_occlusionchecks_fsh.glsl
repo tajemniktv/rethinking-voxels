@@ -81,7 +81,7 @@ void main() {
         vec3 offset = offset0;
         vec3 oldPos = pos + offset;
         // calculate a shadow map
-        #if SHADOW_QUALITY > 0
+        #ifdef REALTIME_SHADOWS
             vec2 shadowCoord = 2.0 * vec2((pixelCoord.x + 0.5) / shadowMapResolution - 0.5, (pixelCoord.y + 0.5) / shadowMapResolution - 0.5);
             float shadowLength = length(shadowCoord);//max(abs(shadowCoord.x), abs(shadowCoord.y));
             shadowCoord *= undistortShadow(shadowLength) / shadowLength;
