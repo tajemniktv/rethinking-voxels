@@ -12,14 +12,15 @@ flat in float vlFactor;
 
 noperspective in vec2 texCoord;
 
-#if defined BLOOM_FOG && !defined MOTION_BLURRING || LIGHTSHAFT_QUALITY > 0 && (defined OVERWORLD || defined END)
-	flat in vec3 upVec, sunVec;
-#endif
+flat in vec3 upVec, sunVec;
 
 //Uniforms//
 uniform int isEyeInWater;
 
 uniform vec3 fogColor;
+uniform vec3 cameraPosition;
+
+uniform mat4 gbufferProjectionInverse;
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex4;
@@ -72,12 +73,10 @@ uniform sampler2D depthtex1;
 //const bool colortex0MipmapEnabled = true;
 
 //Common Variables//
-#if defined BLOOM_FOG && !defined MOTION_BLURRING || LIGHTSHAFT_QUALITY > 0 && (defined OVERWORLD || defined END)
-	float SdotU = dot(sunVec, upVec);
-	float sunFactor = SdotU < 0.0 ? clamp(SdotU + 0.375, 0.0, 0.75) / 0.75 : clamp(SdotU + 0.03125, 0.0, 0.0625) / 0.0625;
-#endif
+float SdotU = dot(sunVec, upVec);
+float sunFactor = SdotU < 0.0 ? clamp(SdotU + 0.375, 0.0, 0.75) / 0.75 : clamp(SdotU + 0.03125, 0.0, 0.0625) / 0.0625;
 
-#if LIGHTSHAFT_QUALITY > 0 && (defined OVERWORLD || defined END)
+#if LIGHTSHAFT_QUALITY > 0 && defined OVERWORLD && SHADOW_QUALITY > 0 || defined END
 	float sunVisibility = clamp(SdotU + 0.0625, 0.0, 0.125) / 0.125;
 	float sunVisibility2 = sunVisibility * sunVisibility;
 	float shadowTimeVar1 = abs(sunVisibility - 0.5) * 2.0;
@@ -115,7 +114,7 @@ void main() {
 	float z0 = texelFetch(depthtex0, texelCoord, 0).r;
 	float z1 = texelFetch(depthtex1, texelCoord, 0).r;
 
-	#if LIGHTSHAFT_QUALITY > 0
+	#if LIGHTSHAFT_QUALITY > 0 && defined OVERWORLD && SHADOW_QUALITY > 0 || defined END
 		vec4 volumetricLight = vec4(0.0);
 		float vlFactorM = vlFactor;
 
@@ -147,28 +146,27 @@ void main() {
 	if (isEyeInWater == 1) {
 		if (z0 == 1.0) color.rgb = waterFogColor;
 
-		const vec3 underwaterMult = vec3(0.65, 0.75, 0.95) * 0.8;
+		const vec3 underwaterMult = vec3(0.80, 0.87, 0.97) * 0.71;
 		color.rgb *= underwaterMult;
 
-		#if LIGHTSHAFT_QUALITY > 0
+		#if LIGHTSHAFT_QUALITY > 0 && defined OVERWORLD && SHADOW_QUALITY > 0 || defined END
 			volumetricLight.rgb *= pow2(underwaterMult);
 		#endif
 	} else if (isEyeInWater == 2) {
 		if (z1 == 1.0) color.rgb = fogColor * 5.0;
 		
-		#if LIGHTSHAFT_QUALITY > 0
+		#if LIGHTSHAFT_QUALITY > 0 && defined OVERWORLD && SHADOW_QUALITY > 0 || defined END
 			volumetricLight.rgb *= 0.0;
 		#endif
 	}
 	
 	color = pow(color, vec3(2.2));
 	
-	#if LIGHTSHAFT_QUALITY > 0
+	#if LIGHTSHAFT_QUALITY > 0 && defined OVERWORLD && SHADOW_QUALITY > 0 || defined END
 		#ifndef OVERWORLD
 			volumetricLight.rgb *= volumetricLight.rgb;
 		#endif
 
-		color.rgb *= 1.0 - volumetricLight.a * rainFactor * 0.5;
 		color += volumetricLight.rgb;
 	#endif
 
@@ -184,7 +182,7 @@ void main() {
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = vec4(color, 1.0);
 	
-	#if defined SCENE_AWARE_LIGHT_SHAFTS && LIGHTSHAFT_QUALITY > 0
+	#if LIGHTSHAFT_QUALITY > 0
 		/* DRAWBUFFERS:04*/
 		gl_FragData[1] = vec4(tex4val, vlFactorM);
 	#endif
@@ -199,12 +197,10 @@ flat out float vlFactor;
 
 noperspective out vec2 texCoord;
 
-#if defined BLOOM_FOG && !defined MOTION_BLURRING || LIGHTSHAFT_QUALITY > 0 && (defined OVERWORLD || defined END)
-	flat out vec3 upVec, sunVec;
-#endif
+flat out vec3 upVec, sunVec;
 
 //Uniforms//
-#ifdef SCENE_AWARE_LIGHT_SHAFTS
+#if LIGHTSHAFT_BEHAVIOUR == 1 || defined END
 	uniform float viewWidth, viewHeight;
 	
 	uniform sampler2D colortex4;
@@ -224,15 +220,17 @@ void main() {
 
 	texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
-	#if defined BLOOM_FOG && !defined MOTION_BLURRING || LIGHTSHAFT_QUALITY > 0 && (defined OVERWORLD || defined END)
-		upVec = normalize(gbufferModelView[1].xyz);
-		sunVec = GetSunVector();
-	#endif
+	upVec = normalize(gbufferModelView[1].xyz);
+	sunVec = GetSunVector();
 
-	#ifdef SCENE_AWARE_LIGHT_SHAFTS
+	#ifdef LIGHTSHAFT_BEHAVIOUR == 1 || defined END
 		vlFactor = texelFetch(colortex4, ivec2(viewWidth-1, viewHeight-1), 0).a;
 	#else
-		vlFactor = 0.0;
+		#if LIGHTSHAFT_BEHAVIOUR == 2
+			vlFactor = 0.0;
+		#elif LIGHTSHAFT_BEHAVIOUR == 3
+			vlFactor = 1.0;
+		#endif
 	#endif
 }
 

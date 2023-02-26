@@ -24,7 +24,7 @@ in vec4 glColor;
 	flat in vec2 absMidCoordPos;
 #endif
 
-#ifdef GENERATED_NORMALS
+#if defined GENERATED_NORMALS || defined CUSTOM_PBR
 	flat in vec3 binormal, tangent;
 #endif
 
@@ -74,6 +74,11 @@ uniform sampler2D tex;
 	uniform int heldItemId2;
 #endif
 
+#ifdef CUSTOM_PBR
+	uniform sampler2D normals;
+	uniform sampler2D specular;
+#endif
+
 //Pipeline Constants//
 
 //Common Variables//
@@ -92,6 +97,14 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 	vec3 lightVec = sunVec;
 #endif
 
+#if defined GENERATED_NORMALS || defined CUSTOM_PBR
+	mat3 tbnMatrix = mat3(
+		tangent.x, binormal.x, normal.x,
+		tangent.y, binormal.y, normal.y,
+		tangent.z, binormal.z, normal.z
+	);
+#endif
+
 //Common Functions//
 
 //Includes//
@@ -108,11 +121,15 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 #endif
 
 #ifdef GENERATED_NORMALS
-	#include "/lib/materials/generatedNormals.glsl"
+	#include "/lib/materials/materialMethods/generatedNormals.glsl"
 #endif
 
 #ifdef COATED_TEXTURES
-	#include "/lib/materials/coatedTextures.glsl"
+	#include "/lib/materials/materialMethods/coatedTextures.glsl"
+#endif
+
+#ifdef CUSTOM_PBR
+	#include "/lib/materials/materialHandling/customMaterials.glsl"
 #endif
 
 //Program//
@@ -133,12 +150,18 @@ void main() {
 	vec3 playerPos = ViewToPlayer(viewPos);
 
 	bool noSmoothLighting = false, noDirectionalShading = false;
-	float smoothnessG = 0.0, highlightMult = 1.0, emission = 0.0, materialMask = 0.0, noiseFactor = 1.0;
+	
+	float smoothnessD = 0.0, skyLightFactor = 0.0, materialMask = 0.0;
+	float smoothnessG = 0.0, highlightMult = 1.0, emission = 0.0, noiseFactor = 1.0;
 	vec2 lmCoordM = lmCoord;
 	vec3 normalM = normal, shadowMult = vec3(1.0);
 	#ifdef IPBR
-		#include "/lib/materials/blockEntityMaterials.glsl"
+		#include "/lib/materials/materialHandling/blockEntityMaterials.glsl"
 	#else
+		#ifdef CUSTOM_PBR
+			GetCustomMaterials(normalM, NdotU, smoothnessG, smoothnessD, highlightMult, emission, materialMask);
+		#endif
+
 		if (blockEntityId == 60000) { // End Portal, End Gateway
 			#include "/lib/materials/specificMaterials/others/endPortalEffect.glsl"
 		} else if (blockEntityId == 60004) { // Signs
@@ -165,10 +188,11 @@ void main() {
 
 	/* DRAWBUFFERS:01 */
 	gl_FragData[0] = color;
-	gl_FragData[1] = vec4(0.0, materialMask, 0.0, 1.0);
-	#if BL_SHADOW_MODE == 1
+	gl_FragData[1] = vec4(smoothnessD, materialMask, skyLightFactor, 1.0);
+
+	#if REFLECTION_QUALITY >= 3 && RP_MODE >= 2
 		/* DRAWBUFFERS:015 */
-		gl_FragData[2] = vec4(normalize(ViewToPlayer(1000*normal)), 1.0);
+		gl_FragData[2] = vec4(mat3(gbufferModelViewInverse) * normalM, 1.0);
 	#endif
 }
 
@@ -192,7 +216,7 @@ out vec4 glColor;
 	flat out vec2 absMidCoordPos;
 #endif
 
-#ifdef GENERATED_NORMALS
+#if defined GENERATED_NORMALS || defined CUSTOM_PBR
 	flat out vec3 binormal, tangent;
 #endif
 
@@ -215,7 +239,7 @@ uniform int blockEntityId;
 	attribute vec4 mc_midTexCoord;
 #endif
 
-#ifdef GENERATED_NORMALS
+#if defined GENERATED_NORMALS || defined CUSTOM_PBR
 	attribute vec4 at_tangent;
 #endif
 
@@ -264,7 +288,7 @@ void main() {
 		absMidCoordPos  = abs(texMinMidCoord);
 	#endif
 
-	#ifdef GENERATED_NORMALS
+	#if defined GENERATED_NORMALS || defined CUSTOM_PBR
 		binormal = normalize(gl_NormalMatrix * cross(at_tangent.xyz, gl_Normal.xyz) * at_tangent.w);
 		tangent  = normalize(gl_NormalMatrix * at_tangent.xyz);
 	#endif

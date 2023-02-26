@@ -22,65 +22,34 @@ uniform sampler2D colortex3;
 #endif
 
 //Pipeline Constants//
-/*
-const int colortex0Format = R11F_G11F_B10F;	//main color
-const int colortex1Format = RGB8;			//smoothnessD & materialMask & skyLightFactor
-const int colortex2Format = RGBA16;			//taa
-const int colortex3Format = RGB8;			//*cloud texture on deferred* & translucentMult & bloom & final color
-const int colortex4Format = RGBA8;			//volumetric cloud linear depth & volumetric light factor
-const int colortex5Format = RGB8_SNORM;		//normalM & scene image for water reflections
-const int colortex6Format = R8;				//*cloud texture on gbuffers*
-#ifdef TEMPORAL_FILTER
-const int colortex7Format = RGBA16F;		//temporal filter
-#endif
-// voxel data
-const int shadowcolor0Format = RGBA16;
-const int shadowcolor1Format = RGBA16;
-const int colortex8Format = RGBA16;
-const int colortex9Format = RGBA16;
-const int colortex10Format = RGBA16;
-const int colortex11Format = RGBA16;
-const int colortex12Format = RGBA16;		//previous frame lighting
-const int colortex13Format = RGBA16;
-*/
-
-const bool colortex0Clear = true;
-const bool colortex1Clear = true;
-const bool colortex2Clear = false;
-const bool colortex3Clear = true;
-const bool colortex4Clear = false;
-const bool colortex5Clear = false;
-// temporal voxel data such as flood fill
-const bool colortex8Clear = false;
-const bool colortex9Clear = false;
-const bool colortex10Clear = false;
-const bool colortex11Clear = false;
-const bool colortex12Clear = false;
-const bool colortex13Clear = false;
-#ifdef TEMPORAL_FILTER
-const bool colortex6Clear = false;
-const bool colortex7Clear = false;
-#endif
-
-const int noiseTextureResolution = 128;
-
-const bool shadowHardwareFiltering = true;
-const float shadowDistanceRenderMul = 1.0;
-const float entityShadowDistanceMul = 1.0; // Iris devs may bless us with their power
-
-const float drynessHalflife = 300.0;
-const float wetnessHalflife = 300.0;
-
-const float ambientOcclusionLevel = 1.0;
+#include "/lib/misc/pipelineSettings.glsl"
 
 //Common Variables//
 
 //Common Functions//
+#if IMAGE_SHARPENING > 0
+	vec2 viewD = 1.0 / vec2(viewWidth, viewHeight);
+
+	vec2 sharpenOffsets[4] = vec2[4](
+		vec2( viewD.x,  0.0),
+		vec2( 0.0,  viewD.x),
+		vec2(-viewD.x,  0.0),
+		vec2( 0.0, -viewD.x)
+	);
+
+	void SharpenImage(inout vec3 color, vec2 texCoordM) {
+		float mult = 0.0125 * IMAGE_SHARPENING;
+		color *= 1.0 + 0.05 * IMAGE_SHARPENING;
+
+		for (int i = 0; i < 4; i++) {
+			color -= texture2D(colortex3, texCoordM + sharpenOffsets[i]).rgb * mult;
+		}
+	}
+#endif
 
 //Includes//
 
 //Program//
-//uniform sampler2D depthtex1;
 void main() {
 	vec2 texCoordM = texCoord;
 
@@ -89,9 +58,11 @@ void main() {
 	#endif
 
 	vec3 color = texture2D(colortex3, texCoordM).rgb;
-//	ivec2 pixelCoord = ivec2(texCoord * textureSize(colortex3, 0));
-//	vec4 lightCol = texelFetch(depthtex1, pixelCoord, 0);
-//	if (max(pixelCoord.x, pixelCoord.y) < SHADOWRES) color = 0.01 / (1 - lightCol.xyz);
+
+	#if IMAGE_SHARPENING > 0
+		SharpenImage(color, texCoordM);
+	#endif
+
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = vec4(color, 1.0);
 }

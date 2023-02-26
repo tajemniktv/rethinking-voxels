@@ -38,6 +38,7 @@ uniform sampler2D colortex13;
 #include "/lib/vx/raytrace.glsl"
 vec2 tex8size0 = vec2(textureSize(colortex8, 0));
 //#define DEBUG_OCCLUDERS
+
 #if ADVANCED_LIGHT_TRACING == 0
 vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat, bool doScattering) // doScattering doesn't do anything in basic light propagation mode
 #else
@@ -286,7 +287,19 @@ vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat, bool doScattering)
     } else return vec3(0);
 }
 #if BL_SHADOW_MODE == 1 && !defined PP_BL_SHADOWS && !defined GBUFFERS_HAND
-#include "/lib/util/reprojection.glsl"
+
+vec3 Reprojection3D(vec3 pos, vec3 cameraOffset) {
+	pos = pos * 2.0 - 1.0;
+
+	vec4 viewPosPrev = gbufferProjectionInverse * vec4(pos, 1.0);
+	viewPosPrev /= viewPosPrev.w;
+	viewPosPrev = gbufferModelViewInverse * viewPosPrev;
+
+	vec4 previousPosition = viewPosPrev + vec4(cameraOffset, 0.0);
+	previousPosition = gbufferPreviousModelView * previousPosition;
+	previousPosition = gbufferPreviousProjection * previousPosition;
+	return previousPosition.xyz / previousPosition.w * 0.5 + 0.5;
+}
 
 float GetLinearDepth0(float depth) {
 	return (2.0 * near) / (far + near - depth * (far - near));

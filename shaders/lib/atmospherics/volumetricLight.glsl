@@ -3,12 +3,6 @@
 #include "/lib/colors/lightAndAmbientColors.glsl"
 #include "/lib/vx/getLighting.glsl"
 
-vec2 InterleavedGradientNoise2(int i, int h) {
-	float n = 52.9829189 * fract(0.06711056 * i + 0.00583715 * i);
-	float m = 52.9829189 * fract(0.06711056 * h + 0.00583715 * h);
-	float fracter = 1.61803398875 * mod(float(frameCounter), 3600.0);
-	return fract(vec2(n, m) + fracter);
-}
 
 float GetDepth(float depth) {
 	return 2.0 * near * far / (far + near - (2.0 * depth - 1.0) * (far - near));
@@ -31,24 +25,28 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 	vec4 volumetricLight = vec4(0.0);
 	vec3 volumetricBlockLight = vec3(0.0);
 	#ifdef OVERWORLD
+		vec3 vlColor = lightColor;
+
 		float vlSceneIntensity = isEyeInWater != 1 ? vlFactor : 1.0;
+		float vlMult = 1.0;
 
-		if (sunVisibility < 0.5) vlSceneIntensity = 0.0;
-	#else
-		float vlSceneIntensity = 0.0;
-	#endif
+		if (sunVisibility < 0.5) {
+			vlSceneIntensity = 0.0;
+			vlMult = 0.6 + 0.4 * max0(far - lViewPos) / far;
+			vlColor = normalize(pow(vlColor, vec3(1.0 - max0(1.0 - 1.5 * nightFactor))));
+			vlColor *= 0.0766 + 0.0766 * vsBrightness;
+		}
 
-	#ifdef OVERWORLD
+		vec3 vlColorReducer = 1.0 / sqrt(vlColor);
+
 		float VdotLM = max((VdotL + 1.0) / 2.0, 0.0);
 		float VdotUM = mix(pow2(1.0 - max(VdotU, 0.0)), 1.0, 0.5 * vlSceneIntensity);
 		      VdotUM = smoothstep1(VdotUM);
 			  VdotUM = pow(VdotUM, min(lViewPos / far, 1.0) * (3.0 - 2.0 * vlSceneIntensity));
-		float vlMult = mix(VdotUM * VdotLM, 0.5 + 0.5 * VdotLM, rainFactor2) * vlTime;
-			  vlMult *= mix(invNoonFactor * 0.875 + 0.125, 1.0, max(vlSceneIntensity, rainFactor2));
-			  vlMult *= mix(0.25, 1.0, max(sunVisibility, invRainFactor));
-	#endif
+		vlMult *= mix(VdotUM * VdotLM, 0.5 + 0.5 * VdotLM, rainFactor2) * vlTime;
+		vlMult *= mix(pow2(invNoonFactor) * 0.875 + 0.125, 1.0, max(vlSceneIntensity, rainFactor2));
+		vlMult *= mix(0.25, 1.0, max(sunVisibility, invRainFactor));
 
-	#ifdef OVERWORLD
 		#if LIGHTSHAFT_QUALITY == 4
 			int sampleCount = vlSceneIntensity < 0.5 ? 30 : 50;
 		#elif LIGHTSHAFT_QUALITY == 3
@@ -62,8 +60,21 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 			sampleCount *= 2;
 		#endif
 	#else
-		int sampleCount = 32;
+		float vlSceneIntensity = 0.0;
+
+		#if LIGHTSHAFT_QUALITY == 4
+			int sampleCount = 20;
+		#elif LIGHTSHAFT_QUALITY == 3
+			int sampleCount = 16;
+		#elif LIGHTSHAFT_QUALITY == 2
+			int sampleCount = 12;
+		#elif LIGHTSHAFT_QUALITY == 1
+			int sampleCount = 10;
+		#elif LIGHTSHAFT_QUALITY == 0
+			int sampleCount = 8;
+		#endif
 	#endif
+
 	float addition = 1.0;
 	float maxDist = mix(max(far, 96.0) * 0.55, 80.0, vlSceneIntensity);
 	float distMult = maxDist / (sampleCount + addition);
@@ -91,23 +102,15 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 		float currentDist = (i + dither) * distMult + addition;
 
 		if (currentDist > maxCurrentDist) break;
-		//if (volumetricLight.a >= 1.0) break;
 
 		vec4 viewPos = gbufferProjectionInverse * (vec4(texCoord, GetDistX(currentDist), 1.0) * 2.0 - 1.0);
 		viewPos /= viewPos.w;
 		vec4 wpos = gbufferModelViewInverse * viewPos;
 		vec3 playerPos = wpos.xyz / wpos.w;
 		#ifdef END
-			vec4 enderBeamSample = vec4(DrawEnderBeams(VdotU, playerPos), 1.0) / sampleCount;
+			vec4 enderBeamSample = vec4(DrawEnderBeams(VdotU, playerPos), 1.0)
+			enderBeamSample /= sampleCount;
 		#endif
-		//wpos = shadowModelView * wpos;
-		//wpos = shadowProjection * wpos;
-		wpos /= wpos.w;
-		/*float distb = sqrt(wpos.x * wpos.x + wpos.y * wpos.y);
-		float distortFactor = 1.0 - shadowMapBias + distb * shadowMapBias;
-		vec4 shadowPosition = DistortShadow(wpos,distortFactor);
-		shadowPosition.z += 0.0001;*/
-		float blSampleMult = 1.0 / sampleCount;
 		#ifdef OVERWORLD
 			float percentComplete = currentDist / maxDist;
 			float sampleMult = mix(percentComplete * 3.0, sampleMultIntense, max(rainFactor, vlSceneIntensity));
@@ -119,32 +122,31 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 			blSampleMult *= VBL_END_MULT;
 		#endif
 
-		#ifdef SUN_SHADOWS
-		float shadowSample = 1.0;
-		vec3 vlSample = vec3(1.0);
-		#endif
 		vec3 blSample = vec3(0.0);
 		vec3 vxPos = getVxPos(playerPos);
-		#ifdef SUN_SHADOWS
+		#if SHADOW_QUALITY > 0
+		float shadowSample = 1.0;
+		vec3 vlSample = vec3(1.0);
+
 		if (isInRange(vxPos, 2)) {
-			vlSample = getSunLight(getPreviousVxPos(playerPos), isEyeInWater == 1);//shadow2D(shadowtex0, shadowPosition.xyz).z;
+			vlSample = getSunLight(getPreviousVxPos(playerPos));
 		#ifndef END
 		} else {
 			vlSample = vec3(eyeBrightnessSmooth.y / 240.0);
 		#endif
 		}
 		vlSample *= vlSample + 0.1;
-		shadowSample = length(vlSample) > 0.3 ? 1.0 : 0.0;
+		shadowSample = dot(vlSample, vec3(1)) > 0.5 ? 1.0 : 0.0;
 		#endif
-		blSample = getBlockLight(vxPos);
-		if (currentDist > depth0) {
-			#ifdef SUN_SHADOWS
+		if (currentDist > depth0)  {
+			#if SHADOW_QUALITY > 0
 			vlSample *= translucentMult;
 			#endif
 			blSample *= translucentMult;
 		}
 		volumetricBlockLight += blSample * blSampleMult;
-		#ifdef SUN_SHADOWS
+
+
 		#ifdef OVERWORLD
 			volumetricLight += vec4(vlSample, shadowSample) * sampleMult;
 		#elif defined END
@@ -153,7 +155,7 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 		#endif
 	}
 
-	#if defined OVERWORLD && defined SCENE_AWARE_LIGHT_SHAFTS && defined SUN_SHADOWS
+	#if defined OVERWORLD && defined LIGHTSHAFT_BEHAVIOUR == 1 && SHADOW_QUALITY > 0
 		if (viewWidth + viewHeight - gl_FragCoord.x - gl_FragCoord.y < 1.5) {
 			if (frameCounter % int(0.06666 / frameTimeSmooth + 0.5) == 0) { // Change speed is not too different above 10 fps
 				if (eyeBrightness.y < 180) {
@@ -162,10 +164,13 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 					wpos /= wpos.w;
 					float shadowSample = length(getSunLight(getPreviousVxPos(wpos.xyz))) > 0.3 ? 1.0 : 0.0;
 					if (shadowSample < 0.5) {
+						int salsX = 8;
+						int salsY = 5;
+						vec2 viewM = view / vec2(salsX, salsY);
 						float skySample = 0.0;
-						for (int i = 0; i < 7; i++) {
-							for (int h = 0; h < 4; h++) {
-								skySample += float(texelFetch(depthtex1, ivec2(view * InterleavedGradientNoise2(i, h)), 0).r == 1.0);
+						for (float i = 0.5; i < salsX; i++) {
+							for (float h = 0.9; h < salsY; h++) {
+								skySample += float(texelFetch(depthtex0, ivec2(viewM * vec2(i, h)), 0).r == 1.0);
 							}
 						}
 						if (skySample < 1.5) {
@@ -175,12 +180,17 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 				} else vlFactor = max(vlFactor - OSIEBCA*3, 0.0);
 			}
 		} else vlFactor = 0.0;
+
+		/*for (float i = 0.5; i < salsX; i++) { // Show Scene Aware check positions
+			for (float h = 0.9; h < salsY; h++) {
+				vec2 dis = abs(viewM * vec2(i, h) - gl_FragCoord.xy);
+				if (dis.x + dis.y < 10.0) return vec4(1.0);
+			}
+		}*/
 	#endif
 
 	#ifdef OVERWORLD
-		volumetricLight.rgb *= vlMult * pow(lightColor, vec3(0.5 + 0.5 * max(invNoonFactor, (1.0 + sunFactor) * rainFactor)));
-	#else
-		//if (gl_FragCoord.x > 960) volumetricLight.rgb = max(volumetricLight.rgb - dither / 255.0, vec3(0.0));
+		volumetricLight.rgb *= vlMult * pow(vlColor, vec3(0.5 + 0.5 * mix(invNoonFactor, (1.0 + sunFactor), rainFactor)));
 	#endif
 
 	volumetricLight.rgb += BLOCKLIGHT_SHAFT_STRENGTH * volumetricBlockLight;	
