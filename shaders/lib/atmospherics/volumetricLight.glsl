@@ -130,7 +130,7 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 			vec3 vlSample = vec3(1.0);
 
 			if (isInRange(vxPos, 2)) {
-				vlSample = getSunLight(getPreviousVxPos(playerPos));
+				vlSample = getSunLight(getPreviousVxPos(playerPos), true);
 			#ifndef END
 				} else {
 					vlSample = vec3(eyeBrightnessSmooth.y / 240.0);
