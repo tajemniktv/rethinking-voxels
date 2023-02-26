@@ -246,7 +246,7 @@ option.VBL_END_MULT.comment=Volumetric Blocklight Strength in the end relative t
 option.FF_PROP_SUB=Blocklight Falloff Steepness
 option.FF_PROP_SUB.comment=Controls how fast blocklight becomes dark around a light source. Doesn't work with Advanced Light Propagation.
 
-option._STRENGTH=GI Strength
+option.GI_STRENGTH=GI Strength
 option.GI_STRENGTH.comment=Adjusts the strength of Global Illumination. This effect allows light that falls on a surface to illuminate its surroundings.
 
 option.GLOWING_MINERAL_BLOCKS=Glowing Mineral Blocks
