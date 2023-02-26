@@ -42,8 +42,11 @@ void main() {
 	float offCenterLength = length(fract(view * HRTexCoord) - 0.5);
 	blendFactor *= clamp(0.5 + 0.5 * offCenterLength - 3 * float(ddepth > 0.2), 0, 1);
 	col = mix(col, prevCol.xyz, blendFactor);
+	#else
+	vec3 col = vec3(0);
+	float depth = 1.0;
+	#endif
 	/*RENDERTARGETS:12*/
 	gl_FragData[0] = vec4(col, depth);
-	#endif
 	return;
 }

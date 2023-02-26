@@ -176,7 +176,6 @@ void main() {
 	
 	/* DRAWBUFFERS:04 */
 	gl_FragData[0] = vec4(color, 1.0);
-	
 	#if LIGHTSHAFT_QUALITY > 0
 		gl_FragData[1] = vec4(tex4val, vlFactorM);
 	#else

@@ -17,5 +17,5 @@ void main() {
     #endif
     gl_Position = gl_ProjectionMatrix * (gl_ModelViewMatrix * gl_Vertex);
     texCoord = gl_Position.xy * 0.5 + 0.5;
-    gl_Position.xy = 0.5 * gl_Position.xy - 0.5;
+    //gl_Position.xy = 0.5 * gl_Position.xy - 0.5;
 }
