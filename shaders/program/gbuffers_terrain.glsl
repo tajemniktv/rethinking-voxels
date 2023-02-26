@@ -56,10 +56,6 @@ uniform sampler2D tex;
 	#define ATLASTEX tex
 #endif
 
-#ifdef IPBR
-	uniform ivec2 atlasSize;
-#endif
-
 #if defined NETHER || RAIN_PUDDLES >= 1 || defined COATED_TEXTURES || defined SNOWY_WORLD
 	uniform sampler2D noisetex;
 #endif

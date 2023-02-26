@@ -16,7 +16,7 @@ uniform sampler2D colortex8;
 #define COLORTEX9
 uniform sampler2D colortex9;
 #endif
-#ifdef SUN_SHADOWS
+#if SHADOW_QUALITY > 0
 #ifndef COLORTEX10
 #define COLORTEX10
 uniform sampler2D colortex10;
@@ -334,7 +334,7 @@ vec3 getBlockLight(vec3 vxPos) {
 #include "/lib/vx/bigLighting.glsl"
 #endif
 
-#ifdef SUN_SHADOWS
+#if SHADOW_QUALITY > 0
 
 vec2[9] shadowoffsets = vec2[9](
     vec2( 0.0       ,  0.0),

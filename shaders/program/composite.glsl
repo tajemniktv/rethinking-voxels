@@ -27,14 +27,9 @@ uniform sampler2D colortex4;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 
-#if defined BLOOM_FOG  && !defined MOTION_BLURRING || LIGHTSHAFT_QUALITY > 0
-	uniform vec3 cameraPosition;
-	uniform mat4 gbufferProjectionInverse;
-#endif
-
 #if LIGHTSHAFT_QUALITY > 0
 	#ifndef VBL_INTPOL
-	#undef OCCLUSION_FILTER
+		#undef OCCLUSION_FILTER
 	#endif
 	#undef BL_SHADOW_MODE
 	#undef PP_BL_SHADOWS
@@ -114,7 +109,7 @@ void main() {
 	float z0 = texelFetch(depthtex0, texelCoord, 0).r;
 	float z1 = texelFetch(depthtex1, texelCoord, 0).r;
 
-	#if LIGHTSHAFT_QUALITY > 0 && defined OVERWORLD && SHADOW_QUALITY > 0 || defined END
+	#if LIGHTSHAFT_QUALITY > 0 && defined OVERWORLD
 		vec4 volumetricLight = vec4(0.0);
 		float vlFactorM = vlFactor;
 
@@ -126,12 +121,12 @@ void main() {
 		viewPos /= viewPos.w;
 		float lViewPos = length(viewPos.xyz);
 		vec3 nViewPos = normalize(viewPos.xyz);
-		#if defined OVERWORLD || defined END
-		float VdotL = dot(nViewPos, lightVec);
-		float VdotU = dot(nViewPos, upVec);
+		#if defined OVERWORLD && SHADOW_QUALITY > 0 || defined END
+			float VdotL = dot(nViewPos, lightVec);
+			float VdotU = dot(nViewPos, upVec);
 		#else
-		float VdotL = 0.0;
-		float VdotU = 0.0;
+			float VdotL = 0.0;
+			float VdotU = 0.0;
 		#endif
 
 		float dither = texture2D(noisetex, texCoord * view / 128.0).b;
@@ -223,7 +218,7 @@ void main() {
 	upVec = normalize(gbufferModelView[1].xyz);
 	sunVec = GetSunVector();
 
-	#ifdef LIGHTSHAFT_BEHAVIOUR == 1 || defined END
+	#if LIGHTSHAFT_BEHAVIOUR == 1 || defined END
 		vlFactor = texelFetch(colortex4, ivec2(viewWidth-1, viewHeight-1), 0).a;
 	#else
 		#if LIGHTSHAFT_BEHAVIOUR == 2

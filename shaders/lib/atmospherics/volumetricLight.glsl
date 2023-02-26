@@ -111,36 +111,37 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 			vec4 enderBeamSample = vec4(DrawEnderBeams(VdotU, playerPos), 1.0)
 			enderBeamSample /= sampleCount;
 		#endif
+		float blSampleMult = 1.0 / sampleCount;
 		#ifdef OVERWORLD
 			float percentComplete = currentDist / maxDist;
 			float sampleMult = mix(percentComplete * 3.0, sampleMultIntense, max(rainFactor, vlSceneIntensity));
 			if (currentDist < 5.0) sampleMult *= smoothstep1(clamp(currentDist / 5.0, 0.0, 1.0));
 			sampleMult /= sampleCount;
 		#elif defined NETHER
-			blSampleMult *= VBL_NETHER_MULT;
+			float blSampleMult = VBL_NETHER_MULT;
 		#else
-			blSampleMult *= VBL_END_MULT;
+			float blSampleMult = VBL_END_MULT;
 		#endif
 
 		vec3 blSample = vec3(0.0);
 		vec3 vxPos = getVxPos(playerPos);
 		#if SHADOW_QUALITY > 0
-		float shadowSample = 1.0;
-		vec3 vlSample = vec3(1.0);
+			float shadowSample = 1.0;
+			vec3 vlSample = vec3(1.0);
 
-		if (isInRange(vxPos, 2)) {
-			vlSample = getSunLight(getPreviousVxPos(playerPos));
-		#ifndef END
-		} else {
-			vlSample = vec3(eyeBrightnessSmooth.y / 240.0);
-		#endif
-		}
-		vlSample *= vlSample + 0.1;
-		shadowSample = dot(vlSample, vec3(1)) > 0.5 ? 1.0 : 0.0;
+			if (isInRange(vxPos, 2)) {
+				vlSample = getSunLight(getPreviousVxPos(playerPos));
+			#ifndef END
+				} else {
+					vlSample = vec3(eyeBrightnessSmooth.y / 240.0);
+			#endif
+			}
+			vlSample *= vlSample + 0.1;
+			shadowSample = dot(vlSample, vec3(1)) > 0.5 ? 1.0 : 0.0;
 		#endif
 		if (currentDist > depth0)  {
 			#if SHADOW_QUALITY > 0
-			vlSample *= translucentMult;
+				vlSample *= translucentMult;
 			#endif
 			blSample *= translucentMult;
 		}
@@ -152,10 +153,9 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 		#elif defined END
 			volumetricLight += vec4(vlSample, shadowSample) * enderBeamSample;
 		#endif
-		#endif
 	}
 
-	#if defined OVERWORLD && defined LIGHTSHAFT_BEHAVIOUR == 1 && SHADOW_QUALITY > 0
+	#if defined OVERWORLD && LIGHTSHAFT_BEHAVIOUR == 1 && SHADOW_QUALITY > 0
 		if (viewWidth + viewHeight - gl_FragCoord.x - gl_FragCoord.y < 1.5) {
 			if (frameCounter % int(0.06666 / frameTimeSmooth + 0.5) == 0) { // Change speed is not too different above 10 fps
 				if (eyeBrightness.y < 180) {
