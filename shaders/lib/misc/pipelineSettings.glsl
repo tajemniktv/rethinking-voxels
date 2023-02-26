@@ -1,10 +1,10 @@
 /*
 const int colortex0Format = R11F_G11F_B10F;	//main color
 const int colortex1Format = RGB8;			//smoothnessD & materialMask & skyLightFactor
-const int colortex2Format = RGBA16;			//taa
+const int colortex2Format = RGBA16;			//taa, previous depth
 const int colortex3Format = RGB8;			//*cloud texture on deferred* & translucentMult & bloom & final color
-const int colortex4Format = RGBA8;			//volumetric cloud linear depth & volumetric light factor
-const int colortex5Format = RGBA8_SNORM;		//normalM & scene image for water reflections
+const int colortex4Format = RGBA8;			//volumetric cloud linear depth & volumetric light factor & normals in composite
+const int colortex5Format = RGBA8_SNORM;	//normalM & scene image for water reflections
 const int colortex6Format = R8;				//*cloud texture on gbuffers*
 #ifdef TEMPORAL_FILTER
 const int colortex7Format = RGBA16F;		//temporal filter

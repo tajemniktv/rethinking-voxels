@@ -207,7 +207,7 @@ void main() {
 	#endif
 
 	#ifdef CLOUDS_REIMAGINED
-		float cloudLinearDepth = texelFetch(gaux1, texelCoord, 0).r;
+		float cloudLinearDepth = texelFetch(gaux1, texelCoord, 0).a;
 
 		if (pow2(cloudLinearDepth + OSIEBCA * dither) * far < min(lViewPos, far)) discard;
 	#endif
