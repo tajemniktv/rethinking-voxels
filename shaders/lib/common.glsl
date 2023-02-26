@@ -316,7 +316,7 @@
     #ifdef END
         #undef BLOOM_FOG
     #endif
-    #if SHADOW_QUALITY == 0
+    #if SHADOW_QUALITY == 0 || !defined OVERWORLD
         #undef CAVE_SUNLIGHT_FIX
     #endif
     #if defined GBUFFERS_TEXTURED || defined GBUFFERS_BASIC

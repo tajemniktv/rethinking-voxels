@@ -108,7 +108,7 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 		vec4 wpos = gbufferModelViewInverse * viewPos;
 		vec3 playerPos = wpos.xyz / wpos.w;
 		#ifdef END
-			vec4 enderBeamSample = vec4(DrawEnderBeams(VdotU, playerPos), 1.0)
+			vec4 enderBeamSample = vec4(DrawEnderBeams(VdotU, playerPos), 1.0);
 			enderBeamSample /= sampleCount;
 		#endif
 		float blSampleMult = 1.0 / sampleCount;
@@ -118,9 +118,9 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 			if (currentDist < 5.0) sampleMult *= smoothstep1(clamp(currentDist / 5.0, 0.0, 1.0));
 			sampleMult /= sampleCount;
 		#elif defined NETHER
-			float blSampleMult = VBL_NETHER_MULT;
+			blSampleMult *= VBL_NETHER_MULT;
 		#else
-			float blSampleMult = VBL_END_MULT;
+			blSampleMult *= VBL_END_MULT;
 		#endif
 
 		vec3 blSample = vec3(0.0);

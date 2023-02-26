@@ -109,7 +109,7 @@ void main() {
 	float z0 = texelFetch(depthtex0, texelCoord, 0).r;
 	float z1 = texelFetch(depthtex1, texelCoord, 0).r;
 
-	#if LIGHTSHAFT_QUALITY > 0 && defined OVERWORLD
+	#if LIGHTSHAFT_QUALITY > 0
 		vec4 volumetricLight = vec4(0.0);
 		float vlFactorM = vlFactor;
 
