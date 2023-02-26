@@ -11,7 +11,8 @@ materialMask = OSIEBCA * 253.0; // Reduced Edge TAA
     snowMinNdotU = min(pow2(pow2(color.g)), 0.1);
     color.rgb = color.rgb * 0.5 + 0.5 * (color.rgb / glColor.rgb);
 #endif
-
+/*
 #if defined REALTIME_SHADOWS && SHADOW_QUALITY < 3
     shadowMult = vec3(sqrt1(max0(max(lmCoordM.y, min1(lmCoordM.x * 2.0)) - 0.95) * 20.0));
 #endif
+*/
