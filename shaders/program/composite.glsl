@@ -71,7 +71,7 @@ uniform sampler2D depthtex1;
 float SdotU = dot(sunVec, upVec);
 float sunFactor = SdotU < 0.0 ? clamp(SdotU + 0.375, 0.0, 0.75) / 0.75 : clamp(SdotU + 0.03125, 0.0, 0.0625) / 0.0625;
 
-#if LIGHTSHAFT_QUALITY > 0 && defined OVERWORLD && defined REALTIME_SHADOWS || defined END
+#if LIGHTSHAFT_QUALITY > 0
 	float sunVisibility = clamp(SdotU + 0.0625, 0.0, 0.125) / 0.125;
 	float sunVisibility2 = sunVisibility * sunVisibility;
 	float shadowTimeVar1 = abs(sunVisibility - 0.5) * 2.0;

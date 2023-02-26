@@ -147,11 +147,12 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 		}
 		volumetricBlockLight += blSample * blSampleMult;
 
-
-		#ifdef OVERWORLD
-			volumetricLight += vec4(vlSample, shadowSample) * sampleMult;
-		#elif defined END
-			volumetricLight += vec4(vlSample, shadowSample) * enderBeamSample;
+		#ifdef REALTIME_SHADOWS
+			#ifdef OVERWORLD
+				volumetricLight += vec4(vlSample, shadowSample) * sampleMult;
+			#elif defined END
+				volumetricLight += vec4(vlSample, shadowSample) * enderBeamSample;
+			#endif
 		#endif
 	}
 
