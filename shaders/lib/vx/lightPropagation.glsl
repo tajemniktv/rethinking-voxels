@@ -1,7 +1,14 @@
 int propagates(vxData blockData, inout vec3 colMult) {
-	int propval = 0;
+	int propval;
 	vec4 texCol = vec4(1);
-	if (blockData.alphatest) texCol = texture2DLod(colortex15, blockData.texcoord, 3);
+	if (blockData.alphatest) {
+		vec4 texCol0[3] = vec4[3](
+			texture2DLod(colortex15, blockData.texcoord, 0),
+			texture2DLod(colortex15, blockData.texcoord, 1),
+			texture2DLod(colortex15, blockData.texcoord, 3)
+		);
+		for (int i = 0; i < 3; i++) if (texCol0[i].a < texCol.a) texCol = texCol0[i];
+	}
 	if (blockData.emissive || !blockData.trace || blockData.crossmodel || texCol.a < 0.2) propval = 127;
 	else if (texCol.a < 0.8) {
 		propval = 127;
