@@ -39,7 +39,7 @@ ivec2 offsets[4] = ivec2[4](ivec2(0, 0), ivec2(0, 1), ivec2(1, 1), ivec2(1, 0));
 #include "/lib/vx/getLighting.glsl"
 #endif
 void main() {
-    float tex4val = texelFetch(colortex4, ivec2(view - 1), 0).a;
+    float tex4val = texelFetch(colortex4, ivec2(gl_FragCoord.xy), 0).a;
     vec3 blockLight = vec3(0);
     #if BL_SHADOW_MODE == 1
     if (texCoord.x < 0.5 && texCoord.y < 0.5) {
