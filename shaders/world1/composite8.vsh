@@ -2,4 +2,4 @@
 
 #define END
 
-#include "/program/composite_vsh.glsl"
+#include "/program/composite_floodfill_vsh.glsl"

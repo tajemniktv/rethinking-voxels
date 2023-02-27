@@ -4,6 +4,11 @@
 #include "/lib/common.glsl"
 
 in vec2 texCoord;
+
+#if defined GI && defined REALTIME_SHADOWS
+in vec3 sunVec;
+#endif
+
 #ifndef COLORTEX8
 #define COLORTEX8
 uniform sampler2D colortex8;
@@ -63,7 +68,7 @@ uniform vec3 previousCameraPosition;
 #ifdef GI
 	#include "/lib/vx/getLighting.glsl"
 	#ifdef REALTIME_SHADOWS
-	vec3 sunVec = getWorldSunVector();
+	//vec3 sunVec = getWorldSunVector();
 	float SdotU = sunVec.y;
 	float sunVisibility = clamp(SdotU + 0.0625, 0.0, 0.125) / 0.125;
 	float sunVisibility2 = sunVisibility * sunVisibility;
