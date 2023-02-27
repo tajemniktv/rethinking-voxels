@@ -183,7 +183,7 @@ void main() {
 	#endif
 
 	DoLighting(color.rgb, shadowMult, playerPos, viewPos, lViewPos, normalM, lmCoordM,
-	           noSmoothLighting, noDirectionalShading, false, 0,
+	           noSmoothLighting, noDirectionalShading, false, false, 0,
 			   smoothnessG, highlightMult, emission, blockEntityId);
 
 	/* DRAWBUFFERS:01 */
