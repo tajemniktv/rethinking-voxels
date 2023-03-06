@@ -78,7 +78,7 @@ switch (mat0) {
             avgPos0 -= 0.25 * cnormal;
         } else tracemat = false;
         break;
-    case 50048: // 12 pixels
+    case 50048: // 12 pixels, not a cube
         if (abs(area - 0.5625) < 0.01 && cnormal.y > 0.0) {
             avgPos -= 0.5 * cnormal;
             avgPos0 -= 0.5 * cnormal;
@@ -98,10 +98,13 @@ switch (mat0) {
         } else tracemat = false;
         break;
     case 50116: // 12 or 16 pixels
+        if (cnormal.y > 0.7 && vertexID[0] % 8 < 4) avgPos -= 0.5 * sqrt(area) * cnormal;
+        /*
         if ((abs(area - 0.5625) < 0.02 || abs(area - 1.0) < 0.05) && cnormal.z > 0.7) {
             avgPos -= 0.5 * cnormal;
             avgPos0 -= 0.5 * cnormal;
         } else tracemat = false;
+        */
         break;
     case 0:
     case 1000:
