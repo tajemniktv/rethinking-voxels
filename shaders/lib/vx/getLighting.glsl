@@ -141,7 +141,11 @@ vec3[3] getOcclusion(vec3 vxPos, vec3 normal, vec4[3] lights, bool doScattering)
             vec3 endPos = vxPos;
             vec3 goalPos0 = vxPos + lights[k].xyz;
             vxData lightData = readVxMap(getVxPixelCoords(goalPos0));
-            vec3 offset = hash33(vec3(gl_FragCoord.xy, frameCounter)) * 1.98 - 0.99;
+            #ifdef CONST_RT_NOISE
+                vec3 offset = vec3(0.243567, 0.823, 0.9241) * 2.0 - 1.0;
+            #else
+                vec3 offset = hash33(vec3(gl_FragCoord.xy, frameCounter)) * 1.98 - 0.99;
+            #endif
             #ifndef CORRECT_CUBOID_OFFSETS
             lights[k].xyz += BLOCKLIGHT_SOURCE_SIZE * offset;
             #else
