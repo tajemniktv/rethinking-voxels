@@ -333,7 +333,7 @@ void main() {
 				texCol /= sqrt(texBrightness);
 				if (!nextBlockData.emissive) texCol *= nextBlockData.lightcol;
 				#if ADVANCED_LIGHT_TRACING > 0
-					col = max(col, mix(col, (0.7 * blockLight + sunLight) * texCol, 0.15));
+					col = max(col, mix(col, (0.7 * blockLight + 2 * sunLight) * texCol, 0.15));
 					col = mix(col, oldCol, 0.5);
 				#else
 					col = max(col, mix(col, (sunLight) * texCol, 0.15));
