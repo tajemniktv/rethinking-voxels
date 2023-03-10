@@ -918,6 +918,7 @@ crossmodel = (
 cuboid = (
     mat == 1009 ||
     mat == 1010 ||
+    mat == 10024 ||
     (mat > 10032 && mat < 10036) ||
     mat == 10045 ||
     mat == 10046 ||
@@ -1036,6 +1037,10 @@ cuboid = (
 );
 if (cuboid) {
     switch (mat) {
+        case 10024:
+            bounds[0].xz = ivec2(7);
+            bounds[1] = ivec3(9, 14, 9);
+            break;
         case 10045:
         case 10048:
         case 10052:
