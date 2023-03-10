@@ -30,6 +30,7 @@ notrace = (
     mat == 10529 ||
     (mat >= 10596 && mat <= 10600) ||
     mat == 10544 ||
+    mat == 10572 ||
     mat == 10605 ||
     mat == 12605 ||
     mat == 12696 ||
@@ -1033,7 +1034,8 @@ cuboid = (
     mat == 31016 ||
     mat == 60008 ||
     mat == 60012 ||
-    mat == 60017 
+    mat == 60017 ||
+    mat == 60020
 );
 if (cuboid) {
     switch (mat) {
@@ -1256,6 +1258,10 @@ if (cuboid) {
         case 60017:
             bounds[0].y = 3;
             bounds[1].y = 9;
+            break;
+        case 60020:
+            bounds[0] = ivec3(5);
+            bounds[1] = ivec3(11);
             break;
         default:
             if ((mat % 10000) / 2000 == 0) {
