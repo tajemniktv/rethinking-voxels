@@ -125,12 +125,15 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 
 		vec3 blSample = vec3(0.0);
 		vec3 vxPos = getVxPos(playerPos);
+		if (isInRange(vxPos, 2)) {
+			blSample = getBlockLight(vxPos);
+		}
 		#ifdef REALTIME_SHADOWS
 			float shadowSample = 1.0;
 			vec3 vlSample = vec3(1.0);
-
-			if (isInRange(vxPos, 2)) {
-				vlSample = getSunLight(getPreviousVxPos(playerPos), true);
+			vec3 prevVxPos = getPreviousVxPos(playerPos);
+			if (isInRange(prevVxPos, 2)) {
+				vlSample = getSunLight(prevVxPos, true);
 			#ifndef END
 				} else {
 					vlSample = vec3(eyeBrightnessSmooth.y / 240.0);
