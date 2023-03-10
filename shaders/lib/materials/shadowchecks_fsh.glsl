@@ -1017,6 +1017,7 @@ cuboid = (
     mat == 10604 ||
     mat == 12604 ||
     mat == 10644 ||
+    mat == 10652 ||
     mat == 10656 ||
     mat == 10660 ||
     mat == 10669 ||
@@ -1139,6 +1140,7 @@ if (cuboid) {
             bounds[0].xy = ivec2(7);
             bounds[1].xy = ivec2(9);
             break;
+        case 10652:
         case 10656:
         case 10660:
             bounds[1].y = 8;
