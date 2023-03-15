@@ -25,7 +25,7 @@ switch(mat0) {
         zpos = -avgPos.y / (VXHEIGHT * VXHEIGHT);
         break;
     default:
-        coord = getVxCoords(avgPos);
+        coord = vec2(getVxPixelCoords(avgPos) + 0.5) / shadowMapResolution;
 }
 switch (mat0) {
     case 10064:

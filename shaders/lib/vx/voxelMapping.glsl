@@ -7,44 +7,31 @@ const int vxRange = 2 * (shadowMapResolution / (2 * VXHEIGHT));
 
 // convert 3D position in voxel space to 2D position on the voxel map
 ivec2 getVxPixelCoords(vec3 voxelPos, out bool clamped) {
-	voxelPos.y += VXHEIGHT * VXHEIGHT / 2;
-	ivec2 coords = ivec2(voxelPos.xz + vxRange / 2);
-	coords.x += int(voxelPos.y) % VXHEIGHT * vxRange;
-	coords.y += int(voxelPos.y) / VXHEIGHT * vxRange;
-	ivec2 clampCoords = clamp(coords, ivec2(1, 0), ivec2(shadowMapResolution - 1));
-	clamped = (clampCoords != coords);
-	return clampCoords;
+	voxelPos += vec2(VXHEIGHT / 2, vxRange / 2).yxy;
+	clamped = false;
+	ivec2 coords = ivec2(voxelPos.xz);
+	if (int(voxelPos.y) >= VXHEIGHT
+	 || int(voxelPos.y) < 0
+	 || any(greaterThan(voxelPos.xy, vec2(vxRange - 1)))
+	 || any(lessThan(voxelPos.xy, vec2(0))))
+		clamped = true;
+	coords *= VXHEIGHT;
+	coords.y += int(voxelPos.y);
+	return coords;
 }
 ivec2 getVxPixelCoords(vec3 voxelPos) {
 	bool clamped;
-	return getVxPixelCoords(voxelPos, clamped);
+	ivec2 coords = getVxPixelCoords(voxelPos, clamped);
+	if (clamped) return ivec2(-1);
+	return coords;
 }
 
-vec2 getVxCoords(vec3 voxelPos, vec2 size) {
-	return (getVxPixelCoords(voxelPos) + vec2(0.5)) / size;
-}
-
-vec2 getVxCoords(vec3 voxelPos, float size) {
-	return (getVxPixelCoords(voxelPos) + vec2(0.5)) / size;
-}
-
-vec2 getVxCoords(vec3 voxelPos) {
-	return getVxCoords(voxelPos, shadowMapResolution);
-}
-
-// inverse function to getVxCoords
-vec3 getVxPos(vec2 vxCoords) {
-	vxCoords *= shadowMapResolution;
-	vec3 pos;
-	pos.xz = mod(vxCoords, vec2(vxRange)) - vxRange / 2;
-	pos.y = floor(vxCoords.y / vxRange) * VXHEIGHT + floor(vxCoords.x / vxRange) - VXHEIGHT * VXHEIGHT / 2 + 0.5;
-	return pos;
-}
+// inverse function to getVxPixelCoords
 
 vec3 getVxPos(ivec2 vxCoords) {
 	vec3 pos;
-	pos.xz = mod(vxCoords, vec2(vxRange)) - vxRange / 2 + 0.5;
-	pos.y = floor(float(vxCoords.y) / vxRange) * VXHEIGHT + floor(float(vxCoords.x) / vxRange) - VXHEIGHT * VXHEIGHT / 2 + 0.5;
+	pos.xz = vxCoords / VXHEIGHT - vxRange / 2 + 0.5;
+	pos.y = vxCoords.y % VXHEIGHT - VXHEIGHT / 2 + 0.5;
 	return pos;
 }
 
@@ -60,7 +47,7 @@ vec3 getPreviousVxPos(vec3 worldPos) {
 
 // determine if a position is within the voxelisation range
 bool isInRange(vec3 pos, float margin) {
-	return (max(abs(pos.x), abs(pos.z)) < vxRange / 2 - margin && abs(pos.y) < VXHEIGHT * VXHEIGHT / 2 - margin);
+	return (max(abs(pos.x), abs(pos.z)) < vxRange / 2 - margin && abs(pos.y) < VXHEIGHT / 2 - margin);
 }
 bool isInRange(vec3 pos) {
 	return isInRange(pos, 0);
@@ -75,7 +62,7 @@ mat3 getRotMat(vec3 dir) {
 }
 
 vec4 getSunRayStartPos(vec3 pos0, vec3 sunDir) {
-	vec3 borderPos = vec3(vxRange, VXHEIGHT * VXHEIGHT, vxRange) / 2.0 - 0.5;
+	vec3 borderPos = vec3(vxRange, VXHEIGHT, vxRange) / 2.0 - 0.5;
 	vec3 pos = getRotMat(sunDir) * pos0;
 	float w = INF;
 	float otherW = -INF;
