@@ -5,6 +5,7 @@ in vec2[3] lmCoordV;
 in vec4[3] vertexColV;
 in vec3[3] posV;
 in vec3[3] normalV;
+in vec3[3] blockCenterOffsetV;
 flat in int[3] vertexID;
 flat in int[3] spriteSizeV;
 flat in int[3] matV;
@@ -25,23 +26,51 @@ uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
 uniform ivec2 atlasSize;
 
+//SSBOs//
+#include "/lib/vx/SSBOs.glsl"
+
 #include "/lib/vx/voxelMapping.glsl"
 
 const vec2[4] offsets = vec2[4](vec2(-1.0, -1.0), vec2(1.0, -1.0), vec2(1.0, 1.0), vec2(-1.0, 1.0));
 
 void main() {
-	vec3 avgPos = 0.5 * (max(max(posV[0], posV[1]), posV[2]) + min(min(posV[0], posV[1]), posV[2]));//(posV[0] + posV[1] + posV[2]) / 3.0;
+	vec3 avgPos = 0.5 * (max(max(posV[0], posV[1]), posV[2]) + min(min(posV[0], posV[1]), posV[2]));
 	vec3 cnormal = cross(posV[0] - posV[1], posV[0] - posV[2]);
 	float area = length(cnormal);
 	cnormal = normalize(cnormal);
 	avgPos += fract(cameraPosition);
 	vec3 avgPos0 = avgPos;
+	avgPos += 0.01 * (
+	    blockCenterOffsetV[0]
+	  + blockCenterOffsetV[1]
+	  + blockCenterOffsetV[2]
+	);
 	bool tracemat = true;
 	int mat0 = matV[0];
+
+	vec3 pointerGridPos = avgPos * (1.0 / POINTER_VOLUME_RES) + vec2(16, 32).yxy;
+	if (all(greaterThan(pointerGridPos, vec3(0))) && all(lessThan(pointerGridPos, vec2(32, 64).yxy))) {
+		ivec3 pointerGridCoords = ivec3(pointerGridPos);
+		int localFaceNum = atomicAdd(pointerVolume[0][pointerGridCoords.x][pointerGridCoords.y][pointerGridCoords.z], 1);
+		if (localFaceNum < LOCAL_MAX_TRIS) {
+			int faceNum = atomicAdd(numFaces, 1);
+			if (faceNum < MAX_TRIS) {
+				pointerVolume[localFaceNum + 1][pointerGridCoords.x][pointerGridCoords.y][pointerGridCoords.z] = faceNum;
+				entries[faceNum].matBools = mat0;
+				for (int i = 0; i < 3; i++) {
+					uvec2 pixelCoord = uvec2(texCoordV[i] * atlasSize);
+					entries[faceNum].texCoord[i] = pixelCoord.x + 65536 * pixelCoord.y;
+					entries[faceNum].pos[i] = posV[i] + fract(cameraPosition);
+				}
+			}
+		}
+	}
+
 	bool doCuboidTexCoordCorrection = (mat0 / 10000 == 3);
 	float zpos = 0.5 - clamp(sqrt(area), 0, 1) - 0.02 * fract(avgPos.y - 0.01 * cnormal.x) - 0.01 * fract(avgPos.x - 0.01 * cnormal.y) - 0.015 * fract(avgPos.z - 0.01 * cnormal.z) - 0.2 * cnormal.y;
 	vec2 coord;
 	#include "/lib/materials/shadowchecks_gsh.glsl"
+
 	if (max(abs(avgPos.x), abs(avgPos.z)) < vxRange / 2 && abs(avgPos.y) < VXHEIGHT * VXHEIGHT / 2 && tracemat) {
 		vec2 outTexCoord = 0.5 * (max(max(texCoordV[0], texCoordV[1]), texCoordV[2]) + min(min(texCoordV[0], texCoordV[1]), texCoordV[2]));
 
@@ -69,6 +98,7 @@ void main() {
 			vec3 avgRelPos = avgPos - floor(avgPos) - 0.5;
 			outTexCoord -= dTexCoorddj * avgRelPos[j] + dTexCoorddk * avgRelPos[k];
 		}
+
 		for (int i = 0; i < 3; i++) {
 			texCoord = outTexCoord;
 			lmCoord = lmCoordV[i];

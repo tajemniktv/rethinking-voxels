@@ -15,6 +15,8 @@ uniform float viewWidth, viewHeight;
 
 uniform sampler2D colortex3;
 
+//SSBOs//
+#include "/lib/vx/SSBOs.glsl"
 //Pipeline Constants//
 #ifndef TAA
 	const bool colortex3MipmapEnabled = true;
@@ -29,6 +31,14 @@ uniform sampler2D colortex3;
 	#include "/lib/antialiasing/fxaa.glsl"
 #endif
 
+uniform vec3 cameraPosition;
+uniform vec3 previousCameraPosition;
+uniform mat4 gbufferProjectionInverse;
+uniform mat4 gbufferModelViewInverse;
+ivec2 atlasSize = ivec2(1);
+uniform sampler2D colortex15;
+#include "/lib/vx/raytrace.glsl"
+
 //Program//
 void main() {
     vec3 color = texelFetch(colortex3, texelCoord, 0).rgb;
@@ -36,7 +46,13 @@ void main() {
 	#ifdef FXAA
 		FXAA311(color);
 	#endif
-
+	//if (gl_FragCoord.y < 20 && gl_FragCoord.x < viewWidth / MAX_TRIS * numFaces) color = vec3(1);
+	//else if (gl_FragCoord.x < 0.5 * viewWidth && gl_FragCoord.y < 0.5 * viewHeight) {
+		vec4 dir = gbufferModelViewInverse * (gbufferProjectionInverse * vec4(gl_FragCoord.xy / vec2(viewWidth, viewHeight) * 2 - 1, 0.99, 1));
+		dir.xyz = 60 * normalize(dir.xyz);
+		vec3 pos = fract(cameraPosition) + 0.05 * dir.xyz;
+		color = betterRayTrace(pos, dir.xyz, colortex15).xyz;
+	//}
     /*DRAWBUFFERS:3*/
 	gl_FragData[0] = vec4(color, 1.0);
 }

@@ -320,3 +320,146 @@ vec4 raytrace(inout vec3 pos0, vec3 dir, sampler2D atlas) {
     return raytrace(pos0, dir, atlas, false);
 }
 #endif
+
+bool isInBounds(vec3 v, vec3 lower, vec3 upper) {
+    if (v == clamp(v, lower, upper)) return true;
+    return false;
+}
+
+#include "/lib/vx/SSBOs.glsl"
+
+float getNiceness(mat3 A) {
+    return abs(A[0][0] * A[1][1] * A[2][2]);
+}
+
+vec3 linSolve(mat3 A, vec3 b) {
+    A = transpose(A);
+    for (int i = 0; i < 2; i++) {
+        for (int j = i + 1; j < 3; j++) {
+            if (abs(A[j][i]) > abs(A[i][i])) {
+                vec3 tmp = A[i];
+                A[i] = A[j];
+                A[j] = tmp;
+                float tmp2 = b[i];
+                b[i] = b[j];
+                b[j] = tmp2;
+            }
+        }
+        for (int j = i + 1; j < 3; j++) {
+            float t = A[j][i] / A[i][i];
+            A[j] -= t * A[i];
+            b[j] -= t * b[i];
+        }
+    }
+    for (int j = 1; j >= 0; j--) {
+        for (int i = j + 1; i < 3; i++) {
+            float t = A[j][i] / A[i][i];
+            A[j][i] = 0;
+            b[j] -= t * b[i];
+        }
+    }
+    return vec3(
+        b[0] / A[0][0],
+        b[1] / A[1][1],
+        b[2] / A[2][2]
+    );
+}
+
+vec3 rayTriangleIntersect(vec3 pos0, vec3 dir, entry_t triangle) {
+    mat3 solveMat = mat3(triangle.pos[1] - triangle.pos[0], triangle.pos[2] - triangle.pos[0], -dir);
+    vec3 solveVec = pos0 - triangle.pos[0];
+    vec3 solution = linSolve(solveMat, solveVec);
+    if (min(solution.x, solution.y) < 0 || solution.x + solution.y > 1) return vec3(-1);
+    return solution;
+}
+
+float boundsIntersect(vec3 pos0, vec3 dir, entry_t triangle) {
+    vec3 dirsgn = sign(dir);
+    dir = abs(dir);
+    pos0 *= dirsgn;
+    for (int i = 0; i < 3; i++) triangle.pos[i] *= dirsgn;
+    vec3 lower = min(min(triangle.pos[0], triangle.pos[1]), triangle.pos[2]) - pos0;
+    vec3 upper = max(max(triangle.pos[0], triangle.pos[1]), triangle.pos[2]) - pos0 + 0.000001;
+    float w0 = -100000.0;
+    float w1 =  100000.0;
+    for (int i = 0; i < 3; i++) {
+        w0 = max(w0, lower[i] / dir[i]);
+        w1 = min(w1, upper[i] / dir[i]);
+    }
+    if (w0 <= w1) return w0;
+    return -1;
+}
+
+vec4 betterRayTrace(inout vec3 pos0, vec3 dir, sampler2D atlas) {
+    pos0 *= 1.0 / POINTER_VOLUME_RES;
+    dir *= 1.0 / POINTER_VOLUME_RES;
+    vec3 progress;
+    for (int i = 0; i < 3; i++) {
+        //set starting position in each direction
+        progress[i] = -(dir[i] < 0 ? fract(pos0[i]) : fract(pos0[i]) - 1) / dir[i];
+    }
+    // step size in each direction (to keep to the voxel grid)
+    vec3 stp = abs(1 / dir);
+    float dirlen = length(dir);
+    float invDirLenScaled = 0.001 / dirlen;
+    int i = 0;
+    float w = invDirLenScaled;
+    progress[0] -= stp[0];
+    vec3 dirsgn = sign(dir);
+    vec3[3] eyeOffsets;
+    for (int k = 0; k < 3; k++) {
+        eyeOffsets[k] = 0.0001 * eye[k] * dirsgn[k];
+    }
+    int k = 0; // k is a safety iterator
+    vec3 oldPos = pos0;
+    bool oldFull = false;
+    bool wasInRange = false;
+    vec3 pos;
+    vec4 raycolor = vec4(0);
+    while (w < 1 && k < 200 && raycolor.a < 0.999) {
+        pos = pos0 + w * dir + eyeOffsets[i];
+        if (isInBounds(pos, vec2(-16, -32).yxy, vec2(16, 32).yxy)) {
+            wasInRange = true;
+            ivec3 coords = ivec3(pos + vec2(16, 32).yxy);
+            int triCountHere = min(pointerVolume[0][coords.x][coords.y][coords.z], LOCAL_MAX_TRIS);
+            float hitW = 1;
+            for (int j = 1; j <= triCountHere; j++) {
+                entry_t thisTri = entries[pointerVolume[j][coords.x][coords.y][coords.z]];
+                float w0 = boundsIntersect(POINTER_VOLUME_RES * pos0, POINTER_VOLUME_RES * dir, thisTri);
+                if (w0 > 0) {
+                    pos = pos0 + w0 * dir;
+                    vec3 hitPos = rayTriangleIntersect(POINTER_VOLUME_RES * pos0, POINTER_VOLUME_RES * dir, thisTri);
+                    if (hitPos.z > 0) {
+                        ivec2 coord0 = ivec2(thisTri.texCoord[0] % 65536, thisTri.texCoord[0] / 65536);
+                        vec2 coord = coord0;
+                        vec2 offsetDir = vec2(0);
+                        for (int i = 0; i < 2; i++) {
+                            ivec2 coord1 = ivec2(thisTri.texCoord[i+1] % 65536, thisTri.texCoord[i+1] / 65536);
+                            vec2 dcoord = coord1 - coord0;
+                            dcoord += sign(dcoord);
+                            coord += vec2(hitPos[i] * dcoord);
+                            offsetDir += sign(dcoord) * (1 - abs(offsetDir));
+                        }
+                        coord -= 0.5 * offsetDir;
+                        vec4 newcolor = texelFetch(atlas, ivec2(coord + 0.5), 0);
+                        if (hitW < hitPos.z) raycolor = raycolor + (1 - raycolor.a) * newcolor * vec2(1, newcolor.a).yyyx;
+                        else                 raycolor = newcolor + (1 - newcolor.a) * raycolor * vec2(1, raycolor.a).yyyx;
+                        if (newcolor.a > 0.1) hitW = min(hitW, hitPos.z);
+                    }
+                }
+            }
+        } else if (wasInRange) raycolor = vec4(0, 1, 0, 1);
+        progress[i] += stp[i];
+        w = progress[0];
+        i = 0;
+        for (int i0 = 1; i0 < 3; i0++) {
+            if (progress[i0] < w) {
+                i = i0;
+                w = progress[i];
+            }
+        }
+        k++;
+    }
+    pos0 = 4 * pos;
+    return raycolor;
+}

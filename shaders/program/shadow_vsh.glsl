@@ -5,6 +5,7 @@ out vec2 lmCoordV;
 out vec3 normalV;
 out vec4 vertexColV;
 out vec3 posV;
+out vec3 blockCenterOffsetV;
 flat out int vertexID;
 flat out int spriteSizeV;
 flat out int matV;
@@ -21,7 +22,9 @@ uniform ivec2 atlasSize;
 
 void main() {
     vec4 pos0 = gl_ModelViewMatrix * gl_Vertex;
-    posV = (shadowModelViewInverse * pos0).xyz + 0.001 * at_midBlock;
+    pos0 = shadowModelViewInverse * pos0;
+    posV = pos0.xyz / pos0.w;
+    blockCenterOffsetV = at_midBlock / 64.0;
     gl_Position = gl_ProjectionMatrix * pos0;
     gl_Position /= gl_Position.w;
     texCoordV = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;

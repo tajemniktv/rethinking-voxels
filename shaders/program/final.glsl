@@ -21,6 +21,9 @@ uniform sampler2D colortex3;
 	uniform float frameTimeCounter;
 #endif
 
+//SSBOs//
+#include "/lib/vx/SSBOs.glsl"
+
 //Pipeline Constants//
 #include "/lib/misc/pipelineSettings.glsl"
 
@@ -63,6 +66,14 @@ void main() {
 		SharpenImage(color, texCoordM);
 	#endif
 
+	//clear SSBOs
+	if (gl_FragCoord.x + gl_FragCoord.y < 1.5) atomicExchange(numFaces, 0);
+	if (max(gl_FragCoord.x, gl_FragCoord.y) < 64) {
+		ivec2 coords = ivec2(gl_FragCoord.xy);
+		for (int i = 0; i < 32; i++) {
+			atomicExchange(pointerVolume[0][coords.x][i][coords.y], 0);
+		}
+	}
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = vec4(color, 1.0);
 }
