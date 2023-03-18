@@ -51,16 +51,22 @@ void main() {
 	vec3 pointerGridPos = avgPos * (1.0 / POINTER_VOLUME_RES) + vec2(16, 32).yxy;
 	if (all(greaterThan(pointerGridPos, vec3(0))) && all(lessThan(pointerGridPos, vec2(32, 64).yxy))) {
 		ivec3 pointerGridCoords = ivec3(pointerGridPos);
-		int localFaceNum = atomicAdd(pointerVolume[0][pointerGridCoords.x][pointerGridCoords.y][pointerGridCoords.z], 1);
+		int localFaceNum = atomicAdd(triPointerVolume[0][pointerGridCoords.x][pointerGridCoords.y][pointerGridCoords.z], 1);
 		if (localFaceNum < LOCAL_MAX_TRIS) {
 			int faceNum = atomicAdd(numFaces, 1);
 			if (faceNum < MAX_TRIS) {
-				pointerVolume[localFaceNum + 1][pointerGridCoords.x][pointerGridCoords.y][pointerGridCoords.z] = faceNum;
-				entries[faceNum].matBools = mat0;
+				int bools = (mat0 / 10000 >= 5) ? 1 : 0;
+				triPointerVolume[localFaceNum + 1][pointerGridCoords.x][pointerGridCoords.y][pointerGridCoords.z] = faceNum;
+				tris[faceNum].matBools = mat0 + (bools << 16);
 				for (int i = 0; i < 3; i++) {
 					uvec2 pixelCoord = uvec2(texCoordV[i] * atlasSize);
-					entries[faceNum].texCoord[i] = pixelCoord.x + 65536 * pixelCoord.y;
-					entries[faceNum].pos[i] = posV[i] + fract(cameraPosition);
+					uint packedVertexCol = uint(255 * vertexColV[i].r + 0.5) +
+										  (uint(255 * vertexColV[i].g + 0.5) <<  8) +
+										  (uint(255 * vertexColV[i].b + 0.5) << 16) +
+										  (uint(255.5) << 24);
+					tris[faceNum].vertexCol[i] = packedVertexCol;
+					tris[faceNum].texCoord[i] = pixelCoord.x + 65536 * pixelCoord.y;
+					tris[faceNum].pos[i] = posV[i] + fract(cameraPosition);
 				}
 			}
 		}

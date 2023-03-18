@@ -48,10 +48,10 @@ void main() {
 	#endif
 	//if (gl_FragCoord.y < 20 && gl_FragCoord.x < viewWidth / MAX_TRIS * numFaces) color = vec3(1);
 	//else if (gl_FragCoord.x < 0.5 * viewWidth && gl_FragCoord.y < 0.5 * viewHeight) {
-		vec4 dir = gbufferModelViewInverse * (gbufferProjectionInverse * vec4(gl_FragCoord.xy / vec2(viewWidth, viewHeight) * 2 - 1, 0.99, 1));
-		dir.xyz = 60 * normalize(dir.xyz);
-		vec3 pos = fract(cameraPosition) + 0.05 * dir.xyz;
-		color = betterRayTrace(pos, dir.xyz, colortex15).xyz;
+		vec4 dir;
+		dir.xyz = vec3(-40);
+		vec3 pos = fract(cameraPosition) + 10 - 0.01 * (gl_FragCoord.x - 0.5 * viewWidth) * vec3(1, 0, -1) - 0.004 * (gl_FragCoord.y - 0.5 * viewHeight) * vec3(1, -2, 1);
+		//color = betterRayTrace(pos, dir.xyz, colortex15).xyz;
 	//}
     /*DRAWBUFFERS:3*/
 	gl_FragData[0] = vec4(color, 1.0);
