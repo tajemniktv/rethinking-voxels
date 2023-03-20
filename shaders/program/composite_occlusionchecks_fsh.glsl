@@ -90,8 +90,15 @@ void main() {
             vec4 sunPos0 = getSunRayStartPos(topDownPos, sunMoonDir);
             vec3 sunPos = sunPos0.xyz;
             vec3 transPos = vec3(-10000); // translucent Position
-            vec4 sunRayColor = sunPos0.w < 0 ? betterRayTrace(sunPos, sunMoonDir * sunPos0.w, colortex15, false) : vec4(0, 0, 0, 1);//raytrace(sunPos, sunMoonDir * sunPos0.w, transPos, colortex15, true) : vec4(0, 0, 0, 1);
-            int transMat = transPos.y > -9999 ? readVxMap(transPos).mat : 0;
+            vec4 sunRayColor = vec4(0, 0, 0, 1);
+            int transMat = 0;
+            if (sunPos0.w < 0) {
+                ray_hit_t rayHit = betterRayTrace(sunPos0.xyz, sunMoonDir * sunPos0.w, colortex15, false);
+                sunRayColor = sunPos0.w < 0 ? rayHit.transColor : vec4(0, 0, 0, 1);//raytrace(sunPos, sunMoonDir * sunPos0.w, transPos, colortex15, true) : vec4(0, 0, 0, 1);
+                transPos = rayHit.transPos;
+                sunPos = rayHit.pos;
+                transMat = int(tris[rayHit.transTriId].matBools % 65536);
+            }
             // 31000 is water
             const float alphaSteepness = 5.0;
             float colorMult = clamp(alphaSteepness - alphaSteepness * sunRayColor.a, 0, 1);

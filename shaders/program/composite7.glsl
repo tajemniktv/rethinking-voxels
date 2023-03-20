@@ -51,7 +51,6 @@ void main() {
 		vec4 dir;
 		dir.xyz = vec3(-40);
 		vec3 pos = fract(cameraPosition) + 10 - 0.01 * (gl_FragCoord.x - 0.5 * viewWidth) * vec3(1, 0, -1) - 0.004 * (gl_FragCoord.y - 0.5 * viewHeight) * vec3(1, -2, 1);
-		//color = betterRayTrace(pos, dir.xyz, colortex15).xyz;
 	//}
     /*DRAWBUFFERS:3*/
 	gl_FragData[0] = vec4(color, 1.0);
