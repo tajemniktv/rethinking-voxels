@@ -55,7 +55,8 @@ void main() {
 		if (localFaceNum < LOCAL_MAX_TRIS) {
 			int faceNum = atomicAdd(numFaces, 1);
 			if (faceNum < MAX_TRIS) {
-				int bools = (mat0 / 10000 >= 5) ? 1 : 0;
+				
+				int bools = ((mat0 / 10000 >= 5) ? 1 : 0);
 				triPointerVolume[localFaceNum + 1][pointerGridCoords.x][pointerGridCoords.y][pointerGridCoords.z] = faceNum;
 				tris[faceNum].matBools = mat0 + (bools << 16);
 				for (int i = 0; i < 3; i++) {

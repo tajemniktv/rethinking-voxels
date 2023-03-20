@@ -67,11 +67,15 @@ void main() {
 	#endif
 
 	//clear SSBOs
-	if (gl_FragCoord.x + gl_FragCoord.y < 1.5) atomicExchange(numFaces, 0);
+	if (gl_FragCoord.x + gl_FragCoord.y < 1.5) {
+		atomicExchange(numFaces, 0);
+		atomicExchange(numLights, 0);
+	}
 	if (max(gl_FragCoord.x, gl_FragCoord.y) < 64) {
 		ivec2 coords = ivec2(gl_FragCoord.xy);
 		for (int i = 0; i < 32; i++) {
 			atomicExchange(triPointerVolume[0][coords.x][i][coords.y], 0);
+			atomicExchange(lightPointerVolume[0][coords.x][i][coords.y], 0);
 		}
 	}
 	/* DRAWBUFFERS:0 */

@@ -17,19 +17,20 @@ layout(std430, binding = 0) buffer voxelData {
 layout(std430, binding = 1) buffer triPointers {
 	int triPointerVolume[][64][32][64];
 };
-/*
+
 struct light_t {
 	vec3 pos;
 	vec3 size;
 	uint packedColor;
-	uint brightness;
-}
+	uint brightnessMat;
+};
 layout(std430, binding = 2) buffer lightData {
+	int numLights;
 	light_t lights[];
 };
 
-layout(std430, binding = 1) buffer lightPointers {
+layout(std430, binding = 3) buffer lightPointers {
 	int lightPointerVolume[][32][16][32];
 };
-*/
+
 #endif
