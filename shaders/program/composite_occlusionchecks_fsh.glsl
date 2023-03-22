@@ -94,7 +94,7 @@ void main() {
             int transMat = 0;
             if (sunPos0.w < 0) {
                 ray_hit_t rayHit = betterRayTrace(sunPos0.xyz, sunMoonDir * sunPos0.w, colortex15, false);
-                sunRayColor = sunPos0.w < 0 ? rayHit.transColor : vec4(0, 0, 0, 1);//raytrace(sunPos, sunMoonDir * sunPos0.w, transPos, colortex15, true) : vec4(0, 0, 0, 1);
+                sunRayColor = rayHit.transColor;//raytrace(sunPos, sunMoonDir * sunPos0.w, transPos, colortex15, true) : vec4(0, 0, 0, 1);
                 transPos = rayHit.transPos;
                 sunPos = rayHit.pos;
                 transMat = int(tris[rayHit.transTriId].matBools % 65536);

@@ -36,8 +36,42 @@ uniform sampler2D colortex13;
 #include "/lib/vx/voxelReading.glsl"
 #include "/lib/vx/voxelMapping.glsl"
 #include "/lib/vx/raytrace.glsl"
+#include "/lib/vx/SSBOs.glsl"
 vec2 tex8size0 = vec2(textureSize(colortex8, 0));
 //#define DEBUG_OCCLUDERS
+
+vec3 newGetBlockLight(vec3 pos, vec3 normal, int mat) {
+    vec3 lightCol = vec3(0);
+    vec3 volumePos = 1.0 / POINTER_VOLUME_RES * pos + vec3(32, 16, 32);
+    if (isInBounds(volumePos, vec3(0), vec3(64, 32, 64) - 0.01)) {
+        ivec3 volumeCoords = ivec3(volumePos);
+        int localLightCount = lightPointerVolume[0][volumeCoords.x][volumeCoords.y][volumeCoords.z];
+        for (int i = 1; i <= localLightCount; i++) {
+            int thisLightId = lightPointerVolume[i][volumeCoords.x][volumeCoords.y][volumeCoords.z];
+            light_t thisLight = lights[thisLightId];
+            float ndotl = max(0, 0.99 * dot(normalize(thisLight.pos - pos), normal) + 0.01);
+            float brightness = length((thisLight.pos - pos));
+            float lightBrightness = thisLight.brightnessMat / 65536;
+            brightness = ndotl * 0.0625 * lightBrightness * pow(max(0, 1 - brightness / lightBrightness), 1.5);
+            if (brightness > 0.01) {
+                #ifdef CONST_RT_NOISE
+                    vec3 offset = vec3(0.243567, 0.823, 0.9241) * 2.0 - 1.0;
+                #else
+                    vec3 offset = hash33(vec3(gl_FragCoord.xy, frameCounter)) * 1.98 - 0.99;
+                #endif
+                offset *= thisLight.size;
+                ray_hit_t rayHit = betterRayTrace(pos, thisLight.pos - pos + offset, ATLASTEX);
+                vec3 dist0 = abs(rayHit.pos - thisLight.pos) / (thisLight.size + 0.01);
+                float dist = max(max(dist0.x, dist0.y), dist0.z);
+                if (dist < 1.0) {
+                    vec3 thisLightCol = 1.0 / 255.0 * vec3(thisLight.packedColor % 256, (thisLight.packedColor >> 8) % 256, (thisLight.packedColor >> 16) % 256);
+                    lightCol += brightness * thisLightCol * mix(vec3(1), rayHit.transColor.rgb, sqrt(rayHit.transColor.a));
+                }
+            }
+        }
+    }
+    return lightCol;
+}
 
 #if ADVANCED_LIGHT_TRACING == 0
 vec3 getBlockLight(vec3 vxPos, vec3 normal, int mat, bool doScattering) // doScattering doesn't do anything in basic light propagation mode

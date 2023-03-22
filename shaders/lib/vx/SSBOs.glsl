@@ -21,8 +21,8 @@ layout(std430, binding = 1) buffer triPointers {
 struct light_t {
 	vec3 pos;
 	vec3 size;
-	uint packedColor;
-	uint brightnessMat;
+	int packedColor;
+	int brightnessMat;
 };
 layout(std430, binding = 2) buffer lightData {
 	int numLights;

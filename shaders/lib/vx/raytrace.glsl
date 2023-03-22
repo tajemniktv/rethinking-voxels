@@ -373,7 +373,7 @@ vec3 rayTriangleIntersect(vec3 pos0, vec3 dir, tri_t triangle) {
 	return solution;
 }
 
-float boundsIntersect(vec3 pos0, vec3 dir, tri_t triangle) {
+vec2 boundsIntersect(vec3 pos0, vec3 dir, tri_t triangle) {
 	vec3 dirsgn = sign(dir);
 	dir = abs(dir);
 	pos0 *= dirsgn;
@@ -386,8 +386,8 @@ float boundsIntersect(vec3 pos0, vec3 dir, tri_t triangle) {
 		w0 = max(w0, lower[i] / dir[i]);
 		w1 = min(w1, upper[i] / dir[i]);
 	}
-	if (w0 <= w1) return w0;
-	return -1;
+	if (w0 <= w1) return vec2(w0, w1);
+	return vec2(1, -1);
 }
 
 struct ray_hit_t {
@@ -404,6 +404,10 @@ ray_hit_t betterRayTrace(vec3 pos0, vec3 dir, sampler2D atlas, bool backFaceCull
 	dir *= 1.0 / POINTER_VOLUME_RES;
 
 	ray_hit_t returnVal;
+
+	returnVal.transColor = vec4(0);
+	returnVal.transPos = vec3(-10000);
+	returnVal.transTriId = -1;
 
 	vec3 progress;
 	for (int i = 0; i < 3; i++) {
@@ -438,7 +442,7 @@ ray_hit_t betterRayTrace(vec3 pos0, vec3 dir, sampler2D atlas, bool backFaceCull
 	int hitID = -1;
 	float hitW = 1;
 	float transHitW = 1;
-	while (w < 1 && k < 200 && rayColor.a < 0.999) {
+	for (;w < 1 && k < 200 && rayColor.a < 0.999; k++) {
 		pos = pos0 + w * dir + eyeOffsets[i];
 		if (isInBounds(pos, vec2(-16, -32).yxy, vec2(16, 32).yxy)) {
 			wasInRange = true;
@@ -447,12 +451,14 @@ ray_hit_t betterRayTrace(vec3 pos0, vec3 dir, sampler2D atlas, bool backFaceCull
 			for (int j = 1; j <= triCountHere; j++) {
 				int thisTriId = triPointerVolume[j][coords.x][coords.y][coords.z];
 				tri_t thisTri = tris[thisTriId];
-				vec3 cnormal = cross(thisTri.pos[0] - thisTri.pos[1], thisTri.pos[0] - thisTri.pos[2]);
-				if (dot(cnormal, dir) >= 0) continue;
-				float w0 = boundsIntersect(POINTER_VOLUME_RES * pos0, POINTER_VOLUME_RES * dir, thisTri);
-				if (w0 <= 0) continue;
+				if (backFaceCulling) {
+					vec3 cnormal = cross(thisTri.pos[0] - thisTri.pos[1], thisTri.pos[0] - thisTri.pos[2]);
+					if (dot(cnormal, dir) >= 0) continue;
+				}
+				vec2 boundWs = boundsIntersect(POINTER_VOLUME_RES * pos0, POINTER_VOLUME_RES * dir, thisTri);
+				if (boundWs.y <= 0 || boundWs.x > hitW) continue;
 				vec3 hitPos = rayTriangleIntersect(POINTER_VOLUME_RES * pos0, POINTER_VOLUME_RES * dir, thisTri);
-				if (hitPos.z <= 0) continue;
+				if (hitPos.z <= 0 || hitPos.z > hitW) continue;
 				ivec2 coord0 = ivec2(thisTri.texCoord[0] % 65536, thisTri.texCoord[0] / 65536);
 				vec2 coord = coord0;
 				vec2 offsetDir = vec2(0);
@@ -465,6 +471,7 @@ ray_hit_t betterRayTrace(vec3 pos0, vec3 dir, sampler2D atlas, bool backFaceCull
 				}
 				coord -= 0.5 * offsetDir;
 				vec4 newColor = ((thisTri.matBools >> 16) % 2 == 0) ? texelFetch(atlas, ivec2(coord + 0.5), 0) : vec4(1);
+				if (newColor.a < 0.1) continue;
 				vec4 vertexCol0 = vec4(
 						thisTri.vertexCol[0] % 256,
 					(thisTri.vertexCol[0] >>  8) % 256,
@@ -484,19 +491,17 @@ ray_hit_t betterRayTrace(vec3 pos0, vec3 dir, sampler2D atlas, bool backFaceCull
 				newColor *= vertexCol / 255.0;
 				if (transHitW < hitPos.z) rayColor += (1 - rayColor.a) * newColor * vec2(1, newColor.a).yyyx;
 				else           rayColor = newColor +  (1 - newColor.a) * rayColor * vec2(1, rayColor.a).yyyx;
-				if (newColor.a > 0.1) {
-					if (newColor.a > 0.9) {
-						if (hitPos.z < hitW) {
-							hitW = hitPos.z;
-							returnVal.pos = pos0 + hitPos.z * dir;
-							returnVal.triId = thisTriId;
-						}
-					} else if (hitPos.z < transHitW) {
-						transHitW = hitPos.z;
-						returnVal.transPos = pos0 + hitPos.z * dir;
-						returnVal.transTriId = thisTriId;
-						returnVal.transColor = newColor;
+				if (newColor.a > 0.9) {
+					if (hitPos.z < hitW) {
+						hitW = hitPos.z;
+						returnVal.pos = pos0 + hitPos.z * dir;
+						returnVal.triId = thisTriId;
 					}
+				} else if (hitPos.z < transHitW) {
+					transHitW = hitPos.z;
+					returnVal.transPos = pos0 + hitPos.z * dir;
+					returnVal.transTriId = thisTriId;
+					returnVal.transColor = newColor;
 				}
 			}
 		} else if (wasInRange) break;
@@ -509,7 +514,9 @@ ray_hit_t betterRayTrace(vec3 pos0, vec3 dir, sampler2D atlas, bool backFaceCull
 				w = progress[i];
 			}
 		}
-		k++;
+	}
+	if (rayColor.a < 0.999) {
+		returnVal.pos = pos0 + dir;
 	}
 	returnVal.rayColor = rayColor;
 	returnVal.pos *= POINTER_VOLUME_RES;

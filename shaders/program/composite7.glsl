@@ -17,6 +17,7 @@ uniform sampler2D colortex3;
 
 //SSBOs//
 #include "/lib/vx/SSBOs.glsl"
+
 //Pipeline Constants//
 #ifndef TAA
 	const bool colortex3MipmapEnabled = true;
@@ -41,18 +42,16 @@ uniform sampler2D colortex15;
 
 //Program//
 void main() {
-    vec3 color = texelFetch(colortex3, texelCoord, 0).rgb;
+	vec3 color = texelFetch(colortex3, texelCoord, 0).rgb;
 
 	#ifdef FXAA
 		FXAA311(color);
 	#endif
-	//if (gl_FragCoord.y < 20 && gl_FragCoord.x < viewWidth / MAX_TRIS * numFaces) color = vec3(1);
-	//else if (gl_FragCoord.x < 0.5 * viewWidth && gl_FragCoord.y < 0.5 * viewHeight) {
-		vec4 dir;
-		dir.xyz = vec3(-40);
-		vec3 pos = fract(cameraPosition) + 10 - 0.01 * (gl_FragCoord.x - 0.5 * viewWidth) * vec3(1, 0, -1) - 0.004 * (gl_FragCoord.y - 0.5 * viewHeight) * vec3(1, -2, 1);
-	//}
-    /*DRAWBUFFERS:3*/
+	ivec2 pixelCoord = ivec2(gl_FragCoord.xy) / 3;
+
+	//if (max(pixelCoord.x, pixelCoord.y) < 20) color = 0.5 * vec3(numLights % 4, numLights / 4 % 4, numLights / 16);
+
+	/*DRAWBUFFERS:3*/
 	gl_FragData[0] = vec4(color, 1.0);
 }
 

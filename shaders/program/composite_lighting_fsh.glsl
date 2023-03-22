@@ -57,7 +57,7 @@ void main() {
             vxPos = (floor(PIXEL_SHADOW * vxPos) + 0.5) / PIXEL_SHADOW;
             vxPos += dot(normal, vxPos0 - vxPos) * normal;
         #endif
-        blockLight = getBlockLight(vxPos, normal, 0) * 0.5;
+        blockLight = newGetBlockLight(vxPos, normal, 0) * 0.5;
     }
     #endif
     /*RENDERTARGETS:4*/
