@@ -319,7 +319,29 @@ vec4 raytrace(inout vec3 pos0, vec3 dir, sampler2D atlas, bool translucentData) 
 vec4 raytrace(inout vec3 pos0, vec3 dir, sampler2D atlas) {
 	return raytrace(pos0, dir, atlas, false);
 }
-#endif
+
+
+
+struct ray_hit_t {
+	vec4 rayColor;
+	vec4 transColor;
+	int triId;
+	int transTriId;
+	vec3 pos;
+	vec3 transPos;
+};
+
+vec4 raytrace(vec3 pos0, vec3 dir, sampler2D atlas, inout ray_hit_t rayHit) {
+	vec3 transPos;
+	vec4 rayColor = raytrace(pos0, dir, transPos, atlas, true);
+	rayHit.rayColor = vec4(0);
+	rayHit.transColor = rayColor;
+	rayHit.triId = -1;
+	rayHit.transTriId = -1;
+	rayHit.pos = pos0;
+	rayHit.transPos = transPos;
+	return rayColor;
+}
 
 bool isInBounds(vec3 v, vec3 lower, vec3 upper) {
 	if (v == clamp(v, lower, upper)) return true;
@@ -369,7 +391,7 @@ vec3 rayTriangleIntersect(vec3 pos0, vec3 dir, tri_t triangle) {
 	mat3 solveMat = mat3(triangle.pos[1] - triangle.pos[0], triangle.pos[2] - triangle.pos[0], -dir);
 	vec3 solveVec = pos0 - triangle.pos[0];
 	vec3 solution = linSolve(solveMat, solveVec);
-	if (min(solution.x, solution.y) < 0 || solution.x + solution.y > 1) return vec3(-1);
+	if (min(solution.x, solution.y) < 0 || (solution.x + solution.y) > 1) return vec3(-1);
 	return solution;
 }
 
@@ -389,15 +411,6 @@ vec2 boundsIntersect(vec3 pos0, vec3 dir, tri_t triangle) {
 	if (w0 <= w1) return vec2(w0, w1);
 	return vec2(1, -1);
 }
-
-struct ray_hit_t {
-	vec4 rayColor;
-	vec4 transColor;
-	int triId;
-	int transTriId;
-	vec3 pos;
-	vec3 transPos;
-};
 
 ray_hit_t betterRayTrace(vec3 pos0, vec3 dir, sampler2D atlas, bool backFaceCulling) {
 	pos0 *= 1.0 / POINTER_VOLUME_RES;
@@ -527,3 +540,5 @@ ray_hit_t betterRayTrace(vec3 pos0, vec3 dir, sampler2D atlas, bool backFaceCull
 ray_hit_t betterRayTrace(vec3 pos0, vec3 dir, sampler2D atlas) {
 	return betterRayTrace(pos0, dir, atlas, true);
 }
+
+#endif

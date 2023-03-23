@@ -42,8 +42,8 @@ vec2 tex8size0 = vec2(textureSize(colortex8, 0));
 
 vec3 newGetBlockLight(vec3 pos, vec3 normal, int mat) {
     vec3 lightCol = vec3(0);
-    vec3 volumePos = 1.0 / POINTER_VOLUME_RES * pos + vec3(32, 16, 32);
-    if (isInBounds(volumePos, vec3(0), vec3(64, 32, 64) - 0.01)) {
+    vec3 volumePos = 1.0 / POINTER_VOLUME_RES * pos + pointerGridSize * 0.5;
+    if (isInBounds(volumePos, vec3(0), pointerGridSize - 0.01)) {
         ivec3 volumeCoords = ivec3(volumePos);
         int localLightCount = lightPointerVolume[0][volumeCoords.x][volumeCoords.y][volumeCoords.z];
         for (int i = 1; i <= localLightCount; i++) {
@@ -60,7 +60,12 @@ vec3 newGetBlockLight(vec3 pos, vec3 normal, int mat) {
                     vec3 offset = hash33(vec3(gl_FragCoord.xy, frameCounter)) * 1.98 - 0.99;
                 #endif
                 offset *= thisLight.size;
-                ray_hit_t rayHit = betterRayTrace(pos, thisLight.pos - pos + offset, ATLASTEX);
+                ray_hit_t rayHit;
+                #ifdef NEW_RT
+                    rayHit = betterRayTrace(pos, thisLight.pos - pos + offset, ATLASTEX);
+                #else
+                    raytrace(pos, thisLight.pos - pos + offset, ATLASTEX, rayHit);
+                #endif
                 vec3 dist0 = abs(rayHit.pos - thisLight.pos) / (thisLight.size + 0.01);
                 float dist = max(max(dist0.x, dist0.y), dist0.z);
                 if (dist < 1.0) {

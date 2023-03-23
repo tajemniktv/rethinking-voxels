@@ -48,35 +48,53 @@ void main() {
 	bool tracemat = true;
 	int mat0 = matV[0];
 
+	bool doCuboidTexCoordCorrection = (mat0 / 10000 == 3);
+	float zpos = 0.5 - clamp(sqrt(area), 0, 1) - 0.02 * fract(avgPos.y - 0.01 * cnormal.x) - 0.01 * fract(avgPos.x - 0.01 * cnormal.y) - 0.015 * fract(avgPos.z - 0.01 * cnormal.z) - 0.2 * cnormal.y;
+	vec2 coord;
+	#include "/lib/materials/shadowchecks_gsh.glsl"
+
 	vec3 pointerGridPos = avgPos * (1.0 / POINTER_VOLUME_RES) + vec2(16, 32).yxy;
-	if (all(greaterThan(pointerGridPos, vec3(0))) && all(lessThan(pointerGridPos, vec2(32, 64).yxy))) {
+	int lowTexCoordYNum = 0;
+	vec2 midCoord = 0.5 * (
+		min(min(texCoordV[0], texCoordV[1]), texCoordV[2]) +
+		max(max(texCoordV[0], texCoordV[1]), texCoordV[2])
+	);
+	for (int i = 0; i < 3; i++) if (texCoordV[i].y < midCoord.y) lowTexCoordYNum++;
+	if (all(greaterThan(pointerGridPos, vec3(0))) && all(lessThan(pointerGridPos, pointerGridSize))) {
 		ivec3 pointerGridCoords = ivec3(pointerGridPos);
 		int localFaceNum = atomicAdd(triPointerVolume[0][pointerGridCoords.x][pointerGridCoords.y][pointerGridCoords.z], 1);
 		if (localFaceNum < LOCAL_MAX_TRIS) {
 			int faceNum = atomicAdd(numFaces, 1);
 			if (faceNum < MAX_TRIS) {
-				
 				int bools = ((mat0 / 10000 >= 5) ? 1 : 0);
 				triPointerVolume[localFaceNum + 1][pointerGridCoords.x][pointerGridCoords.y][pointerGridCoords.z] = faceNum;
 				tris[faceNum].matBools = mat0 + (bools << 16);
+				int i0;
+				float minSkew = 1;
 				for (int i = 0; i < 3; i++) {
-					uvec2 pixelCoord = uvec2(texCoordV[i] * atlasSize);
-					uint packedVertexCol = uint(255 * vertexColV[i].r + 0.5) +
-										  (uint(255 * vertexColV[i].g + 0.5) <<  8) +
-										  (uint(255 * vertexColV[i].b + 0.5) << 16) +
+					float thisSkew = abs(dot(
+						normalize(posV[(i+1)%3] - posV[i]),
+						normalize(posV[(i+2)%3] - posV[i])
+					));
+					if (thisSkew < minSkew) {
+						minSkew = thisSkew;
+						i0 = i;
+					}
+				}
+				for (int i = 0; i < 3; i++) {
+					int j = (i + i0) % 3;
+					uvec2 pixelCoord = uvec2(texCoordV[j] * atlasSize);
+					uint packedVertexCol = uint(255 * vertexColV[j].r + 0.5) +
+										  (uint(255 * vertexColV[j].g + 0.5) <<  8) +
+										  (uint(255 * vertexColV[j].b + 0.5) << 16) +
 										  (uint(255.5) << 24);
 					tris[faceNum].vertexCol[i] = packedVertexCol;
 					tris[faceNum].texCoord[i] = pixelCoord.x + 65536 * pixelCoord.y;
-					tris[faceNum].pos[i] = posV[i] + fract(cameraPosition);
+					tris[faceNum].pos[i] = posV[j] + fract(cameraPosition);
 				}
 			}
 		}
 	}
-
-	bool doCuboidTexCoordCorrection = (mat0 / 10000 == 3);
-	float zpos = 0.5 - clamp(sqrt(area), 0, 1) - 0.02 * fract(avgPos.y - 0.01 * cnormal.x) - 0.01 * fract(avgPos.x - 0.01 * cnormal.y) - 0.015 * fract(avgPos.z - 0.01 * cnormal.z) - 0.2 * cnormal.y;
-	vec2 coord;
-	#include "/lib/materials/shadowchecks_gsh.glsl"
 
 	if (max(abs(avgPos.x), abs(avgPos.z)) < vxRange / 2 && abs(avgPos.y) < VXHEIGHT * VXHEIGHT / 2 && tracemat) {
 		vec2 outTexCoord = 0.5 * (max(max(texCoordV[0], texCoordV[1]), texCoordV[2]) + min(min(texCoordV[0], texCoordV[1]), texCoordV[2]));

@@ -1,11 +1,13 @@
-const ivec3 workGroups = ivec3(64, 32, 64);
-
-layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
-
 #include "/lib/common.glsl"
 
 #include "/lib/vx/SSBOs.glsl"
 #include "/lib/materials/shadowchecks_precise.glsl"
+
+uniform sampler2D colortex15;
+
+const ivec3 workGroups = ivec3(64, 32, 64);
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 #define LOCAL_MAX_LIGHTCOUNT 8
 void main() {
@@ -66,7 +68,13 @@ void main() {
 		vec3 lower = vec3( 1000000000.0);
 		vec3 upper = vec3(-1000000000.0);
 		float area = 0;
+		bool detectLightCol = false;
 		bool avgBound = false;
+		vec3 lightCol = getLightCol(mat);
+		float lightColSamples = 0;
+		if (lightCol == vec3(0)) {
+			 detectLightCol = true;
+		}
 		if ( // torches have way too large geometry, so a hack is needed to correctly detect their size
 			mat == 10496 || // torch
 			mat == 10497 ||
@@ -86,6 +94,16 @@ void main() {
 				thisLower = min(thisLower, thisTri.pos[k]);
 				thisUpper = max(thisUpper, thisTri.pos[k]);
 			}
+			if (detectLightCol) {
+				ivec2 texCoord = (
+					ivec2(thisTri.texCoord[0]%65536, thisTri.texCoord[0]/65536) +
+					ivec2(thisTri.texCoord[1]%65536, thisTri.texCoord[1]/65536) +
+					ivec2(thisTri.texCoord[2]%65536, thisTri.texCoord[2]/65536)
+				) / 3;
+				vec4 lightCol0 = texelFetch(colortex15, texCoord, 0);
+				lightCol += lightCol0.rgb * lightCol0.a;
+				lightColSamples += lightCol0.a;
+			}
 			if (avgBound) {
 				vec3 avg = 0.5 * (thisLower + thisUpper);
 				lower = min(lower, avg);
@@ -95,10 +113,9 @@ void main() {
 				upper = max(upper, thisUpper);
 			}
 		}
+		if (detectLightCol) lightCol /= lightColSamples;
 		vec3 avg = 0.5 * (upper + lower);
 		vec3 size = 0.5 * (upper - lower);
-		vec3 lightCol = getLightCol(mat);
-		//lightCol *= area * 5;
 		int lightLevel = getLightLevel(mat);
 		light_t thisLight;
 		thisLight.pos = avg;
