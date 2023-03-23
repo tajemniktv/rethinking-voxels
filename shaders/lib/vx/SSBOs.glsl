@@ -6,7 +6,7 @@
 const ivec3 pointerGridSize = ivec3(64, 32, 64);
 struct tri_t {
 	uint matBools;
-	int mortonCode;
+	int bvhParent;
 	uvec3 texCoord;
 	uvec3 vertexCol;
 	mat3 pos;
@@ -38,8 +38,8 @@ layout(std430, binding = 3) buffer lightPointers {
 struct bvh_entry_t {
 	vec3 lower;
 	vec3 upper;
+	int attachedTriLoc;
 	int children[8];
-	int childNum_isLeaf;
 };
 layout(std430, binding = 4) buffer bvh {
 	int numBvhEntries;
@@ -47,8 +47,6 @@ layout(std430, binding = 4) buffer bvh {
 };
 
 layout(std430, binding = 5) buffer sortingBuffer {
-	int pivot;
-	int startBuffer;
-	int sortingStuff[][3];
+	int bvhLeaves[];
 };
 #endif

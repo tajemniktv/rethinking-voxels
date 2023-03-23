@@ -68,15 +68,19 @@ void main() {
 
 	//clear SSBOs
 	if (gl_FragCoord.x + gl_FragCoord.y < 1.5) {
-		atomicExchange(numFaces, 0);
-		atomicExchange(numLights, 0);
-		atomicExchange(numBvhEntries, 0);
+		numFaces = 0;
+		numLights = 0;
+		numBvhEntries = 1;
+		bvhEntries[0].lower = vec3(-64, -32, -64);
+		bvhEntries[0].upper = vec3( 64,  32,  64);
+		bvhEntries[0].attachedTriLoc = 0;
+		for (int i = 0; i < 8; i++) bvhEntries[0].children[i] = 0;
 	}
 	if (max(gl_FragCoord.x, gl_FragCoord.y) < 64) {
 		ivec2 coords = ivec2(gl_FragCoord.xy);
 		for (int i = 0; i < 32; i++) {
-			atomicExchange(triPointerVolume[0][coords.x][i][coords.y], 0);
-			atomicExchange(lightPointerVolume[0][coords.x][i][coords.y], 0);
+			triPointerVolume[0][coords.x][i][coords.y] = 0;
+			lightPointerVolume[0][coords.x][i][coords.y] = 0;
 		}
 	}
 	/* DRAWBUFFERS:0 */
