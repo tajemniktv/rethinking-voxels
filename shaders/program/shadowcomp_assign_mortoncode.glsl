@@ -5,12 +5,12 @@ const ivec3 workGroups = ivec3(1024, 1, 1);
 #include "/lib/common.glsl"
 #include "/lib/vx/SSBOs.glsl"
 
-int morton(ivec3 mortonVec) {
+int getMorton(ivec3 mortonVec) {
 	int returnVal = 0;
 	for (int i = 0; i < 3; i++) {
 		int spread = 0;
 		for (int j = 0; j < 10; j++) {
-			spread += (mortonVec & (1<<j)) << (2*j);
+			spread += (mortonVec[i] & (1<<j)) << (2*j);
 		}
 		returnVal += spread << i;
 	}
@@ -18,7 +18,6 @@ int morton(ivec3 mortonVec) {
 }
 
 void main() {
-	if (gl_WorkGroupID.x == 0) sortingStuff[0][3] = 1;
 	int remaining = min(512, int(numFaces - 512 * gl_WorkGroupID.x));
 	for (int i = 0; i < remaining; i++) {
 		int thisTriId = i + int(512 * gl_WorkGroupID.x);

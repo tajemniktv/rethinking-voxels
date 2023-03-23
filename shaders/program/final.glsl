@@ -70,10 +70,7 @@ void main() {
 	if (gl_FragCoord.x + gl_FragCoord.y < 1.5) {
 		atomicExchange(numFaces, 0);
 		atomicExchange(numLights, 0);
-		atomicExchange(numBvhEntries, 1);
-		bvhEntries[0].lower = vec3(-64.0);
-		bvhEntries[0].upper = vec3( 64.0);
-		bvhEntries[0].childNum_isLeaf = 0;
+		atomicExchange(numBvhEntries, 0);
 	}
 	if (max(gl_FragCoord.x, gl_FragCoord.y) < 64) {
 		ivec2 coords = ivec2(gl_FragCoord.xy);
