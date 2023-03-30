@@ -332,7 +332,7 @@ struct ray_hit_t {
 };
 
 vec4 raytrace(vec3 pos0, vec3 dir, sampler2D atlas, inout ray_hit_t rayHit) {
-	vec3 transPos;
+	vec3 transPos = vec3(-10000);
 	vec4 rayColor = raytrace(pos0, dir, transPos, atlas, true);
 	rayHit.rayColor = vec4(0);
 	rayHit.transColor = rayColor;
@@ -395,13 +395,16 @@ vec3 rayTriangleIntersect(vec3 pos0, vec3 dir, tri_t triangle) {
 	return solution;
 }
 
-vec2 boundsIntersect(vec3 pos0, vec3 dir, tri_t triangle) {
-	vec3 dirsgn = sign(dir);
+vec2 boundsIntersect(vec3 pos0, vec3 dir, vec3 lower0, vec3 upper0) {
+	vec3 dirsgn = vec3(greaterThan(dir, vec3(0))) * 2.0 - 1.0;
 	dir = abs(dir);
-	pos0 *= dirsgn;
-	for (int i = 0; i < 3; i++) triangle.pos[i] *= dirsgn;
-	vec3 lower = min(min(triangle.pos[0], triangle.pos[1]), triangle.pos[2]) - pos0;
-	vec3 upper = max(max(triangle.pos[0], triangle.pos[1]), triangle.pos[2]) - pos0 + 0.000001;
+	dir += 0.0001 * (1 - sign(dir));
+	lower0 -= pos0;
+	upper0 -= pos0;
+	lower0 *= dirsgn;
+	upper0 *= dirsgn;
+	vec3 lower = min(lower0, upper0);
+	vec3 upper = max(lower0, upper0);
 	float w0 = -100000.0;
 	float w1 =  100000.0;
 	for (int i = 0; i < 3; i++) {
@@ -410,6 +413,12 @@ vec2 boundsIntersect(vec3 pos0, vec3 dir, tri_t triangle) {
 	}
 	if (w0 <= w1) return vec2(w0, w1);
 	return vec2(1, -1);
+}
+
+vec2 boundsIntersect(vec3 pos0, vec3 dir, tri_t triangle) {
+	vec3 lower0 = min(min(triangle.pos[0], triangle.pos[1]), triangle.pos[2]);
+	vec3 upper0 = max(max(triangle.pos[0], triangle.pos[1]), triangle.pos[2]);
+	return boundsIntersect(pos0, dir, lower0, upper0);
 }
 
 ray_hit_t betterRayTrace(vec3 pos0, vec3 dir, sampler2D atlas, bool backFaceCulling) {
@@ -539,6 +548,129 @@ ray_hit_t betterRayTrace(vec3 pos0, vec3 dir, sampler2D atlas, bool backFaceCull
 
 ray_hit_t betterRayTrace(vec3 pos0, vec3 dir, sampler2D atlas) {
 	return betterRayTrace(pos0, dir, atlas, true);
+}
+
+ray_hit_t bvhRayTrace(vec3 pos0, vec3 dir, sampler2D atlas, bool backFaceCulling) {
+	int childCount = 2;
+	if (pos0.x > -10000000) childCount += 8;
+	childCount -= 2;
+	ray_hit_t returnVal;
+
+	returnVal.transColor = vec4(0);
+	returnVal.transPos = vec3(-10000);
+	returnVal.transTriId = -1;
+
+	vec4 rayColor = vec4(0);
+	vec3 normDir = normalize(dir);
+	float hitW = 1;
+	float transHitW = 1;
+	ivec3 dirSgn = ivec3(greaterThan(dir, vec3(0)));
+	int childOrder[8];
+	for (int k = 0; k < 8; k++) {
+		ivec3 octreePos = ivec3(k & 1, (k >> 1) % 2, (k >> 2) % 2);
+		octreePos = dirSgn * octreePos + (1 - dirSgn) * (1 - octreePos);
+		childOrder[k] = octreePos.x + (octreePos.y << 1) + (octreePos.z << 2);
+	}
+	int depth = 0;
+	int childNums[14];
+	bvh_entry_t entryStack[14];
+	entryStack[0] = bvhEntries[0];
+	for (childNums[0] = 0; childNums[0] < 8 && getBvhChild(entryStack[0], childOrder[childNums[0]]) == 0; childNums[0]++);
+	bool wasInRoot = false;
+	for (int safetyIterator = 0; safetyIterator < 1000 && depth >= 0; safetyIterator++) {
+		int leafCount = bvhLeaves[entryStack[depth].attachedTriLoc];
+		int triLocEnd = entryStack[depth].attachedTriLoc + leafCount;
+		for (int k = entryStack[depth].attachedTriLoc + 1; false && k < triLocEnd; k++) {
+			int thisTriId = bvhLeaves[k];
+			tri_t thisTri = tris[thisTriId];
+			if (backFaceCulling) {
+				vec3 cnormal = cross(thisTri.pos[0] - thisTri.pos[1], thisTri.pos[0] - thisTri.pos[2]);
+				if (dot(cnormal, dir) >= 0) continue;
+			}
+			vec2 boundWs = boundsIntersect(POINTER_VOLUME_RES * pos0, POINTER_VOLUME_RES * dir, thisTri);
+			if (boundWs.y <= 0 || boundWs.x > hitW) continue;
+			vec3 hitPos = rayTriangleIntersect(POINTER_VOLUME_RES * pos0, POINTER_VOLUME_RES * dir, thisTri);
+			if (hitPos.z <= 0 || hitPos.z > hitW) continue;
+			ivec2 coord0 = ivec2(thisTri.texCoord[0] % 65536, thisTri.texCoord[0] / 65536);
+			vec2 coord = coord0;
+			vec2 offsetDir = vec2(0);
+			for (int i = 0; i < 2; i++) {
+				ivec2 coord1 = ivec2(thisTri.texCoord[i+1] % 65536, thisTri.texCoord[i+1] / 65536);
+				vec2 dcoord = coord1 - coord0;
+				dcoord += sign(dcoord);
+				coord += vec2(hitPos[i] * dcoord);
+				offsetDir += sign(dcoord) * (1 - abs(offsetDir));
+			}
+			coord -= 0.5 * offsetDir;
+			vec4 newColor = ((thisTri.matBools >> 16) % 2 == 0) ? texelFetch(atlas, ivec2(coord + 0.5), 0) : vec4(1);
+			if (newColor.a < 0.1) continue;
+			vec4 vertexCol0 = vec4(
+					thisTri.vertexCol[0] % 256,
+				(thisTri.vertexCol[0] >>  8) % 256,
+				(thisTri.vertexCol[0] >> 16) % 256,
+				(thisTri.vertexCol[0] >> 24) % 256
+			);
+			vec4 vertexCol = vertexCol0;
+			for (int i = 0; i < 2; i++) {
+				vec4 vertexCol1 = vec4(
+						thisTri.vertexCol[i+1] % 256,
+					(thisTri.vertexCol[i+1] >>  8) % 256,
+					(thisTri.vertexCol[i+1] >> 16) % 256,
+					(thisTri.vertexCol[i+1] >> 24) % 256
+				);
+				vertexCol += hitPos[i] * (vertexCol1 - vertexCol0);
+			}
+			newColor *= vertexCol / 255.0;
+			if (transHitW < hitPos.z) rayColor += (1 - rayColor.a) * newColor * vec2(1, newColor.a).yyyx;
+			else           rayColor = newColor +  (1 - newColor.a) * rayColor * vec2(1, rayColor.a).yyyx;
+			if (newColor.a > 0.9) {
+				if (hitPos.z < hitW) {
+					hitW = hitPos.z;
+					returnVal.pos = pos0 + hitPos.z * dir;
+					returnVal.triId = thisTriId;
+				}
+			} else if (hitPos.z < transHitW) {
+				transHitW = hitPos.z;
+				returnVal.transPos = pos0 + hitPos.z * dir;
+				returnVal.transTriId = thisTriId;
+				returnVal.transColor = newColor;
+			}
+		}
+		if (depth > 0) {
+			for (
+				childNums[depth-1]++;
+				childNums[depth-1] < 8 && getBvhChild(entryStack[depth-1], childOrder[childNums[depth-1]]) == 0;
+				childNums[depth-1]++
+			);
+		}
+		depth++;
+		childNums[depth-1] = 0;
+		while (true) {
+			for (;
+				childNums[depth-1] < 8 && getBvhChild(entryStack[depth-1], childOrder[childNums[depth-1]]) == 0;
+				childNums[depth-1]++
+			);
+			if (childNums[depth-1] >= 8) break;
+			entryStack[depth] = bvhEntries[getBvhChild(entryStack[depth-1], childOrder[childNums[depth-1]])];
+			vec3 avg = 0.5 * (entryStack[depth].lower + entryStack[depth].upper) - pos0;
+			vec3 size = 0.5 * (entryStack[depth].upper - entryStack[depth].lower);
+			float dist = length((avg - dot(normDir, avg) * normDir) / size);
+			if (dist < sqrt(3)) break;
+			childNums[depth-1]++;
+		}
+		for (; depth > 0 && childNums[depth-1] >= 8; depth--);
+		if (depth == 0 && wasInRoot) depth--;
+		wasInRoot = true;
+		rayColor.rgb += vec3(0.001);
+		if (safetyIterator == 999) rayColor.rgb = vec3(1, 0, 0);
+	}
+		
+	returnVal.rayColor = rayColor;
+	return returnVal;
+}
+
+ray_hit_t bvhRayTrace(vec3 pos0, vec3 dir, sampler2D atlas) {
+	return bvhRayTrace(pos0, dir, atlas, true);
 }
 
 #endif

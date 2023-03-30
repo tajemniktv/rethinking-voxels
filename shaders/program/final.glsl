@@ -74,7 +74,10 @@ void main() {
 		bvhEntries[0].lower = vec3(-64, -32, -64);
 		bvhEntries[0].upper = vec3( 64,  32,  64);
 		bvhEntries[0].attachedTriLoc = 0;
-		for (int i = 0; i < 8; i++) bvhEntries[0].children[i] = 0;
+		for (int i = 0; i < 4; i++) {
+			bvhEntries[0].children0[i] = 0;
+			bvhEntries[0].children1[i] = 0;
+		}
 	}
 	if (max(gl_FragCoord.x, gl_FragCoord.y) < 64) {
 		ivec2 coords = ivec2(gl_FragCoord.xy);

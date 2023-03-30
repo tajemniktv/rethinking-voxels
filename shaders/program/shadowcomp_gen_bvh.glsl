@@ -9,12 +9,22 @@ void main() {
 	bvh_entry_t rawEntry;
 	rawEntry.lower = vec3( 100000);
 	rawEntry.upper = vec3(-100000);
-	for (int k = 0; k < 8; k++) rawEntry.children[k] = 0;
+	for (int k = 0; k < 4; k++) {
+		rawEntry.children0[k] = 0;
+		rawEntry.children1[k] = 0;
+	}
 	rawEntry.attachedTriLoc = 0;
-	int remaining = min((MAX_TRIS / workGroups.x), int(numFaces - (MAX_TRIS / workGroups.x) * gl_WorkGroupID.x));
+	const int strideSize = max(1, MAX_TRIS / workGroups.x);
+	int remaining = min(strideSize, numFaces - strideSize * int(gl_WorkGroupID.x));
+	tri_t thisThreadTris[strideSize];
+	vec3 avgPoss[strideSize];
+	float sizes[strideSize];
+	int entryIndices[strideSize];
+	bool recurseFurther[strideSize];
 	for (int i0 = 0; i0 < remaining; i0++) {
-		int i = (MAX_TRIS / workGroups.x) * int(gl_WorkGroupID.x) + i0;
+		int i = strideSize * int(gl_WorkGroupID.x) + i0;
 		tri_t thisTri = tris[i];
+		thisThreadTris[i0] = thisTri;
 		vec3 lowerBound = min(min(
 			thisTri.pos[0],
 			thisTri.pos[1]),
@@ -25,42 +35,62 @@ void main() {
 			thisTri.pos[1]),
 			thisTri.pos[2]
 		);
-		vec3 avgPos = 0.5 * (lowerBound + upperBound);
-		float size = 0.33 * dot(upperBound - lowerBound, vec3(1));
-		int entryIndex = 0;
-		bool abort = false;
-		for (int k = 0; k < 16; k++) {
-			bvh_entry_t thisEntry = bvhEntries[entryIndex];
-			float entrySize = 0.33 * dot(thisEntry.upper - thisEntry.lower, vec3(1));
-			bool recurseFurther = (entrySize > size);
-			for (int i = 0; i < 1; i++) {
-				if (!recurseFurther) break;
-				vec3 localTriPos = (avgPos - thisEntry.lower) / (thisEntry.upper - thisEntry.lower);
-				ivec3 childNum0 = ivec3(localTriPos.x > 0.5, localTriPos.y > 0.5, localTriPos.z > 0.5);
-				int childNum = childNum0.x + (childNum0.y << 1) + (childNum0.z << 2);
-				int childPointer = atomicExchange(bvhEntries[entryIndex].children[childNum], -1);
-				if (childPointer == -1) {
-					recurseFurther = false;
-					break;
+		vec3 cnormal = cross(thisTri.pos[0] - thisTri.pos[1], thisTri.pos[0] - thisTri.pos[2]);
+		avgPoss[i0] = 0.5 * (lowerBound + upperBound) - 0.01 * cnormal;
+		sizes[i0] = dot(upperBound - lowerBound, vec3(0.33));
+		entryIndices[i0] = 0;
+		recurseFurther[i0] = true;
+	}
+	for (int depth = 0; depth < BVH_MAX_DEPTH; depth++) {
+		int childNums[strideSize];
+		bool newRecurseFurther[strideSize];
+		for (int i0 = 0; i0 < remaining; i0++) {
+			if (!recurseFurther[i0]) continue;
+			bvh_entry_t thisEntry = bvhEntries[entryIndices[i0]];
+			float entrySize = dot(thisEntry.upper - thisEntry.lower, vec3(0.33));
+			newRecurseFurther[i0] = (entrySize > sizes[i0]);
+			if (!newRecurseFurther[i0]) continue;
+			vec3 localTriPos = (avgPoss[i0] - thisEntry.lower) / (thisEntry.upper - thisEntry.lower);
+			ivec3 childNum0 = ivec3(greaterThan(localTriPos, vec3(0.5)));
+			childNums[i0] = childNum0.x + (childNum0.y << 1) + (childNum0.z << 2);
+			int childPointer = childNums[i0] >= 4 ? 
+				atomicExchange(bvhEntries[entryIndices[i0]].children1[childNums[i0] - 4], -1) :
+				atomicExchange(bvhEntries[entryIndices[i0]].children0[childNums[i0]], -1);
+			if (childPointer == 0) {
+				int newEntryIndex = atomicAdd(numBvhEntries, 1);
+				childNums[i0] >= 4 ? 
+					atomicExchange(bvhEntries[entryIndices[i0]].children1[childNums[i0] - 4], newEntryIndex) :
+					atomicExchange(bvhEntries[entryIndices[i0]].children0[childNums[i0]], newEntryIndex);
+				bvh_entry_t newEntry;
+				newEntry.lower = mix(thisEntry.lower, thisEntry.upper, 0.5 * childNum0);
+				newEntry.upper = mix(thisEntry.lower, thisEntry.upper, 0.5 * childNum0 + 0.5);
+				newEntry.attachedTriLoc = 0;
+				for (int k = 0; k < 4; k++) {
+					newEntry.children0[k] = 0;
+					newEntry.children1[k] = 0;
 				}
-				if (childPointer == 0) {
-					bvh_entry_t newEntry = rawEntry;
-					newEntry.lower = mix(thisEntry.lower, thisEntry.upper, 0.5 * childNum0);
-					newEntry.upper = mix(thisEntry.lower, thisEntry.upper, 0.5 * childNum0 + 0.5);
-					int newEntryIndex = atomicAdd(numBvhEntries, 1);
-					bvhEntries[newEntryIndex] = newEntry;
-					atomicExchange(bvhEntries[entryIndex].children[childNum], newEntryIndex);
-					entryIndex = newEntryIndex;
-					break;
-				}
-				entryIndex = childPointer;
-			}
-			if (!recurseFurther) {
-				atomicAdd(bvhEntries[entryIndex].attachedTriLoc, 1);
-				tris[i].bvhParent = entryIndex;
-				break;
+				bvhEntries[newEntryIndex] = newEntry;
+			} else if (childPointer > 0) {
+				childNums[i0] >= 4 ? 
+					atomicExchange(bvhEntries[entryIndices[i0]].children1[childNums[i0] - 4], childPointer) :
+					atomicExchange(bvhEntries[entryIndices[i0]].children0[childNums[i0]], childPointer);
 			}
 		}
+		memoryBarrierBuffer();
+		for (int i0 = 0; i0 < remaining; i0++) {
+			if (recurseFurther[i0]) {
+				if (!newRecurseFurther[i0]) {
+					recurseFurther[i0] = false;
+				} else {
+					entryIndices[i0] = getBvhChild(bvhEntries[entryIndices[i0]], childNums[i0]);
+				}
+			}
+		}
+	}
+	for (int i0 = 0; i0 < remaining; i0++) {
+		atomicAdd(bvhEntries[entryIndices[i0]].attachedTriLoc, 1);
+		int i = strideSize * int(gl_WorkGroupID.x) + i0;
+		tris[i].bvhParent = entryIndices[i0];
 	}
 	memoryBarrierBuffer();
 	if (gl_WorkGroupID.x == 0) {
@@ -72,10 +102,11 @@ void main() {
 	}
 	memoryBarrierBuffer();
 	for (int i0 = 0; i0 < remaining; i0++) {
-		int i = (MAX_TRIS / workGroups.x) * int(gl_WorkGroupID.x) + i0;
+		int i = strideSize * int(gl_WorkGroupID.x) + i0;
 		tri_t thisTri = tris[i];
 		int globalLeafLoc = bvhEntries[thisTri.bvhParent].attachedTriLoc;
 		int localLeafLoc = atomicAdd(bvhLeaves[globalLeafLoc], 1);
-		bvhLeaves[globalLeafLoc + localLeafLoc] = i;
+		int leafLoc = globalLeafLoc + localLeafLoc;
+		if (thisTri.bvhParent == numBvhEntries - 1 || leafLoc < bvhEntries[thisTri.bvhParent + 1].attachedTriLoc) bvhLeaves[leafLoc] = i;
 	}
 }
