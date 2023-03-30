@@ -63,11 +63,11 @@ void main() {
 	if (all(greaterThan(pointerGridPos, vec3(0))) && all(lessThan(pointerGridPos, pointerGridSize))) {
 		ivec3 pointerGridCoords = ivec3(pointerGridPos);
 		int localFaceNum = atomicAdd(triPointerVolume[0][pointerGridCoords.x][pointerGridCoords.y][pointerGridCoords.z], 1);
-		if (localFaceNum < LOCAL_MAX_TRIS) {
+//		if (localFaceNum < LOCAL_MAX_TRIS) {
 			int faceNum = atomicAdd(numFaces, 1);
 			if (faceNum < MAX_TRIS) {
 				int bools = ((mat0 / 10000 >= 5) ? 1 : 0);
-				triPointerVolume[localFaceNum + 1][pointerGridCoords.x][pointerGridCoords.y][pointerGridCoords.z] = faceNum;
+//				triPointerVolume[localFaceNum + 1][pointerGridCoords.x][pointerGridCoords.y][pointerGridCoords.z] = faceNum;
 				tris[faceNum].matBools = mat0 + (bools << 16);
 				int i0;
 				float minSkew = 1;
@@ -93,7 +93,7 @@ void main() {
 					tris[faceNum].pos[i] = posV[j] + fract(cameraPosition);
 				}
 			}
-		}
+//		}
 	}
 
 	if (max(abs(avgPos.x), abs(avgPos.z)) < vxRange / 2 && abs(avgPos.y) < VXHEIGHT * VXHEIGHT / 2 && tracemat) {
