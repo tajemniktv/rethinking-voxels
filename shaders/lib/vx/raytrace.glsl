@@ -561,7 +561,8 @@ ray_hit_t bvhRayTrace(vec3 pos0, vec3 dir, sampler2D atlas, bool backFaceCulling
 	returnVal.transTriId = -1;
 
 	vec4 rayColor = vec4(0);
-	vec3 normDir = normalize(dir);
+	float dirLen = length(dir);
+	vec3 normDir = dir / dirLen;
 	float hitW = 1;
 	float transHitW = 1;
 	ivec3 dirSgn = ivec3(greaterThan(dir, vec3(0)));
@@ -571,10 +572,15 @@ ray_hit_t bvhRayTrace(vec3 pos0, vec3 dir, sampler2D atlas, bool backFaceCulling
 		octreePos = dirSgn * octreePos + (1 - dirSgn) * (1 - octreePos);
 		childOrder[k] = octreePos.x + (octreePos.y << 1) + (octreePos.z << 2);
 	}
+	dirSgn = 2 * dirSgn - 1;
+	vec3 absDir = abs(dir);
+	absDir = max(absDir, vec3(0.000001));
 	int depth = 0;
 	int childNums[14];
 	bvh_entry_t entryStack[14];
 	entryStack[0] = bvhEntries[0];
+	entryStack[0].lower -= pos0;
+	entryStack[0].upper -= pos0;
 	for (childNums[0] = 0; childNums[0] < 8 && getBvhChild(entryStack[0], childOrder[childNums[0]]) == 0; childNums[0]++);
 	bool wasInRoot = false;
 	for (int safetyIterator = 0; safetyIterator < 1000 && depth >= 0; safetyIterator++) {
@@ -636,13 +642,7 @@ ray_hit_t bvhRayTrace(vec3 pos0, vec3 dir, sampler2D atlas, bool backFaceCulling
 				returnVal.transColor = newColor;
 			}
 		}
-		if (depth > 0) {
-			for (
-				childNums[depth-1]++;
-				childNums[depth-1] < 8 && getBvhChild(entryStack[depth-1], childOrder[childNums[depth-1]]) == 0;
-				childNums[depth-1]++
-			);
-		}
+		int oldDepth = depth;
 		depth++;
 		childNums[depth-1] = 0;
 		while (true) {
@@ -652,16 +652,45 @@ ray_hit_t bvhRayTrace(vec3 pos0, vec3 dir, sampler2D atlas, bool backFaceCulling
 			);
 			if (childNums[depth-1] >= 8) break;
 			entryStack[depth] = bvhEntries[getBvhChild(entryStack[depth-1], childOrder[childNums[depth-1]])];
-			vec3 avg = 0.5 * (entryStack[depth].lower + entryStack[depth].upper) - pos0;
-			vec3 size = 0.5 * (entryStack[depth].upper - entryStack[depth].lower);
-			float dist = length((avg - dot(normDir, avg) * normDir) / size);
-			if (dist < sqrt(3)) break;
+			entryStack[depth].lower -= pos0;
+			entryStack[depth].upper -= pos0;
+			entryStack[depth].lower *= dirSgn;
+			entryStack[depth].upper *= dirSgn;
+			vec3 lower = min(entryStack[depth].lower, entryStack[depth].upper) / absDir;
+			vec3 upper = max(entryStack[depth].lower, entryStack[depth].upper) / absDir;
+			vec2 rayEntryIsct = vec2(
+				max(max(lower.x, lower.y), lower.z),
+				min(min(upper.x, upper.y), upper.z)
+			);
+			if (rayEntryIsct.y >= rayEntryIsct.x && rayEntryIsct.x < hitW && rayEntryIsct.y > 0) break;
 			childNums[depth-1]++;
 		}
 		for (; depth > 0 && childNums[depth-1] >= 8; depth--);
 		if (depth == 0 && wasInRoot) depth--;
+		if (oldDepth > 0) {
+			while (true) {
+				for (
+					childNums[oldDepth-1]++;
+					childNums[oldDepth-1] < 8 && getBvhChild(entryStack[oldDepth-1], childOrder[childNums[oldDepth-1]]) == 0;
+					childNums[oldDepth-1]++
+				);
+				if (childNums[oldDepth-1] >= 8) break;
+				entryStack[oldDepth] = bvhEntries[getBvhChild(entryStack[oldDepth-1], childOrder[childNums[oldDepth-1]])];
+				entryStack[oldDepth].lower -= pos0;
+				entryStack[oldDepth].upper -= pos0;
+				entryStack[oldDepth].lower *= dirSgn;
+				entryStack[oldDepth].upper *= dirSgn;
+				vec3 lower = min(entryStack[oldDepth].lower, entryStack[oldDepth].upper) / absDir;
+				vec3 upper = max(entryStack[oldDepth].lower, entryStack[oldDepth].upper) / absDir;
+				vec2 rayEntryIsct = vec2(
+					max(max(lower.x, lower.y), lower.z),
+					min(min(upper.x, upper.y), upper.z)
+				);
+				if (rayEntryIsct.y >= rayEntryIsct.x && rayEntryIsct.x < hitW && rayEntryIsct.y > 0) break;
+			}
+		}
 		wasInRoot = true;
-		rayColor.rgb += vec3(0.001);
+		rayColor.rgb += vec3(0.03);
 		if (safetyIterator == 999) rayColor.rgb = vec3(1, 0, 0);
 	}
 		

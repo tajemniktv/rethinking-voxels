@@ -57,13 +57,13 @@ void main() {
 		color.r = 0.1 * (thisEntry.upper.x - thisEntry.lower.x);
 		color.g = bvhLeaves[thisEntry.attachedTriLoc] * 0.1;
 		if (entryIndex0 >= numBvhEntries) color = mix(color, vec3(1), 1.0);
-	} else if (all(lessThan(texelCoord, ivec2(viewWidth, viewHeight) / 2))) {
+	} else if (all(lessThan(abs(texelCoord - ivec2(viewWidth, viewHeight) / 2), ivec2(viewWidth, viewHeight) / 2))) {
 		vec4 playerPos = vec4(gl_FragCoord.xy / vec2(viewWidth, viewHeight) * 2 - 1, 0.999, 1);
 		playerPos = gbufferProjectionInverse * playerPos;
 		playerPos = gbufferModelViewInverse * playerPos;
-		playerPos.xyz = 10 * normalize(playerPos.xyz);
+		playerPos.xyz = 30 * normalize(playerPos.xyz);
 		ray_hit_t rayHit = bvhRayTrace(fract(cameraPosition), playerPos.xyz, colortex15);
-		color = rayHit.rayColor.rgb;
+		color = mix(color, rayHit.rayColor.rgb, 0.5);
 	}
 
 	/*DRAWBUFFERS:3*/

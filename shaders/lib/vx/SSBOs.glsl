@@ -35,7 +35,7 @@ layout(std430, binding = 3) buffer lightPointers {
 	int lightPointerVolume[][64][32][64];
 };
 
-#define BVH_MAX_DEPTH 4
+#define BVH_MAX_DEPTH 8
 struct bvh_entry_t {
 	vec3 lower;
 	vec3 upper;
