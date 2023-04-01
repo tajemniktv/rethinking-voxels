@@ -45,9 +45,9 @@ vec3 newGetBlockLight(vec3 pos, vec3 normal, int mat) {
     vec3 volumePos = 1.0 / POINTER_VOLUME_RES * pos + pointerGridSize * 0.5;
     if (isInBounds(volumePos, vec3(0), pointerGridSize - 0.01)) {
         ivec3 volumeCoords = ivec3(volumePos);
-        int localLightCount = lightPointerVolume[0][volumeCoords.x][volumeCoords.y][volumeCoords.z];
-        for (int i = 1; i <= localLightCount; i++) {
-            int thisLightId = lightPointerVolume[i][volumeCoords.x][volumeCoords.y][volumeCoords.z];
+        int localLightCount = PointerVolume[4][volumeCoords.x][volumeCoords.y][volumeCoords.z];
+        for (int i = 0; i < localLightCount; i++) {
+            int thisLightId = PointerVolume[5 + i][volumeCoords.x][volumeCoords.y][volumeCoords.z];
             light_t thisLight = lights[thisLightId];
             float ndotl = max(0, 0.99 * dot(normalize(thisLight.pos - pos), normal) + 0.01);
             float brightness = length((thisLight.pos - pos));

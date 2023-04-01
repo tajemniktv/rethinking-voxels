@@ -53,47 +53,42 @@ void main() {
 	vec2 coord;
 	#include "/lib/materials/shadowchecks_gsh.glsl"
 
-	vec3 pointerGridPos = avgPos * (1.0 / POINTER_VOLUME_RES) + vec2(16, 32).yxy;
-	int lowTexCoordYNum = 0;
-	vec2 midCoord = 0.5 * (
-		min(min(texCoordV[0], texCoordV[1]), texCoordV[2]) +
-		max(max(texCoordV[0], texCoordV[1]), texCoordV[2])
-	);
-	for (int i = 0; i < 3; i++) if (texCoordV[i].y < midCoord.y) lowTexCoordYNum++;
+	vec3 pointerGridPos = avgPos * (1.0 / POINTER_VOLUME_RES) + pointerGridSize / 2;
 	if (all(greaterThan(pointerGridPos, vec3(0))) && all(lessThan(pointerGridPos, pointerGridSize))) {
 		ivec3 pointerGridCoords = ivec3(pointerGridPos);
-		int localFaceNum = atomicAdd(triPointerVolume[0][pointerGridCoords.x][pointerGridCoords.y][pointerGridCoords.z], 1);
-//		if (localFaceNum < LOCAL_MAX_TRIS) {
-			int faceNum = atomicAdd(numFaces, 1);
-			if (faceNum < MAX_TRIS) {
-				int bools = ((mat0 / 10000 >= 5) ? 1 : 0);
-//				triPointerVolume[localFaceNum + 1][pointerGridCoords.x][pointerGridCoords.y][pointerGridCoords.z] = faceNum;
-				tris[faceNum].matBools = mat0 + (bools << 16);
-				int i0;
-				float minSkew = 1;
-				for (int i = 0; i < 3; i++) {
-					float thisSkew = abs(dot(
-						normalize(posV[(i+1)%3] - posV[i]),
-						normalize(posV[(i+2)%3] - posV[i])
-					));
-					if (thisSkew < minSkew) {
-						minSkew = thisSkew;
-						i0 = i;
-					}
-				}
-				for (int i = 0; i < 3; i++) {
-					int j = (i + i0) % 3;
-					uvec2 pixelCoord = uvec2(texCoordV[j] * atlasSize);
-					uint packedVertexCol = uint(255 * vertexColV[j].r + 0.5) +
-										  (uint(255 * vertexColV[j].g + 0.5) <<  8) +
-										  (uint(255 * vertexColV[j].b + 0.5) << 16) +
-										  (uint(255.5) << 24);
-					tris[faceNum].vertexCol[i] = packedVertexCol;
-					tris[faceNum].texCoord[i] = pixelCoord.x + 65536 * pixelCoord.y;
-					tris[faceNum].pos[i] = posV[j] + fract(cameraPosition);
+		int localFaceNum = atomicAdd(PointerVolume[0][pointerGridCoords.x][pointerGridCoords.y][pointerGridCoords.z], 1);
+		int faceNum = atomicAdd(numFaces, 1);
+		if (faceNum < MAX_TRIS) {
+			int bools = ((mat0 / 10000 >= 5) ? 1 : 0);
+			tris[faceNum].matBools = mat0 + (bools << 16);
+			tris[faceNum].bvhParent =
+				pointerGridCoords.x +
+				pointerGridSize.x * pointerGridCoords.y +
+				pointerGridSize.x * pointerGridSize.y * pointerGridCoords.z;
+			int i0;
+			float minSkew = 1;
+			for (int i = 0; i < 3; i++) {
+				float thisSkew = abs(dot(
+					normalize(posV[(i+1)%3] - posV[i]),
+					normalize(posV[(i+2)%3] - posV[i])
+				));
+				if (thisSkew < minSkew) {
+					minSkew = thisSkew;
+					i0 = i;
 				}
 			}
-//		}
+			for (int i = 0; i < 3; i++) {
+				int j = (i + i0) % 3;
+				uvec2 pixelCoord = uvec2(texCoordV[j] * atlasSize);
+				uint packedVertexCol = uint(255 * vertexColV[j].r + 0.5) +
+										(uint(255 * vertexColV[j].g + 0.5) <<  8) +
+										(uint(255 * vertexColV[j].b + 0.5) << 16) +
+										(uint(255.5) << 24);
+				tris[faceNum].vertexCol[i] = packedVertexCol;
+				tris[faceNum].texCoord[i] = pixelCoord.x + 65536 * pixelCoord.y;
+				tris[faceNum].pos[i] = posV[j] + fract(cameraPosition);
+			}
+		}
 	}
 
 	if (max(abs(avgPos.x), abs(avgPos.z)) < vxRange / 2 && abs(avgPos.y) < VXHEIGHT * VXHEIGHT / 2 && tracemat) {

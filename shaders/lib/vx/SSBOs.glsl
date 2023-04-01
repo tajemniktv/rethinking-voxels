@@ -17,7 +17,7 @@ layout(std430, binding = 0) buffer voxelData {
 };
 
 layout(std430, binding = 1) buffer triPointers {
-	int triPointerVolume[][64][32][64];
+	int PointerVolume[][64][32][64];
 };
 
 struct light_t {
@@ -31,27 +31,7 @@ layout(std430, binding = 2) buffer lightData {
 	light_t lights[];
 };
 
-layout(std430, binding = 3) buffer lightPointers {
-	int lightPointerVolume[][64][32][64];
-};
-
-#define BVH_MAX_DEPTH 8
-struct bvh_entry_t {
-	vec3 lower;
-	vec3 upper;
-	int attachedTriLoc;
-	ivec4 children0;
-	ivec4 children1;
-};
-int getBvhChild(bvh_entry_t entry, int childNum) {
-	return childNum >= 4 ? entry.children1[childNum-4] : entry.children0[childNum];
-}
-layout(std430, binding = 4) buffer bvh {
-	int numBvhEntries;
-	bvh_entry_t bvhEntries[];
-};
-
-layout(std430, binding = 5) buffer sortingBuffer {
+layout(std430, binding = 3) buffer sortingBuffer {
 	int bvhLeaves[];
 };
 #endif

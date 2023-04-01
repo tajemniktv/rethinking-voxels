@@ -70,20 +70,16 @@ void main() {
 	if (gl_FragCoord.x + gl_FragCoord.y < 1.5) {
 		numFaces = 0;
 		numLights = 0;
-		numBvhEntries = 1;
-		bvhEntries[0].lower = vec3(-64, -32, -64);
-		bvhEntries[0].upper = vec3( 64,  32,  64);
-		bvhEntries[0].attachedTriLoc = 0;
-		for (int i = 0; i < 4; i++) {
-			bvhEntries[0].children0[i] = 0;
-			bvhEntries[0].children1[i] = 0;
-		}
 	}
-	if (max(gl_FragCoord.x, gl_FragCoord.y) < 64) {
+	// just for testing, bvhLeaves doesn't need to be cleared
+	int pixelNum = int(gl_FragCoord.x) + int(viewWidth + 0.1) * int(gl_FragCoord.y);
+	if (pixelNum < MAX_TRIS) {
+		bvhLeaves[pixelNum] = 0;
+	}
+	if (all(lessThan(gl_FragCoord.xy, pointerGridSize.xz))) {
 		ivec2 coords = ivec2(gl_FragCoord.xy);
-		for (int i = 0; i < 32; i++) {
-			triPointerVolume[0][coords.x][i][coords.y] = 0;
-			lightPointerVolume[0][coords.x][i][coords.y] = 0;
+		for (int i = 0; i < pointerGridSize.y; i++) {
+			PointerVolume[0][coords.x][i][coords.y] = 0;
 		}
 	}
 	/* DRAWBUFFERS:0 */

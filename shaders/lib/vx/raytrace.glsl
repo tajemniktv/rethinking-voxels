@@ -466,65 +466,87 @@ ray_hit_t betterRayTrace(vec3 pos0, vec3 dir, sampler2D atlas, bool backFaceCull
 	float transHitW = 1;
 	for (;w < 1 && k < 200 && rayColor.a < 0.999; k++) {
 		pos = pos0 + w * dir + eyeOffsets[i];
-		if (isInBounds(pos, vec2(-16, -32).yxy, vec2(16, 32).yxy)) {
+		if (isInBounds(pos, -pointerGridSize / 2, pointerGridSize / 2)) {
 			wasInRange = true;
-			ivec3 coords = ivec3(pos + vec2(16, 32).yxy);
-			int triCountHere = min(triPointerVolume[0][coords.x][coords.y][coords.z], LOCAL_MAX_TRIS);
-			for (int j = 1; j <= triCountHere; j++) {
-				int thisTriId = triPointerVolume[j][coords.x][coords.y][coords.z];
-				tri_t thisTri = tris[thisTriId];
-				if (backFaceCulling) {
-					vec3 cnormal = cross(thisTri.pos[0] - thisTri.pos[1], thisTri.pos[0] - thisTri.pos[2]);
-					if (dot(cnormal, dir) >= 0) continue;
-				}
-				vec2 boundWs = boundsIntersect(POINTER_VOLUME_RES * pos0, POINTER_VOLUME_RES * dir, thisTri);
-				if (boundWs.y <= 0 || boundWs.x > hitW) continue;
-				vec3 hitPos = rayTriangleIntersect(POINTER_VOLUME_RES * pos0, POINTER_VOLUME_RES * dir, thisTri);
-				if (hitPos.z <= 0 || hitPos.z > hitW) continue;
-				ivec2 coord0 = ivec2(thisTri.texCoord[0] % 65536, thisTri.texCoord[0] / 65536);
-				vec2 coord = coord0;
-				vec2 offsetDir = vec2(0);
-				for (int i = 0; i < 2; i++) {
-					ivec2 coord1 = ivec2(thisTri.texCoord[i+1] % 65536, thisTri.texCoord[i+1] / 65536);
-					vec2 dcoord = coord1 - coord0;
-					dcoord += sign(dcoord);
-					coord += vec2(hitPos[i] * dcoord);
-					offsetDir += sign(dcoord) * (1 - abs(offsetDir));
-				}
-				coord -= 0.5 * offsetDir;
-				vec4 newColor = ((thisTri.matBools >> 16) % 2 == 0) ? texelFetch(atlas, ivec2(coord + 0.5), 0) : vec4(1);
-				if (newColor.a < 0.1) continue;
-				vec4 vertexCol0 = vec4(
-						thisTri.vertexCol[0] % 256,
-					(thisTri.vertexCol[0] >>  8) % 256,
-					(thisTri.vertexCol[0] >> 16) % 256,
-					(thisTri.vertexCol[0] >> 24) % 256
-				);
-				vec4 vertexCol = vertexCol0;
-				for (int i = 0; i < 2; i++) {
-					vec4 vertexCol1 = vec4(
-							thisTri.vertexCol[i+1] % 256,
-						(thisTri.vertexCol[i+1] >>  8) % 256,
-						(thisTri.vertexCol[i+1] >> 16) % 256,
-						(thisTri.vertexCol[i+1] >> 24) % 256
-					);
-					vertexCol += hitPos[i] * (vertexCol1 - vertexCol0);
-				}
-				newColor *= vertexCol / 255.0;
-				if (transHitW < hitPos.z) rayColor += (1 - rayColor.a) * newColor * vec2(1, newColor.a).yyyx;
-				else           rayColor = newColor +  (1 - newColor.a) * rayColor * vec2(1, rayColor.a).yyyx;
-				if (newColor.a > 0.9) {
-					if (hitPos.z < hitW) {
-						hitW = hitPos.z;
-						returnVal.pos = pos0 + hitPos.z * dir;
-						returnVal.triId = thisTriId;
+			ivec3 coords = ivec3(pos + pointerGridSize / 2);
+			int triLocHere = PointerVolume[1][coords.x][coords.y][coords.z];
+			int triCountHere = PointerVolume[0][coords.x][coords.y][coords.z];
+			while (triCountHere > 0) {
+				int packedBounds = PointerVolume[2][coords.x][coords.y][coords.z];
+				vec3 lowerBound = vec3(
+					packedBounds % 32,
+					(packedBounds >> 5) % 32,
+					(packedBounds >> 10) % 32
+				) / 31.0;
+				vec3 upperBound = vec3(
+					(packedBounds >> 15) % 32,
+					(packedBounds >> 20) % 32,
+					(packedBounds >> 25) % 32
+				) / 31.0;
+				vec3 lowerBound0 = lowerBound;
+				vec3 upperBound0 = upperBound;
+				lowerBound += coords - pointerGridSize / 2;
+				upperBound += coords - pointerGridSize / 2;
+				vec2 vxBoundIsct = boundsIntersect(pos0, dir, lowerBound, upperBound);
+				if (vxBoundIsct.y <= 0 || vxBoundIsct.x > hitW) break;
+				for (int j = 1; j <= triCountHere; j++) {
+					int thisTriId = bvhLeaves[triLocHere + j];
+					if (thisTriId == 0) rayColor.r += 0.01;
+					tri_t thisTri = tris[thisTriId];
+					if (backFaceCulling) {
+						vec3 cnormal = cross(thisTri.pos[0] - thisTri.pos[1], thisTri.pos[0] - thisTri.pos[2]);
+						if (dot(cnormal, dir) >= 0) continue;
 					}
-				} else if (hitPos.z < transHitW) {
-					transHitW = hitPos.z;
-					returnVal.transPos = pos0 + hitPos.z * dir;
-					returnVal.transTriId = thisTriId;
-					returnVal.transColor = newColor;
+					vec2 boundWs = boundsIntersect(POINTER_VOLUME_RES * pos0, POINTER_VOLUME_RES * dir, thisTri);
+					if (boundWs.y <= 0 || boundWs.x > hitW) continue;
+					vec3 hitPos = rayTriangleIntersect(POINTER_VOLUME_RES * pos0, POINTER_VOLUME_RES * dir, thisTri);
+					if (hitPos.z <= 0 || hitPos.z > hitW) continue;
+					ivec2 coord0 = ivec2(thisTri.texCoord[0] % 65536, thisTri.texCoord[0] / 65536);
+					vec2 coord = coord0;
+					vec2 offsetDir = vec2(0);
+					for (int i = 0; i < 2; i++) {
+						ivec2 coord1 = ivec2(thisTri.texCoord[i+1] % 65536, thisTri.texCoord[i+1] / 65536);
+						vec2 dcoord = coord1 - coord0;
+						dcoord += sign(dcoord);
+						coord += vec2(hitPos[i] * dcoord);
+						offsetDir += sign(dcoord) * (1 - abs(offsetDir));
+					}
+					coord -= 0.5 * offsetDir;
+					vec4 newColor = ((thisTri.matBools >> 16) % 2 == 0) ? texelFetch(atlas, ivec2(coord + 0.5), 0) : vec4(1);
+					if (newColor.a < 0.1) continue;
+					vec4 vertexCol0 = vec4(
+							thisTri.vertexCol[0] % 256,
+						(thisTri.vertexCol[0] >>  8) % 256,
+						(thisTri.vertexCol[0] >> 16) % 256,
+						(thisTri.vertexCol[0] >> 24) % 256
+					);
+					vec4 vertexCol = vertexCol0;
+					for (int i = 0; i < 2; i++) {
+						vec4 vertexCol1 = vec4(
+								thisTri.vertexCol[i+1] % 256,
+							(thisTri.vertexCol[i+1] >>  8) % 256,
+							(thisTri.vertexCol[i+1] >> 16) % 256,
+							(thisTri.vertexCol[i+1] >> 24) % 256
+						);
+						vertexCol += hitPos[i] * (vertexCol1 - vertexCol0);
+					}
+					newColor *= vertexCol / 255.0;
+					if (transHitW < hitPos.z) rayColor += (1 - rayColor.a) * newColor * vec2(1, newColor.a).yyyx;
+					else           rayColor = newColor +  (1 - newColor.a) * rayColor * vec2(1, rayColor.a).yyyx;
+					if (newColor.a > 0.9) {
+						if (hitPos.z < hitW) {
+							hitW = hitPos.z;
+							returnVal.pos = pos0 + hitPos.z * dir;
+							returnVal.triId = thisTriId;
+						}
+					} else if (hitPos.z < transHitW) {
+						transHitW = hitPos.z;
+						returnVal.transPos = pos0 + hitPos.z * dir;
+						returnVal.transTriId = thisTriId;
+						returnVal.transColor = newColor;
+					}
 				}
+				break;
 			}
 		} else if (wasInRange) break;
 		progress[i] += stp[i];

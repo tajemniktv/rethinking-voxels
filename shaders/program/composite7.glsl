@@ -38,6 +38,7 @@ uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;
 ivec2 atlasSize = ivec2(1);
 uniform sampler2D colortex15;
+
 #include "/lib/vx/raytrace.glsl"
 
 //Program//
@@ -48,22 +49,16 @@ void main() {
 		FXAA311(color);
 	#endif
 
-	if (all(lessThan(texelCoord, ivec2(5)))) {
-		color = vec3(0.00001 * numBvhEntries);
-	} else if (texelCoord.y < 5) {
-		int entryIndex0 = texelCoord.x - 5;
-		bvh_entry_t thisEntry = bvhEntries[entryIndex0];
-		color = vec3(0);
-		color.r = 0.1 * (thisEntry.upper.x - thisEntry.lower.x);
-		color.g = bvhLeaves[thisEntry.attachedTriLoc] * 0.1;
-		if (entryIndex0 >= numBvhEntries) color = mix(color, vec3(1), 1.0);
-	} else if (all(lessThan(abs(texelCoord - ivec2(viewWidth, viewHeight) / 2), ivec2(viewWidth, viewHeight) / 2))) {
+	if (false && all(lessThan(abs(texelCoord - ivec2(viewWidth, viewHeight) / 2), ivec2(viewWidth, viewHeight) / 4))) {
 		vec4 playerPos = vec4(gl_FragCoord.xy / vec2(viewWidth, viewHeight) * 2 - 1, 0.999, 1);
 		playerPos = gbufferProjectionInverse * playerPos;
 		playerPos = gbufferModelViewInverse * playerPos;
 		playerPos.xyz = 30 * normalize(playerPos.xyz);
-		ray_hit_t rayHit = bvhRayTrace(fract(cameraPosition), playerPos.xyz, colortex15);
+		ray_hit_t rayHit = betterRayTrace(fract(cameraPosition), playerPos.xyz, colortex15);
 		color = mix(color, rayHit.rayColor.rgb, 0.5);
+	}
+	if (texelCoord.y < 10) {
+		if (texelCoord.x < numFaces * viewWidth / float(MAX_TRIS)) color = vec3(0.1 * tris[0].bvhParent);
 	}
 
 	/*DRAWBUFFERS:3*/
