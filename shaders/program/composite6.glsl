@@ -35,7 +35,7 @@ const bool colortex3MipmapEnabled = true;
 float GetLinearDepth(float depth) {
    return (2.0 * near) / (far + near - depth * (far - near));
 }
-
+//#define ACCUM
 //Includes//
 #ifdef TAA
 	#include "/lib/antialiasing/taa.glsl"

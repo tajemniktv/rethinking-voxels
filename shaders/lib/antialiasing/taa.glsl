@@ -64,6 +64,7 @@ void NeighbourhoodClamping(vec3 color, inout vec3 tempColor, float depth, inout 
 }
 
 void DoTAA(inout vec3 color, inout vec4 temp) {
+
 	int materialMask = int(texelFetch(colortex1, texelCoord, 0).g * 255.1);
 
 	if (materialMask == 254) // No SSAO, No TAA
@@ -80,7 +81,12 @@ void DoTAA(inout vec3 color, inout vec4 temp) {
 		temp = vec4(color, depth);
 		return;
 	}
-
+	#ifdef ACCUM
+		temp.rgb = mix(color, tempColor.rgb, 0.99);
+		color = temp.rgb;
+		temp.a = depth;
+		return;
+	#endif
 	float edge = 0.0;
 	NeighbourhoodClamping(color, tempColor.xyz, depth, edge);
 

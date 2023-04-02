@@ -86,7 +86,7 @@ void main() {
 										(uint(255.5) << 24);
 				tris[faceNum].vertexCol[i] = packedVertexCol;
 				tris[faceNum].texCoord[i] = pixelCoord.x + 65536 * pixelCoord.y;
-				tris[faceNum].pos[i] = posV[j] + fract(cameraPosition);
+				tris[faceNum].pos[i] = posV[j] + fract(cameraPosition) + 0.001 * blockCenterOffsetV[j];
 			}
 		}
 	}

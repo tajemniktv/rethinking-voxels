@@ -80,6 +80,7 @@ void main() {
 		ivec2 coords = ivec2(gl_FragCoord.xy);
 		for (int i = 0; i < pointerGridSize.y; i++) {
 			PointerVolume[0][coords.x][i][coords.y] = 0;
+			PointerVolume[4][coords.x][i][coords.y] = 0;
 		}
 	}
 	/* DRAWBUFFERS:0 */

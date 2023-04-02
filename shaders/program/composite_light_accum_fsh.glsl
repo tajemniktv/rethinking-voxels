@@ -36,6 +36,7 @@ void main() {
 	vec4 prevCol = texture2D(colortex12, prevPos.xy);
 	float blendFactor = float(prevPos.x > 0.0 && prevPos.x < 1.0 &&
 	                          prevPos.y > 0.0 && prevPos.y < 1.0);
+	blendFactor = 0;
 	float prevDepth0 = GetLinearDepth(prevPos.z);
 	float prevDepth1 = GetLinearDepth(texture2D(colortex12, prevPos.xy).a);
 	float ddepth = abs(prevDepth0 - prevDepth1) / abs(prevDepth0);

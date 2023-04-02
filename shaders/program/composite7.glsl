@@ -58,7 +58,7 @@ void main() {
 		color = mix(color, rayHit.rayColor.rgb, 0.5);
 	}
 	if (texelCoord.y < 10) {
-		if (texelCoord.x < numFaces * viewWidth / float(MAX_TRIS)) color = vec3(0.1 * tris[0].bvhParent);
+		if (texelCoord.x < numFaces * viewWidth / float(MAX_TRIS)) color = 0.1 * lights[texelCoord.x / 2].pos + 0.5;
 	}
 
 	/*DRAWBUFFERS:3*/
