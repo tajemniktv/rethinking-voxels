@@ -62,6 +62,9 @@
     #define TRANSLUCENT_GI_TINT
     #define TRANSLUCENT_LIGHT_TINT 0.5 // [0.1 0.15 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
     #define TRANSLUCENT_LIGHT_CONDUCTION 1.0 // [0.9 1.0 1.1 1.2 1.3 1.5]
+
+    #define ACCURATE_RT
+
     #if SHADOWRES == 512
         #if (VXHEIGHT == 4)
             const float shadowDistance = 64.0;

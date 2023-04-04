@@ -13,7 +13,7 @@ in vec2 texCoord;
 flat in vec4 glColor;
 
 //Uniforms//
-uniform sampler2D tex;
+uniform sampler2D gtexture;
 
 //Pipeline Constants//
 
@@ -25,7 +25,7 @@ uniform sampler2D tex;
 
 //Program//
 void main() {
-	vec4 color = texture2D(tex, texCoord);
+	vec4 color = texture2D(gtexture, texCoord);
 	color.rgb *= glColor.rgb;
 
 	/* DRAWBUFFERS:0 */

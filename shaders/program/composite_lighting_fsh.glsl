@@ -36,6 +36,7 @@ ivec2 offsets[4] = ivec2[4](ivec2(0, 0), ivec2(0, 1), ivec2(1, 1), ivec2(1, 0));
 #define PP_BL_SHADOWS
 #define FF_IS_UPDATED
 #define VX_NORMAL_MARGIN 0.08
+#define NEW_BLOCKLIGHT_ONLY
 #include "/lib/vx/getLighting.glsl"
 #endif
 void main() {

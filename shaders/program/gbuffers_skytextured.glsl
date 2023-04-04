@@ -26,7 +26,7 @@ uniform vec3 fogColor;
 
 uniform mat4 gbufferProjectionInverse;
 
-uniform sampler2D tex;
+uniform sampler2D gtexture;
 
 //Pipeline Constants//
 
@@ -45,8 +45,8 @@ uniform sampler2D tex;
 //Program//
 void main() {
 	#ifdef OVERWORLD
-		vec2 tSize = textureSize(tex, 0);
-		vec4 color = texture2D(tex, texCoord);
+		vec2 tSize = textureSize(gtexture, 0);
+		vec4 color = texture2D(gtexture, texCoord);
 		color.rgb *= glColor.rgb;
 	
 		vec4 screenPos = vec4(gl_FragCoord.xy / vec2(viewWidth, viewHeight), gl_FragCoord.z, 1.0);

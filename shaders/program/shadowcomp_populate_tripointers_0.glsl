@@ -1,13 +1,26 @@
-layout(local_size_x = 64) in;
+#include "/lib/common.glsl"
 
+layout(local_size_x = 64) in;
+//layout(local_size_x = 1) in;
 const ivec3 workGroups = ivec3(1, 1, 1);
 
+#ifdef ACCURATE_RT
 #include "/lib/vx/SSBOs.glsl"
 
-shared int totalCounts[64];
+shared int totalCounts[pointerGridSize.x];
 
 void main() {
+
 	int thisTotalCount = 0;
+	/*for (int x = 0; x < pointerGridSize.x; x++) {
+		for (int y = 0; y < pointerGridSize.y; y++) {
+			for (int z = 0; z < pointerGridSize.z; z++) {
+				PointerVolume[1][x][y][z] = thisTotalCount;
+				thisTotalCount += PointerVolume[0][x][y][z] + 1;
+			}
+		}
+	}
+	return;*/
 	int x = int(gl_LocalInvocationID.x);
 	for (int y = 0; y < pointerGridSize.y; y++) {
 		for (int z = 0; z < pointerGridSize.z; z++) {
@@ -32,3 +45,6 @@ void main() {
 		}
 	}
 }
+#else
+void main() {}
+#endif

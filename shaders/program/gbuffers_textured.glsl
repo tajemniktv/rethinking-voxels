@@ -51,7 +51,7 @@ uniform mat4 gbufferPreviousModelView;
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
 
-uniform sampler2D tex;
+uniform sampler2D gtexture;
 
 #ifdef CLOUDS_REIMAGINED
 	uniform sampler2D gaux1;
@@ -62,7 +62,7 @@ uniform sampler2D tex;
 #endif
 
 #if defined PP_BL_SHADOWS || defined PP_SUN_SHADOWS || (defined HELD_LIGHT_OCCLUSION_CHECK && HELD_LIGHTING_MODE > 0)
-	#define ATLASTEX tex
+	#define ATLASTEX gtexture
 #endif
 
 #if HELD_LIGHTING_MODE >= 1
@@ -101,7 +101,7 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 
 //Program//
 void main() {
-	vec4 color = texture2D(tex, texCoord);
+	vec4 color = texture2D(gtexture, texCoord);
 	vec4 colorP = color;
 	color *= glColor;
 

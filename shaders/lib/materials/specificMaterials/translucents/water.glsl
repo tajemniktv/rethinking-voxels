@@ -1,7 +1,7 @@
 #if MC_VERSION >= 11300
     vec3 glColorM = glColor.rgb;
 #else
-    vec3 glColorM = texture2DLod(tex, texCoord, 100.0).rgb * vec3(1.35, 1.8, 1.0);
+    vec3 glColorM = texture2DLod(gtexture, texCoord, 100.0).rgb * vec3(1.35, 1.8, 1.0);
     colorP.rgb = min(pow2(pow2(pow2(color.rgb / normalize(color.rgb) * 0.95))), vec3(0.9));
 #endif
 

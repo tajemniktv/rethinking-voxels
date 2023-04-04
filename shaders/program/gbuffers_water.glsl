@@ -58,10 +58,10 @@ uniform mat4 shadowProjection;
 uniform float viewWidth;
 uniform float viewHeight;
 
-uniform sampler2D tex;
+uniform sampler2D gtexture;
 
 #if defined PP_BL_SHADOWS || defined PP_SUN_SHADOWS || (defined HELD_LIGHT_OCCLUSION_CHECK && HELD_LIGHTING_MODE > 0)
-	#define ATLASTEX tex
+	#define ATLASTEX gtexture
 #endif
 
 #if WATER_QUALITY >= 2 || WATER_STYLE >= 2 || defined FANCY_NETHERPORTAL
@@ -185,7 +185,7 @@ float GetLinearDepth(float depth) {
 
 //Program//
 void main() {
-	vec4 colorP = texture2D(tex, texCoord);
+	vec4 colorP = texture2D(gtexture, texCoord);
 	vec4 color = colorP * vec4(glColor.rgb, 1.0);
 
 	vec2 screenCoord = gl_FragCoord.xy / vec2(viewWidth, viewHeight);

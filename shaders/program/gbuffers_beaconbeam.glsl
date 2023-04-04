@@ -20,7 +20,7 @@ uniform mat4 gbufferModelViewInverse;
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
 
-uniform sampler2D tex;
+uniform sampler2D gtexture;
 
 //Pipeline Constants//
 
@@ -37,7 +37,7 @@ uniform sampler2D tex;
 
 //Program//
 void main() {
-	vec4 color = texture2D(tex, texCoord);
+	vec4 color = texture2D(gtexture, texCoord);
 	vec3 colorP = color.rgb;
 	color *= glColor;
 

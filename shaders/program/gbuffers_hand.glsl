@@ -49,11 +49,11 @@ uniform mat4 gbufferPreviousModelView;
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
 
-uniform sampler2D tex;
+uniform sampler2D gtexture;
 
 #if defined PP_BL_SHADOWS || defined PP_SUN_SHADOWS || (defined HELD_LIGHT_OCCLUSION_CHECK && HELD_LIGHTING_MODE > 0)
 	uniform int frameCounter;
-	#define ATLASTEX tex
+	#define ATLASTEX gtexture
 #endif
 
 #ifdef COATED_TEXTURES
@@ -124,7 +124,7 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 
 //Program//
 void main() {
-	vec4 color = texture2D(tex, texCoord);
+	vec4 color = texture2D(gtexture, texCoord);
 
 	float smoothnessD = 0.0, skyLightFactor = 0.0, materialMask = OSIEBCA * 254.0; // No SSAO, No TAA
 	vec3 normalM = normal;

@@ -1,7 +1,9 @@
 #ifndef RAYTRACE
 #define RAYTRACE
 #include "/lib/vx/voxelMapping.glsl"
+#ifndef ACCURATE_RT
 #include "/lib/vx/voxelReading.glsl"
+#endif
 #if CAVE_SUNLIGHT_FIX > 0
 #ifndef COLORTEX10
 #define COLORTEX10
@@ -15,11 +17,9 @@ uniform sampler2D colortex11;
 #endif
 #endif
 
-const mat3 eye = mat3(
-	1, 0, 0,
-	0, 1, 0,
-	0, 0, 1
-);
+const mat3 eye = mat3(1.0);
+
+#ifndef ACCURATE_RT
 // cuboid intersection algorithm
 float aabbIntersect(vxData data, vec3 pos, vec3 dir, inout int n) {
 	// offset to work around floating point errors
@@ -115,8 +115,8 @@ vec4 handledata(vxData data, sampler2D atlas, inout vec3 pos, vec3 dir, int n) {
 			if (w > 9999) return vec4(0);
 			pos += w * dir;
 		}
-		vec2 spritecoord = vec2(n != 0 ? fract(pos.x) : fract(pos.z), n != 1 ? fract(-pos.y) : fract(pos.z)) * 2 - 1;
-		ivec2 texcoord = ivec2(data.texcoord * atlasSize + (data.spritesize - 0.5) * spritecoord);
+		vec2 spritecoord = vec2(n != 0 ? fract(pos.x) : fract(pos.z), n != 1 ? fract(-pos.y) : fract(pos.z));
+		ivec2 texcoord = data.texelcoord - data.spritesize / 2 + ivec2(data.spritesize * spritecoord);
 		vec4 color = texelFetch(atlas, texcoord, 0);
 		if (!data.alphatest) color.a = 1;
 		else if (color.a > 0.1 && color.a < 0.9) color.a = min(pow(color.a, TRANSLUCENT_LIGHT_TINT), 0.8);
@@ -135,8 +135,8 @@ vec4 handledata(vxData data, sampler2D atlas, inout vec3 pos, vec3 dir, int n) {
 	vec3 p1 = blockInnerPos + w1 * dir + vec3(0.5, 0, 0.5);
 	bool valid0 = (max(max(abs(p0.x - 0.5), 0.8 * abs(p0.y - 0.5)), abs(p0.z - 0.5)) < 0.4) && w0 > -0.0001;
 	bool valid1 = (max(max(abs(p1.x - 0.5), 0.8 * abs(p1.y - 0.5)), abs(p1.z - 0.5)) < 0.4) && w1 > -0.0001;
-	vec4 color0 = valid0 ? texelFetch(atlas, ivec2(data.texcoord * atlasSize + (data.spritesize - 0.5) * (1 - p0.xy * 2)), 0) : vec4(0);
-	vec4 color1 = valid1 ? texelFetch(atlas, ivec2(data.texcoord * atlasSize + (data.spritesize - 0.5) * (1 - p1.xy * 2)), 0) : vec4(0);
+	vec4 color0 = valid0 ? texelFetch(atlas, ivec2(data.texelcoord + (data.spritesize - 0.5) * (1 - p0.xy * 2)), 0) : vec4(0);
+	vec4 color1 = valid1 ? texelFetch(atlas, ivec2(data.texelcoord + (data.spritesize - 0.5) * (1 - p1.xy * 2)), 0) : vec4(0);
 	color0.xyz *= data.emissive ? vec3(1) : data.lightcol;
 	color1.xyz *= data.emissive ? vec3(1) : data.lightcol;
 	pos += (valid0 ? w0 : (valid1 ? w1 : 0)) * dir;
@@ -175,7 +175,7 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, bool doScattering, vec3 dir, inou
 	vec4 oldRayColor = vec4(0);
 	const float scatteringMaxAlpha = 0.1;
 	// check if stuff already needs to be done at starting position
-	vxData voxeldata = readVxMap(getVxPixelCoords(pos));
+	vxData voxeldata = readVxMap(pos);
 	bool isScattering = false;
 	if (lowDetail && voxeldata.full && !voxeldata.alphatest) return vec4(0, 0, 0, translucentData ? 0 : 1);
 	if (isInRange(pos) && voxeldata.trace && !lowDetail) {
@@ -199,20 +199,19 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, bool doScattering, vec3 dir, inou
 		oldRayColor = rayColor;
 		pos = pos0 + (min(w, 1.0)) * dir + eyeOffsets[i];
 		#ifdef DISTANCE_FIELD
-		ivec4 dfdata;
+			ivec4 dfdata;
 		#endif
 		// read voxel data at new position and update ray colour accordingly
 		if (isInRange(pos)) {
 			wasInRange = true;
-			ivec2 vxCoords = getVxPixelCoords(pos);
-			voxeldata = readVxMap(vxCoords);
+			voxeldata = readVxMap(pos);
 			#ifdef DISTANCE_FIELD
-			#ifdef FF_IS_UPDATED
-			ivec2 oldCoords = vxCoords;
-			#else
-			ivec2 oldCoords = getVxPixelCoords(pos + dcamPos);
-			#endif
-			dfdata = ivec4(texelFetch(colortex11, oldCoords, 0) * 65525 + 0.5);
+				#ifdef FF_IS_UPDATED
+					ivec2 oldCoords = vxCoords;
+				#else
+					ivec2 oldCoords = getVxPixelCoords(pos + dcamPos);
+				#endif
+				dfdata = ivec4(texelFetch(colortex11, oldCoords, 0) * 65535 + 0.5);
 			#endif
 			pos -= eyeOffsets[i];
 			if (lowDetail) {
@@ -320,7 +319,7 @@ vec4 raytrace(inout vec3 pos0, vec3 dir, sampler2D atlas) {
 	return raytrace(pos0, dir, atlas, false);
 }
 
-
+#endif
 
 struct ray_hit_t {
 	vec4 rayColor;
@@ -330,7 +329,7 @@ struct ray_hit_t {
 	vec3 pos;
 	vec3 transPos;
 };
-
+#ifndef ACCURATE_RT
 vec4 raytrace(vec3 pos0, vec3 dir, sampler2D atlas, inout ray_hit_t rayHit) {
 	vec3 transPos = vec3(-10000);
 	vec4 rayColor = raytrace(pos0, dir, transPos, atlas, true);
@@ -343,6 +342,7 @@ vec4 raytrace(vec3 pos0, vec3 dir, sampler2D atlas, inout ray_hit_t rayHit) {
 	return rayColor;
 }
 
+#endif
 bool isInBounds(vec3 v, vec3 lower, vec3 upper) {
 	if (v == clamp(v, lower, upper)) return true;
 	return false;
@@ -420,156 +420,157 @@ vec2 boundsIntersect(vec3 pos0, vec3 dir, tri_t triangle) {
 	vec3 upper0 = max(max(triangle.pos[0], triangle.pos[1]), triangle.pos[2]);
 	return boundsIntersect(pos0, dir, lower0, upper0);
 }
+#ifdef ACCURATE_RT
+	ray_hit_t betterRayTrace(vec3 pos0, vec3 dir, sampler2D atlas, bool backFaceCulling) {
+		pos0 *= 1.0 / POINTER_VOLUME_RES;
+		dir *= 1.0 / POINTER_VOLUME_RES;
 
-ray_hit_t betterRayTrace(vec3 pos0, vec3 dir, sampler2D atlas, bool backFaceCulling) {
-	pos0 *= 1.0 / POINTER_VOLUME_RES;
-	dir *= 1.0 / POINTER_VOLUME_RES;
+		ray_hit_t returnVal;
 
-	ray_hit_t returnVal;
+		returnVal.transColor = vec4(0);
+		returnVal.transPos = vec3(-10000);
+		returnVal.transTriId = -1;
 
-	returnVal.transColor = vec4(0);
-	returnVal.transPos = vec3(-10000);
-	returnVal.transTriId = -1;
-
-	vec3 progress;
-	for (int i = 0; i < 3; i++) {
-		//set starting position in each direction
-		progress[i] = -(dir[i] < 0 ? fract(pos0[i]) : fract(pos0[i]) - 1) / dir[i];
-	}
-	// step size in each direction (to keep to the voxel grid)
-	vec3 stp = abs(1 / dir);
-	float dirlen = length(dir);
-	float invDirLenScaled = 0.001 / dirlen;
-	int i = 0;
-	float istp = stp[0];
-	for (int j = 1; j < 3; j++) {
-		if (stp[j] < istp) {
-			istp = stp[j];
-			i = j;
+		vec3 progress;
+		for (int i = 0; i < 3; i++) {
+			//set starting position in each direction
+			progress[i] = -(dir[i] < 0 ? fract(pos0[i]) : fract(pos0[i]) - 1) / dir[i];
 		}
-	}
-	float w = invDirLenScaled;
-	progress[i] -= stp[i];
-	vec3 dirsgn = sign(dir);
-	vec3[3] eyeOffsets;
-	for (int k = 0; k < 3; k++) {
-		eyeOffsets[k] = 0.0001 * eye[k] * dirsgn[k];
-	}
-	int k = 0; // k is a safety iterator
-	vec3 oldPos = pos0;
-	bool oldFull = false;
-	bool wasInRange = false;
-	vec3 pos;
-	vec4 rayColor = vec4(0);
-	int hitID = -1;
-	float hitW = 1;
-	float transHitW = 1;
-	for (;w < 1 && k < 200 && rayColor.a < 0.999; k++) {
-		pos = pos0 + w * dir + eyeOffsets[i];
-		if (isInBounds(pos, -pointerGridSize / 2, pointerGridSize / 2)) {
-			wasInRange = true;
-			ivec3 coords = ivec3(pos + pointerGridSize / 2);
-			int triLocHere = PointerVolume[1][coords.x][coords.y][coords.z];
-			int triCountHere = PointerVolume[0][coords.x][coords.y][coords.z];
-			while (triCountHere > 0) {
-				int packedBounds = PointerVolume[2][coords.x][coords.y][coords.z];
-				vec3 lowerBound = vec3(
-					packedBounds % 32,
-					(packedBounds >> 5) % 32,
-					(packedBounds >> 10) % 32
-				) / 31.0;
-				vec3 upperBound = vec3(
-					(packedBounds >> 15) % 32,
-					(packedBounds >> 20) % 32,
-					(packedBounds >> 25) % 32
-				) / 31.0;
-				vec3 lowerBound0 = lowerBound;
-				vec3 upperBound0 = upperBound;
-				lowerBound += coords - pointerGridSize / 2;
-				upperBound += coords - pointerGridSize / 2;
-				vec2 vxBoundIsct = boundsIntersect(pos0, dir, lowerBound, upperBound);
-				if (vxBoundIsct.y <= 0 || vxBoundIsct.x > hitW) break;
-				for (int j = 1; j <= triCountHere; j++) {
-					int thisTriId = bvhLeaves[triLocHere + j];
-					if (thisTriId == 0) rayColor.r += 0.01;
-					tri_t thisTri = tris[thisTriId];
-					if (backFaceCulling) {
-						vec3 cnormal = cross(thisTri.pos[0] - thisTri.pos[1], thisTri.pos[0] - thisTri.pos[2]);
-						if (dot(cnormal, dir) >= 0) continue;
-					}
-					vec2 boundWs = boundsIntersect(POINTER_VOLUME_RES * pos0, POINTER_VOLUME_RES * dir, thisTri);
-					if (boundWs.y <= 0 || boundWs.x > hitW) continue;
-					vec3 hitPos = rayTriangleIntersect(POINTER_VOLUME_RES * pos0, POINTER_VOLUME_RES * dir, thisTri);
-					if (hitPos.z <= 0 || hitPos.z > hitW) continue;
-					ivec2 coord0 = ivec2(thisTri.texCoord[0] % 65536, thisTri.texCoord[0] / 65536);
-					vec2 coord = coord0;
-					vec2 offsetDir = vec2(0);
-					for (int i = 0; i < 2; i++) {
-						ivec2 coord1 = ivec2(thisTri.texCoord[i+1] % 65536, thisTri.texCoord[i+1] / 65536);
-						vec2 dcoord = coord1 - coord0;
-						dcoord += sign(dcoord);
-						coord += vec2(hitPos[i] * dcoord);
-						offsetDir += sign(dcoord) * (1 - abs(offsetDir));
-					}
-					coord -= 0.5 * offsetDir;
-					vec4 newColor = ((thisTri.matBools >> 16) % 2 == 0) ? texelFetch(atlas, ivec2(coord + 0.5), 0) : vec4(1);
-					if (newColor.a < 0.1) continue;
-					vec4 vertexCol0 = vec4(
-							thisTri.vertexCol[0] % 256,
-						(thisTri.vertexCol[0] >>  8) % 256,
-						(thisTri.vertexCol[0] >> 16) % 256,
-						(thisTri.vertexCol[0] >> 24) % 256
-					);
-					vec4 vertexCol = vertexCol0;
-					for (int i = 0; i < 2; i++) {
-						vec4 vertexCol1 = vec4(
-								thisTri.vertexCol[i+1] % 256,
-							(thisTri.vertexCol[i+1] >>  8) % 256,
-							(thisTri.vertexCol[i+1] >> 16) % 256,
-							(thisTri.vertexCol[i+1] >> 24) % 256
-						);
-						vertexCol += hitPos[i] * (vertexCol1 - vertexCol0);
-					}
-					newColor *= vertexCol / 255.0;
-					if (transHitW < hitPos.z) rayColor += (1 - rayColor.a) * newColor * vec2(1, newColor.a).yyyx;
-					else           rayColor = newColor +  (1 - newColor.a) * rayColor * vec2(1, rayColor.a).yyyx;
-					if (newColor.a > 0.9) {
-						if (hitPos.z < hitW) {
-							hitW = hitPos.z;
-							returnVal.pos = pos0 + hitPos.z * dir;
-							returnVal.triId = thisTriId;
+		// step size in each direction (to keep to the voxel grid)
+		vec3 stp = abs(1 / dir);
+		float dirlen = length(dir);
+		float invDirLenScaled = 0.001 / dirlen;
+		int i = 0;
+		float istp = stp[0];
+		for (int j = 1; j < 3; j++) {
+			if (stp[j] < istp) {
+				istp = stp[j];
+				i = j;
+			}
+		}
+		float w = invDirLenScaled;
+		progress[i] -= stp[i];
+		vec3 dirsgn = sign(dir);
+		vec3[3] eyeOffsets;
+		for (int k = 0; k < 3; k++) {
+			eyeOffsets[k] = 0.0001 * eye[k] * dirsgn[k];
+		}
+		int k = 0; // k is a safety iterator
+		vec3 oldPos = pos0;
+		bool oldFull = false;
+		bool wasInRange = false;
+		vec3 pos;
+		vec4 rayColor = vec4(0);
+		int hitID = -1;
+		float hitW = 1;
+		float transHitW = 1;
+		for (;w < 1 && k < 200 && rayColor.a < 0.999; k++) {
+			pos = pos0 + w * dir + eyeOffsets[i];
+			if (isInBounds(pos, -pointerGridSize / 2, pointerGridSize / 2)) {
+				wasInRange = true;
+				ivec3 coords = ivec3(pos + pointerGridSize / 2);
+				int triLocHere = PointerVolume[1][coords.x][coords.y][coords.z];
+				int triCountHere = bvhLeaves[triLocHere] - 1;//PointerVolume[0][coords.x][coords.y][coords.z];
+				while (triCountHere > 0) {
+					int packedBounds = PointerVolume[2][coords.x][coords.y][coords.z];
+					vec3 lowerBound = vec3(
+						packedBounds % 32,
+						(packedBounds >> 5) % 32,
+						(packedBounds >> 10) % 32
+					) / 31.0;
+					vec3 upperBound = vec3(
+						(packedBounds >> 15) % 32,
+						(packedBounds >> 20) % 32,
+						(packedBounds >> 25) % 32
+					) / 31.0;
+					vec3 lowerBound0 = lowerBound;
+					vec3 upperBound0 = upperBound;
+					lowerBound += coords - pointerGridSize / 2;
+					upperBound += coords - pointerGridSize / 2;
+					vec2 vxBoundIsct = boundsIntersect(pos0, dir, lowerBound, upperBound);
+					if (vxBoundIsct.y <= 0 || vxBoundIsct.x > hitW) break;
+					for (int j = 1; j <= triCountHere; j++) {
+						int thisTriId = bvhLeaves[triLocHere + j];
+						if (thisTriId == 0) rayColor.r += 0.1;
+						tri_t thisTri = tris[thisTriId];
+						if (backFaceCulling) {
+							vec3 cnormal = cross(thisTri.pos[0] - thisTri.pos[1], thisTri.pos[0] - thisTri.pos[2]);
+							if (dot(cnormal, dir) >= 0) continue;
 						}
-					} else if (hitPos.z < transHitW) {
-						transHitW = hitPos.z;
-						returnVal.transPos = pos0 + hitPos.z * dir;
-						returnVal.transTriId = thisTriId;
-						returnVal.transColor = newColor;
+						vec2 boundWs = boundsIntersect(POINTER_VOLUME_RES * pos0, POINTER_VOLUME_RES * dir, thisTri);
+						if (boundWs.y <= 0 || boundWs.x > hitW) continue;
+						vec3 hitPos = rayTriangleIntersect(POINTER_VOLUME_RES * pos0, POINTER_VOLUME_RES * dir, thisTri);
+						if (hitPos.z <= 0 || hitPos.z > hitW) continue;
+						ivec2 coord0 = ivec2(thisTri.texCoord[0] % 65536, thisTri.texCoord[0] / 65536);
+						vec2 coord = coord0;
+						vec2 offsetDir = vec2(0);
+						for (int i = 0; i < 2; i++) {
+							ivec2 coord1 = ivec2(thisTri.texCoord[i+1] % 65536, thisTri.texCoord[i+1] / 65536);
+							vec2 dcoord = coord1 - coord0;
+							dcoord += sign(dcoord);
+							coord += vec2(hitPos[i] * dcoord);
+							offsetDir += sign(dcoord) * (1 - abs(offsetDir));
+						}
+						coord -= 0.5 * offsetDir;
+						vec4 newColor = ((thisTri.matBools >> 16) % 2 == 0) ? texelFetch(atlas, ivec2(coord + 0.5), 0) : vec4(1);
+						if (newColor.a < 0.1) continue;
+						vec4 vertexCol0 = vec4(
+								thisTri.vertexCol[0] % 256,
+							(thisTri.vertexCol[0] >>  8) % 256,
+							(thisTri.vertexCol[0] >> 16) % 256,
+							(thisTri.vertexCol[0] >> 24) % 256
+						);
+						vec4 vertexCol = vertexCol0;
+						for (int i = 0; i < 2; i++) {
+							vec4 vertexCol1 = vec4(
+									thisTri.vertexCol[i+1] % 256,
+								(thisTri.vertexCol[i+1] >>  8) % 256,
+								(thisTri.vertexCol[i+1] >> 16) % 256,
+								(thisTri.vertexCol[i+1] >> 24) % 256
+							);
+							vertexCol += hitPos[i] * (vertexCol1 - vertexCol0);
+						}
+						newColor *= vertexCol / 255.0;
+						if (transHitW < hitPos.z) rayColor += (1 - rayColor.a) * newColor * vec2(1, newColor.a).yyyx;
+						else           rayColor = newColor +  (1 - newColor.a) * rayColor * vec2(1, rayColor.a).yyyx;
+						if (newColor.a > 0.9) {
+							if (hitPos.z < hitW) {
+								hitW = hitPos.z;
+								returnVal.pos = pos0 + hitPos.z * dir;
+								returnVal.triId = thisTriId;
+							}
+						} else if (hitPos.z < transHitW) {
+							transHitW = hitPos.z;
+							returnVal.transPos = pos0 + hitPos.z * dir;
+							returnVal.transTriId = thisTriId;
+							returnVal.transColor = newColor;
+						}
 					}
+					break;
 				}
-				break;
-			}
-		} else if (wasInRange) break;
-		progress[i] += stp[i];
-		w = progress[0];
-		i = 0;
-		for (int i0 = 1; i0 < 3; i0++) {
-			if (progress[i0] < w) {
-				i = i0;
-				w = progress[i];
+			} else if (wasInRange) break;
+			progress[i] += stp[i];
+			w = progress[0];
+			i = 0;
+			for (int i0 = 1; i0 < 3; i0++) {
+				if (progress[i0] < w) {
+					i = i0;
+					w = progress[i];
+				}
 			}
 		}
+		if (rayColor.a < 0.999) {
+			returnVal.pos = pos0 + dir;
+		}
+		returnVal.rayColor = rayColor;
+		returnVal.pos *= POINTER_VOLUME_RES;
+		returnVal.transPos *= POINTER_VOLUME_RES;
+		return returnVal;
 	}
-	if (rayColor.a < 0.999) {
-		returnVal.pos = pos0 + dir;
-	}
-	returnVal.rayColor = rayColor;
-	returnVal.pos *= POINTER_VOLUME_RES;
-	returnVal.transPos *= POINTER_VOLUME_RES;
-	return returnVal;
-}
 
-ray_hit_t betterRayTrace(vec3 pos0, vec3 dir, sampler2D atlas) {
-	return betterRayTrace(pos0, dir, atlas, true);
-}
+	ray_hit_t betterRayTrace(vec3 pos0, vec3 dir, sampler2D atlas) {
+		return betterRayTrace(pos0, dir, atlas, true);
+	}
+#endif
 
 #endif

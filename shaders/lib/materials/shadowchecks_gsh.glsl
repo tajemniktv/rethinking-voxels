@@ -34,6 +34,7 @@ switch (mat0) {
         break;
     case 10008:
         if (max(abs(cnormal.x), max(abs(cnormal.y), abs(cnormal.y))) < 0.99) zpos = 0.5 * zpos + 0.5;
+        break;
     case 31000:
         zpos = 0.3 * zpos + 0.7;
     case 10068:

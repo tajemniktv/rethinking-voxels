@@ -1391,3 +1391,94 @@ bool getConnectSides(int mat) {
 		mat == 31012
 	);
 }
+
+void adjustMat(inout int mat, vec3 cnormal, vec3 avgPos, float area) {
+	if (mat < 1000) {
+		if (abs(cnormal.y) > 0.99 && area > 0.85) {
+			float blockCenterDist = abs(fract(avgPos.y) - 0.5);
+			if (blockCenterDist > 0.4) mat = 1008;
+			else if (cnormal.y > 0) mat = 1009;
+			else mat = 1010;
+		} else if (abs(cnormal.y) < 0.01) {
+			if (max(abs(cnormal.x), abs(cnormal.z)) > 0.99 && area > 0.85) {
+				mat = 1008;
+			}
+			else if (abs(abs(cnormal.x) - abs(cnormal.z)) < 0.01) {
+				mat = 1004;
+			}
+		}
+	}
+}
+bool getVoxelise(int mat, vec3 cnormal, float area) {
+	return (
+		mat > 1000 && 
+		!(
+			(mat == 10064 && cnormal.y < 0.95) ||
+			((
+				mat == 10068 ||
+				mat == 10124 ||
+				mat == 10132 ||
+				mat == 10548 ||
+				mat == 31000
+			) && area < 0.8) ||
+			((
+				mat == 10350 ||
+				mat == 10604 ||
+				mat >= 60000
+			) && cnormal.y < 0.5) ||
+			(mat == 60012 && area < 0.3) ||
+			(mat == 50020 && (abs(area - 0.25) > 0.01 || cnormal.y < 0.7)) ||
+			(mat == 50048 && (abs(area - 0.5625) > 0.01 || cnormal.y < 0.0)) ||
+			(mat == 50052 && (area < 4.0 || cnormal.y < 0.7)) ||
+			(mat == 50080 && (abs(area - 0.097656) > 0.01 || abs(min(length(posV[1] - posV[0]), length(posV[2] - posV[0])) - 0.3125) > 0.001 || abs(cnormal.y) < 0.7)) ||
+			mat == 10472 ||
+			mat == 50016 ||
+			mat == 60004 ||
+			mat == 60018
+		)
+	);
+}
+float getNormalOffset(int mat, float area) {
+	switch(mat) {
+		case 10064:
+			return 0.05;
+		case 10350:
+			return 0.1;
+		case 50020:
+			return 0.25;
+		case 50048:
+			return 0.5;
+		case 50052:
+		case 50116:
+			return 0.5 * sqrt(area);
+		case 50080:
+			return 0.1562;
+		default:
+			return mat >= 60000 ? 0.3 : 0.04;
+	}
+}
+bool doFullPosOffset(int mat) {
+	return (
+		mat == 50020 ||
+		mat == 50048 ||
+		mat == 50052 ||
+		mat == 50080 ||
+		mat == 50116
+	);
+}
+void adjustZpos(inout float zpos, int mat, vec3 avgPos, vec3 cnormal) {
+	switch(mat) {
+		case 1008:
+			if (abs(cnormal.y) > 0.99) {
+				float blockCenterDist = abs(fract(avgPos.y) - 0.5);
+				zpos = blockCenterDist;
+			} else zpos = 0;
+			return;
+		case 10008:
+			if (max(abs(cnormal.x), max(abs(cnormal.y), abs(cnormal.y))) < 0.99) zpos = 0.5 * zpos + 0.5;
+		case 31000:
+			zpos = 0.3 * zpos + 0.7;
+			return;
+	}
+
+}

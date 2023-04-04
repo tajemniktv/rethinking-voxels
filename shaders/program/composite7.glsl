@@ -48,17 +48,13 @@ void main() {
 	#ifdef FXAA
 		FXAA311(color);
 	#endif
-
-	if (false && all(lessThan(abs(texelCoord - ivec2(viewWidth, viewHeight) / 2), ivec2(viewWidth, viewHeight) / 4))) {
-		vec4 playerPos = vec4(gl_FragCoord.xy / vec2(viewWidth, viewHeight) * 2 - 1, 0.999, 1);
-		playerPos = gbufferProjectionInverse * playerPos;
-		playerPos = gbufferModelViewInverse * playerPos;
-		playerPos.xyz = 30 * normalize(playerPos.xyz);
-		ray_hit_t rayHit = betterRayTrace(fract(cameraPosition), playerPos.xyz, colortex15);
-		color = mix(color, rayHit.rayColor.rgb, 0.5);
-	}
-	if (texelCoord.y < 10) {
-		if (texelCoord.x < numFaces * viewWidth / float(MAX_TRIS)) color = 0.1 * lights[texelCoord.x / 2].pos + 0.5;
+	/*if (length(texelCoord - vec2(viewWidth, viewHeight) / 2) < 300) {
+		ray_hit_t rayHit;
+		raytrace(fract(cameraPosition), 20 * normalize((gbufferModelViewInverse * (gbufferProjectionInverse * vec4(gl_FragCoord.xy / vec2(viewWidth, viewHeight) * 2 - 1, 0.9998, 1))).xyz), colortex15, rayHit);
+		color = rayHit.pos * 0.1 + 0.5;
+	}*/
+	if (texelCoord.y < 10 && texelCoord.x < numLights) {
+		color = lights[texelCoord.x].pos * 0.1 + 0.5;
 	}
 
 	/*DRAWBUFFERS:3*/

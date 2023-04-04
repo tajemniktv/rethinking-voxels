@@ -11,13 +11,20 @@ struct tri_t {
 	uvec3 vertexCol;
 	mat3 pos;
 };
-layout(std430, binding = 0) buffer voxelData {
-	int numFaces;
-	tri_t tris[];
-};
+#ifdef ACCURATE_RT
+	layout(std430, binding = 0) buffer voxelData {
+		int numFaces;
+		tri_t tris[];
+	};
+#else
+	layout(std430, binding = 0) buffer voxelData {
+		int numFaces;
+		uvec4 voxelVolume[][2 * pointerGridSize.x][2 * pointerGridSize.y][2 * pointerGridSize.z];
+	};
+#endif
 
-layout(std430, binding = 1) buffer triPointers {
-	int PointerVolume[][64][32][64];
+layout(std430, binding = 1) buffer volumePointers {
+	int PointerVolume[][pointerGridSize.x][pointerGridSize.y][pointerGridSize.z];
 };
 
 struct light_t {
@@ -31,7 +38,7 @@ layout(std430, binding = 2) buffer lightData {
 	light_t lights[];
 };
 
-layout(std430, binding = 3) buffer sortingBuffer {
+layout(std430, binding = 3) buffer pointerStrip {
 	int bvhLeaves[];
 };
 #endif

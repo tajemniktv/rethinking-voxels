@@ -68,7 +68,9 @@ void main() {
 
 	//clear SSBOs
 	if (gl_FragCoord.x + gl_FragCoord.y < 1.5) {
-		numFaces = 0;
+		#ifdef ACCURATE_RT
+			numFaces = 0;
+		#endif
 		numLights = 0;
 	}
 	// just for testing, bvhLeaves doesn't need to be cleared

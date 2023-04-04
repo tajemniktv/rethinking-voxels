@@ -1,13 +1,15 @@
 #include "/lib/common.glsl"
 
+const ivec3 workGroups = ivec3(64, 32, 64);
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+#ifdef ACCURATE_RT
+
 #include "/lib/vx/SSBOs.glsl"
 #include "/lib/materials/shadowchecks_precise.glsl"
 
 uniform sampler2D colortex15;
-
-const ivec3 workGroups = ivec3(64, 32, 64);
-
-layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 #define LOCAL_MAX_LIGHTCOUNT 8
 void main() {
@@ -16,7 +18,7 @@ void main() {
 	int triCountHere = PointerVolume[0][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z];
 	int triStripStart = PointerVolume[1][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z];
 	int mats[LOCAL_MAX_LIGHTCOUNT];
-	int locs[LOCAL_MAX_LIGHTCOUNT];
+	ivec3 locs[LOCAL_MAX_LIGHTCOUNT];
 	int nLights = 0;
 	int lightClumps[LOCAL_MAX_TRIS][LOCAL_MAX_LIGHTCOUNT];
 	int lightClumpTriCounts[LOCAL_MAX_LIGHTCOUNT];
@@ -24,7 +26,7 @@ void main() {
 	vec3 upperBound = vec3(-100000);
 	for (int i = 0; i < LOCAL_MAX_LIGHTCOUNT; i++) {
 		mats[i] = -1;
-		locs[i] = -1;
+		locs[i] = ivec3(-1);
 		lightClumpTriCounts[i] = 0;
 	}
 	for (int i = 1; i <= triCountHere; i++) {
@@ -47,12 +49,13 @@ void main() {
 		if (emissive) {
 			vec3 avgPos = 0.5 * (lower0 + upper0);
 			vec3 cnormal = cross(thisTri.pos[0] - thisTri.pos[1], thisTri.pos[0] - thisTri.pos[2]);
-			avgPos -= 0.05 * normalize(cnormal);
+			//avgPos -= 0.01 * normalize(cnormal);
 			vec3 localPos = avgPos / POINTER_VOLUME_RES - thisVoxelLower;
-			int loc = int(localPos.x > 0.5) + (int(localPos.y > 0.5) << 1) + (int(localPos.z > 0.5) << 2);
+			ivec3 loc = ivec3(greaterThan(localPos, vec3(0.5)));
 			bool newLight = true;
 			for (int j = 0; j < nLights; j++) {
-				if (mats[j] == mat && locs[j] == loc) {
+				vec3 dpos = abs(localPos - locs[j] * 0.5 - 0.25);
+				if (mats[j] == mat && max(max(dpos.x, dpos.y), dpos.z) < 0.27) {
 					newLight = false;
 					lightClumps[lightClumpTriCounts[j]][j] = thisTriId;
 					if (lightClumpTriCounts[j] < LOCAL_MAX_TRIS - 1) lightClumpTriCounts[j]++;
@@ -79,7 +82,6 @@ void main() {
 		(upperBoundQuantized.y << 20) +
 		(upperBoundQuantized.z << 25);
 	PointerVolume[2][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = packedBounds;
-	int lightIds[LOCAL_MAX_LIGHTCOUNT];
 	for (int i = 0; i < nLights; i++) {
 		int mat = mats[i];
 		vec3 lower = vec3( 10000.0);
@@ -140,7 +142,7 @@ void main() {
 			lightCol = 0.97 * lightCol + 0.03;
 		}
 		vec3 avg = 0.5 * (upper + lower);
-		vec3 size = 0.5 * (upper - lower);
+		vec3 size = max(0.5 * (upper - lower), vec3(0.01));
 		int lightLevel = getLightLevel(mat);
 		light_t thisLight;
 		thisLight.pos = avg;
@@ -148,7 +150,6 @@ void main() {
 		thisLight.packedColor = int(255 * lightCol.x + 0.5) + (int(255 * lightCol.y + 0.5) << 8) + (int(255 * lightCol.z + 0.5) << 16);
 		thisLight.brightnessMat = mat + (lightLevel << 16);
 		int globalLightId = atomicAdd(numLights, 1);
-		lightIds[i] = globalLightId;
 		lights[globalLightId] = thisLight;
 		for (int x = -lightLevel/2 - 1; x <= lightLevel/2 + 1; x++) {
 			int xCoord = x + int(gl_WorkGroupID.x);
@@ -160,7 +161,7 @@ void main() {
 							int zCoord = z + int(gl_WorkGroupID.z);
 							if (zCoord >= 0 && zCoord < pointerGridSize.z && length(vec3(x, y, z)) < lightLevel/2 + 1) {
 								int localLightId = atomicAdd(PointerVolume[4][xCoord][yCoord][zCoord], 1);
-								if (localLightId < 64) PointerVolume[5 + localLightId][xCoord][yCoord][zCoord] = lightIds[i];
+								if (localLightId < 64) PointerVolume[5 + localLightId][xCoord][yCoord][zCoord] = globalLightId;
 							}
 						}
 					}
@@ -169,3 +170,6 @@ void main() {
 		}
 	}
 }
+#else
+void main() {}
+#endif
