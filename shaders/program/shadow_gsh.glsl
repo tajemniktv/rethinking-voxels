@@ -162,6 +162,7 @@ void main() {
 				if (cuboid) {
 					connectSides = getConnectSides(mat0);
 					bounds = getBounds(mat0, avgPos0);
+					bounds[1] -= ivec3(1);
 				}
 			}
 

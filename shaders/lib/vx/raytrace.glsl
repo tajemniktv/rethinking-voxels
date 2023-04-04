@@ -116,7 +116,7 @@ vec4 handledata(vxData data, sampler2D atlas, inout vec3 pos, vec3 dir, int n) {
 			pos += w * dir;
 		}
 		vec2 spritecoord = vec2(n != 0 ? fract(pos.x) : fract(pos.z), n != 1 ? fract(-pos.y) : fract(pos.z));
-		ivec2 texcoord = data.texelcoord - data.spritesize / 2 + ivec2(data.spritesize * spritecoord);
+		ivec2 texcoord = data.texelcoord - data.spritesize + ivec2(2 * data.spritesize * spritecoord);
 		vec4 color = texelFetch(atlas, texcoord, 0);
 		if (!data.alphatest) color.a = 1;
 		else if (color.a > 0.1 && color.a < 0.9) color.a = min(pow(color.a, TRANSLUCENT_LIGHT_TINT), 0.8);
