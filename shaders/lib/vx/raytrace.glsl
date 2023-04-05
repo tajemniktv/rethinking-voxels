@@ -19,6 +19,17 @@ uniform sampler2D colortex11;
 
 const mat3 eye = mat3(1.0);
 
+struct ray_hit_t {
+	vec4 rayColor;
+	vec4 transColor;
+	int triId;
+	int transTriId;
+	vec3 pos;
+	vec3 transPos;
+	vec3 normal;
+	vec3 transNormal;
+};
+
 #ifndef ACCURATE_RT
 // cuboid intersection algorithm
 float aabbIntersect(vxData data, vec3 pos, vec3 dir, inout int n) {
@@ -31,7 +42,8 @@ float aabbIntersect(vxData data, vec3 pos, vec3 dir, inout int n) {
 		vec3(min(data.lower + 0.0625, 0.4375)),
 		vec3(max(data.upper - 0.0625, 0.5625)),
 		vec3(min(data.lower + 0.0625, 0.4375)),
-		vec3(max(data.upper - 0.0625, 0.5625)));
+		vec3(max(data.upper - 0.0625, 0.5625))
+	);
 	if (data.connectsides) {
 		for (int k = 0; k < 4; k++) {
 			connectCuboids[k].y = (k % 2 == 0) ? (abs(data.lower.x - 0.375) < 0.01 ? 0.375 : 0.0) : (abs(data.lower.x - 0.25) < 0.01 ? 0.875 : (abs(data.lower.x - 0.375) < 0.01 ? 0.9375 : 1.0));
@@ -72,7 +84,7 @@ float aabbIntersect(vxData data, vec3 pos, vec3 dir, inout int n) {
 					if (valid) {
 						w = w0;
 						n = i;
-					}					
+					}
 				}
 			}
 		}
@@ -108,7 +120,7 @@ float aabbIntersect(vxData data, vec3 pos, vec3 dir, inout int n) {
 	return w;
 }
 // returns color data of the block at pos, when hit by ray in direction dir
-vec4 handledata(vxData data, sampler2D atlas, inout vec3 pos, vec3 dir, int n) {
+vec4 handledata(vxData data, sampler2D atlas, inout vec3 pos, inout vec3 dir, int n) {
 	if (!data.crossmodel) {
 		if (data.cuboid) {
 			float w = aabbIntersect(data, pos, dir, n);
@@ -122,6 +134,7 @@ vec4 handledata(vxData data, sampler2D atlas, inout vec3 pos, vec3 dir, int n) {
 		else if (color.a > 0.1 && color.a < 0.9) color.a = min(pow(color.a, TRANSLUCENT_LIGHT_TINT), 0.8);
 		// multiply by vertex color for foliage, water etc
 		color.rgb *= data.emissive ? vec3(1) : data.lightcol;
+		dir = -eye[n] * sign(dir);
 		return color;
 	}
 	// get around floating point errors using an offset
@@ -139,13 +152,35 @@ vec4 handledata(vxData data, sampler2D atlas, inout vec3 pos, vec3 dir, int n) {
 	vec4 color1 = valid1 ? texelFetch(atlas, ivec2(data.texelcoord + (data.spritesize - 0.5) * (1 - p1.xy * 2)), 0) : vec4(0);
 	color0.xyz *= data.emissive ? vec3(1) : data.lightcol;
 	color1.xyz *= data.emissive ? vec3(1) : data.lightcol;
-	pos += (valid0 ? w0 : (valid1 ? w1 : 0)) * dir;
-	// the more distant intersection position only contributes by the amount of light coming through the closer one
-	return (w0 < w1) ? (vec4(color0.xyz * color0.a, color0.a) + (1 - color0.a) * vec4(color1.xyz * color1.a, color1.a)) : (vec4(color1.xyz * color1.a, color1.a) + (1 - color1.a) * vec4(color0.xyz * color0.a, color0.a));
+	valid0 = valid0 && color0.a > 0.1;
+	valid1 = valid1 && color1.a > 0.1;
+	if (w0 < w1) {
+		pos += (valid0 ? w0 : (valid1 ? w1 : 0)) * dir;
+		dir = valid0 ?
+			-vec3(0.7071, 0, 0.7071) * sign(dot(dir, vec3(1, 0, 1))) :
+			(valid1 ? -vec3(0.7071, 0,-0.7071) * sign(dot(dir, vec3(1, 0,-1))) :
+				vec3(0)
+			);
+		// the more distant intersection position only contributes by the amount of light coming through the closer one
+		return (vec4(color0.xyz * color0.a, color0.a) + (1 - color0.a) * vec4(color1.xyz * color1.a, color1.a));
+	} else {
+		pos += (valid1 ? w1 : (valid0 ? w0 : 0)) * dir;
+		dir = valid1 ? -vec3(0.7071, 0,-0.7071) * sign(dot(dir, vec3(1, 0,-1))) :
+			(valid0 ? -vec3(0.7071, 0, 0.7071) * sign(dot(dir, vec3(1, 0, 1))) :
+				vec3(0)
+			);
+		return (vec4(color1.xyz * color1.a, color1.a) + (1 - color1.a) * vec4(color0.xyz * color0.a, color0.a));
+	}
 }
+
 // voxel ray tracer
-vec4 raytrace(bool lowDetail, inout vec3 pos0, bool doScattering, vec3 dir, inout vec3 translucentHit, sampler2D atlas, bool translucentData) {
-	ivec3 dcamPos = ivec3(1.001 * (floor(cameraPosition) - floor(previousCameraPosition)));
+ray_hit_t raytrace(bool lowDetail, vec3 pos0, vec3 dir, sampler2D atlas) {
+	ray_hit_t returnVal;
+	returnVal.pos = pos0 + dir;
+	returnVal.transPos = vec3(-10000);
+	returnVal.transColor = vec4(0);
+	returnVal.transTriId = -1;
+	returnVal.triId = -1;
 	vec3 progress;
 	for (int i = 0; i < 3; i++) {
 		//set starting position in each direction
@@ -173,22 +208,27 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, bool doScattering, vec3 dir, inou
 	vec3 scatterPos = pos0;
 	vec4 rayColor = vec4(0);
 	vec4 oldRayColor = vec4(0);
-	const float scatteringMaxAlpha = 0.1;
 	// check if stuff already needs to be done at starting position
 	vxData voxeldata = readVxMap(pos);
-	bool isScattering = false;
-	if (lowDetail && voxeldata.full && !voxeldata.alphatest) return vec4(0, 0, 0, translucentData ? 0 : 1);
-	if (isInRange(pos) && voxeldata.trace && !lowDetail) {
-		rayColor = handledata(voxeldata, atlas, pos, dir, i);
-		if (dot(pos - pos0, dir / dirlen) <= 0.01) rayColor.a = 0;
-		if (doScattering && rayColor.a > 0.1) isScattering = (voxeldata.mat == 10004 || voxeldata.mat == 10008 || voxeldata.mat == 10016);
-		if (doScattering && isScattering) {
-			scatterPos = pos;
-			rayColor.a = min(scatteringMaxAlpha, rayColor.a);
-		}
-		rayColor.rgb *= rayColor.a;
+	if (lowDetail && voxeldata.full && !voxeldata.alphatest) {
+		returnVal.pos = pos;
+		returnVal.rayColor = vec4(0, 0, 0, 1);
+		return returnVal;
 	}
-	if (rayColor.a > 0.01 && rayColor.a < 0.9) translucentHit = pos;
+	if (isInRange(pos) && voxeldata.trace && !lowDetail) {
+		returnVal.normal = dir;
+		rayColor = handledata(voxeldata, atlas, pos, returnVal.normal, i);
+		if (dot(pos - pos0, dir / dirlen) <= 0.01) rayColor.a = 0;
+		rayColor.rgb *= rayColor.a;
+		if (rayColor.a < 0.1) {
+			returnVal.normal = vec3(0);
+		}
+	}
+	if (rayColor.a > 0.1 && rayColor.a < 0.9) {
+
+		returnVal.transPos = pos;
+		returnVal.transNormal = returnVal.normal;
+	}
 	int k = 0; // k is a safety iterator
 	int mat = rayColor.a > 0.1 ? voxeldata.mat : 0; // for inner face culling
 	vec3 oldPos = pos;
@@ -198,54 +238,40 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, bool doScattering, vec3 dir, inou
 	while (w < 1 && k < 2000 && rayColor.a < 0.999) {
 		oldRayColor = rayColor;
 		pos = pos0 + (min(w, 1.0)) * dir + eyeOffsets[i];
-		#ifdef DISTANCE_FIELD
-			ivec4 dfdata;
-		#endif
 		// read voxel data at new position and update ray colour accordingly
 		if (isInRange(pos)) {
 			wasInRange = true;
 			voxeldata = readVxMap(pos);
-			#ifdef DISTANCE_FIELD
-				#ifdef FF_IS_UPDATED
-					ivec2 oldCoords = vxCoords;
-				#else
-					ivec2 oldCoords = getVxPixelCoords(pos + dcamPos);
-				#endif
-				dfdata = ivec4(texelFetch(colortex11, oldCoords, 0) * 65535 + 0.5);
-			#endif
 			pos -= eyeOffsets[i];
-			if (lowDetail) {
-				if (voxeldata.trace && voxeldata.full && !voxeldata.alphatest) {
-					pos0 = pos + eyeOffsets[i];
-					return vec4(0, 0, 0, translucentData ? 0 : 1);
-				}
+			if (lowDetail && voxeldata.full && !voxeldata.alphatest) {
+				returnVal.pos = pos;
+				returnVal.rayColor = vec4(0, 0, 0, 1);
+				return returnVal;
 			} else {
-				bool newScattering = false;
 				if (voxeldata.trace) {
-					vec4 newColor = handledata(voxeldata, atlas, pos, dir, i);
+					returnVal.normal = dir;
+					vec4 newColor = handledata(voxeldata, atlas, pos, returnVal.normal, i);
 					if (dot(pos - pos0, dir) < 0.0) newColor.a = 0;
 					bool samemat = voxeldata.mat == mat;
-					mat = (newColor.a > 0.1) ? voxeldata.mat : 0;
-					if (doScattering) newScattering = (mat == 10004 || mat == 10008 || mat == 10016);
-					if (newScattering) newColor.a = min(newColor.a, scatteringMaxAlpha);
+					mat = 0;
+					if (newColor.a > 0.1) {
+						mat = voxeldata.mat;
+					} else {
+						returnVal.normal = vec3(0);
+					}
 					if (samemat) newColor.a = clamp(10.0 * newColor.a - 9.0, 0.0, 1.0);
 					rayColor.rgb += (1 - rayColor.a) * newColor.a * newColor.rgb;
 					rayColor.a += (1 - rayColor.a) * newColor.a;
-					if (oldRayColor.a < 0.01 && rayColor.a > 0.01 && rayColor.a < 0.9) translucentHit = pos;
-				}
-				if (doScattering) {
-					if (isScattering) {
-						scatterPos = pos;
+					if (oldRayColor.a < 0.1 && rayColor.a > 0.1 && rayColor.a < 0.9) {
+						returnVal.transPos = pos;
+						returnVal.transNormal = returnVal.normal;
 					}
-					oldFull = voxeldata.full;
-					oldPos = pos;
-					isScattering = newScattering;
 				}
 			}
 			#if CAVE_SUNLIGHT_FIX > 0
 			if (!isInRange(pos, 2)) {
-				int height0 = int(texelFetch(colortex10, ivec2(pos.xz + floor(cameraPosition.xz) - floor(previousCameraPosition.xz) + vxRange / 2), 0).w * 65535 + 0.5) % 256 - VXHEIGHT * VXHEIGHT / 2;
-				if (pos.y + floor(cameraPosition.y) - floor(previousCameraPosition.y) < height0) {
+				int height0 = int(texelFetch(colortex10, ivec2(pos.xz + vxRange / 2), 0).w * 65535 + 0.5) % 256 - VXHEIGHT * VXHEIGHT / 2;
+				if (pos.y < height0) {
 					rayColor.a = 1;
 				}
 			}
@@ -253,28 +279,18 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, bool doScattering, vec3 dir, inou
 			pos += eyeOffsets[i];
 		}
 		else {
-			#ifdef DISTANCE_FIELD
-			dfdata.x = int(max(max(abs(pos.x), abs(pos.z)) - vxRange / 2, abs(pos.y) - VXHEIGHT * VXHEIGHT / 2) + 0.5);
-			#endif
 			if (wasInRange) break;
 		}
 		// update position
-		#ifdef DISTANCE_FIELD
-		if (dfdata.x % 256 == 0) dfdata.x++;
-		for (int j = 0; j < dfdata.x % 256; j++) {
-		#endif
-			progress[i] += stp[i];
-			w = progress[0];
-			i = 0;
-			for (int i0 = 1; i0 < 3; i0++) {
-				if (progress[i0] < w) {
-					i = i0;
-					w = progress[i];
-				}
+		progress[i] += stp[i];
+		w = progress[0];
+		i = 0;
+		for (int i0 = 1; i0 < 3; i0++) {
+			if (progress[i0] < w) {
+				i = i0;
+				w = progress[i];
 			}
-		#ifdef DISTANCE_FIELD
 		}
-		#endif
 		k++;
 	}
 	float oldAlpha = rayColor.a;
@@ -285,64 +301,18 @@ vec4 raytrace(bool lowDetail, inout vec3 pos0, bool doScattering, vec3 dir, inou
 		oldRayColor = vec4(1, 0, 0, 1);
 		rayColor = vec4(1, 0, 0, 1);
 	}
-	return translucentData ? oldRayColor : rayColor;
+	returnVal.rayColor = rayColor;
+	returnVal.transColor = oldRayColor;
+	returnVal.pos = pos;
+	return returnVal;
 }
 
-vec4 raytrace(inout vec3 pos0, bool doScattering, vec3 dir, sampler2D atlas, bool translucentData) {
-	vec3 translucentHit = vec3(0);
-	return raytrace(false, pos0, doScattering, dir, translucentHit, atlas, translucentData);
-}
-
-vec4 raytrace(bool lowDetail, inout vec3 pos0, vec3 dir, inout vec3 translucentHit, sampler2D atlas, bool translucentData) {
-	return raytrace(lowDetail, pos0, false, dir, translucentHit, atlas, translucentData);
-}
-vec4 raytrace(inout vec3 pos0, bool doScattering, vec3 dir, sampler2D atlas) {
-	vec3 translucentHit = vec3(0);
-	return raytrace(false, pos0, doScattering, dir, translucentHit, atlas, false);
-}
-vec4 raytrace(inout vec3 pos0, vec3 dir, inout vec3 translucentHit, sampler2D atlas, bool translucentData) {
-	return raytrace(false, pos0, dir, translucentHit, atlas, translucentData);
-}
-vec4 raytrace(bool lowDetail, inout vec3 pos0, vec3 dir, sampler2D atlas) {
-	vec3 translucentHit = vec3(0);
-	return raytrace(lowDetail, pos0, dir, translucentHit, atlas, false);
-}
-vec4 raytrace(bool lowDetail, inout vec3 pos0, vec3 dir, sampler2D atlas, bool translucentData) {
-	vec3 translucentHit = vec3(0);
-	return raytrace(lowDetail, pos0, dir, translucentHit, atlas, translucentData);
-}
-vec4 raytrace(inout vec3 pos0, vec3 dir, sampler2D atlas, bool translucentData) {
-	vec3 translucentHit = vec3(0);
-	return raytrace(pos0, dir, translucentHit, atlas, translucentData);
-}
-vec4 raytrace(inout vec3 pos0, vec3 dir, sampler2D atlas) {
-	return raytrace(pos0, dir, atlas, false);
+ray_hit_t raytrace(vec3 pos0, vec3 dir, sampler2D atlas) {
+	return raytrace(false, pos0, dir, atlas);
 }
 
 #endif
 
-struct ray_hit_t {
-	vec4 rayColor;
-	vec4 transColor;
-	int triId;
-	int transTriId;
-	vec3 pos;
-	vec3 transPos;
-};
-#ifndef ACCURATE_RT
-vec4 raytrace(vec3 pos0, vec3 dir, sampler2D atlas, inout ray_hit_t rayHit) {
-	vec3 transPos = vec3(-10000);
-	vec4 rayColor = raytrace(pos0, dir, transPos, atlas, true);
-	rayHit.rayColor = vec4(0);
-	rayHit.transColor = rayColor;
-	rayHit.triId = -1;
-	rayHit.transTriId = -1;
-	rayHit.pos = pos0;
-	rayHit.transPos = transPos;
-	return rayColor;
-}
-
-#endif
 bool isInBounds(vec3 v, vec3 lower, vec3 upper) {
 	if (v == clamp(v, lower, upper)) return true;
 	return false;
@@ -470,7 +440,7 @@ vec2 boundsIntersect(vec3 pos0, vec3 dir, tri_t triangle) {
 				wasInRange = true;
 				ivec3 coords = ivec3(pos + pointerGridSize / 2);
 				int triLocHere = PointerVolume[1][coords.x][coords.y][coords.z];
-				int triCountHere = bvhLeaves[triLocHere] - 1;//PointerVolume[0][coords.x][coords.y][coords.z];
+				int triCountHere = triPointerStrip[triLocHere] - 1;//PointerVolume[0][coords.x][coords.y][coords.z];
 				while (triCountHere > 0) {
 					int packedBounds = PointerVolume[2][coords.x][coords.y][coords.z];
 					vec3 lowerBound = vec3(
@@ -490,13 +460,11 @@ vec2 boundsIntersect(vec3 pos0, vec3 dir, tri_t triangle) {
 					vec2 vxBoundIsct = boundsIntersect(pos0, dir, lowerBound, upperBound);
 					if (vxBoundIsct.y <= 0 || vxBoundIsct.x > hitW) break;
 					for (int j = 1; j <= triCountHere; j++) {
-						int thisTriId = bvhLeaves[triLocHere + j];
+						int thisTriId = triPointerStrip[triLocHere + j];
 						if (thisTriId == 0) rayColor.r += 0.1;
 						tri_t thisTri = tris[thisTriId];
-						if (backFaceCulling) {
-							vec3 cnormal = cross(thisTri.pos[0] - thisTri.pos[1], thisTri.pos[0] - thisTri.pos[2]);
-							if (dot(cnormal, dir) >= 0) continue;
-						}
+						vec3 cnormal = cross(thisTri.pos[0] - thisTri.pos[1], thisTri.pos[0] - thisTri.pos[2]);
+						if (backFaceCulling && dot(cnormal, dir) >= 0) continue;
 						vec2 boundWs = boundsIntersect(POINTER_VOLUME_RES * pos0, POINTER_VOLUME_RES * dir, thisTri);
 						if (boundWs.y <= 0 || boundWs.x > hitW) continue;
 						vec3 hitPos = rayTriangleIntersect(POINTER_VOLUME_RES * pos0, POINTER_VOLUME_RES * dir, thisTri);
@@ -537,12 +505,14 @@ vec2 boundsIntersect(vec3 pos0, vec3 dir, tri_t triangle) {
 							if (hitPos.z < hitW) {
 								hitW = hitPos.z;
 								returnVal.pos = pos0 + hitPos.z * dir;
+								returnVal.normal = normalize(cnormal);
 								returnVal.triId = thisTriId;
 							}
 						} else if (hitPos.z < transHitW) {
 							transHitW = hitPos.z;
 							returnVal.transPos = pos0 + hitPos.z * dir;
 							returnVal.transTriId = thisTriId;
+							returnVal.transNormal = normalize(cnormal);
 							returnVal.transColor = newColor;
 						}
 					}

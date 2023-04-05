@@ -67,10 +67,13 @@ void DoTAA(inout vec3 color, inout vec4 temp) {
 
 	int materialMask = int(texelFetch(colortex1, texelCoord, 0).g * 255.1);
 
-	if (materialMask == 254) // No SSAO, No TAA
-		return;
-
 	float depth = texelFetch(depthtex1, texelCoord, 0).r;
+
+	if (materialMask == 254) {// No SSAO, No TAA
+		temp.a = depth;
+		return;
+	}
+
 	vec3 coord = vec3(texCoord, depth);
 	vec3 cameraOffset = cameraPosition - previousCameraPosition;
 	vec3 prvCoord = Reprojection3D(coord, cameraOffset);

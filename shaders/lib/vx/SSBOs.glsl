@@ -38,7 +38,9 @@ layout(std430, binding = 2) buffer lightData {
 	light_t lights[];
 };
 
-layout(std430, binding = 3) buffer pointerStrip {
-	int bvhLeaves[];
+layout(std430, binding = 3) buffer misc {
+	mat4 gbufferPreviousModelViewInverse;
+	mat4 gbufferPreviousProjectionInverse;
+	int triPointerStrip[];
 };
 #endif

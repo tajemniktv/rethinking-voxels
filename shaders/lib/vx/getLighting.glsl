@@ -358,14 +358,12 @@
 					vec3 prevPos = Reprojection3D(screenPos, cameraPosition - previousCameraPosition);
 					bool valid = true;
 					vec4 prevCol;
-					if (prevPos.x < 0 || prevPos.y < 0 || prevPos.x > 1 || prevPos.y > 1 /*|| blockData.emissive*/) valid = false;
-					else {
-						prevCol = texture2D(colortex12, prevPos.xy);
-						float prevLinDepth0 = GetLinearDepth0(prevPos.z);
-						float prevLinDepth1 = GetLinearDepth0(prevCol.a);
-						float ddepth = abs(prevLinDepth0 - prevLinDepth1) / abs(prevLinDepth0);
-						if (ddepth > 0.01) valid = false;
-					}
+					prevCol = texture2D(colortex12, screenPos.xy);
+					float prevLinDepth0 = GetLinearDepth0(screenPos.z);
+					float prevLinDepth1 = GetLinearDepth0(prevCol.a);
+					float ddepth = abs(prevLinDepth0 - prevLinDepth1) / abs(prevLinDepth0);
+					if (ddepth > 0.01) valid = false;
+
 					//if (!valid) return getBlockLight0(vxPos, worldNormal, mat, doScattering);
 					return prevCol.xyz * 2;
 				}

@@ -39,7 +39,7 @@ void main() {
 	totalCounts[x] -= thisTotalCount;
 	for (int y = 0; y < pointerGridSize.y; y++) {
 		for (int z = 0; z < pointerGridSize.z; z++) {
-			bvhLeaves[totalCounts[x]] = 1;
+			triPointerStrip[totalCounts[x]] = 1;
 			PointerVolume[1][x][y][z] = totalCounts[x];
 			totalCounts[x] += PointerVolume[0][x][y][z] + 1;
 		}

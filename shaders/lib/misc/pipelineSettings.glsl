@@ -1,5 +1,5 @@
 /*
-const int colortex0Format = R11F_G11F_B10F;	//main color
+const int colortex0Format = RGBA16F;		//main color
 const int colortex1Format = RGB8;			//smoothnessD & materialMask & skyLightFactor
 const int colortex2Format = RGBA16;			//taa, previous depth
 const int colortex3Format = RGB8;			//*cloud texture on deferred* & translucentMult & bloom & final color
@@ -16,11 +16,12 @@ const int colortex8Format = RGBA16;
 const int colortex9Format = RGBA16;
 const int colortex10Format = RGBA16;
 const int colortex11Format = RGBA16;
-const int colortex12Format = RGBA16;		//previous frame lighting
+const int colortex12Format = RGBA16F;		//previous frame lighting
 const int colortex13Format = RGBA16;
 */
 
 const bool colortex0Clear = true;
+const vec4 colortex0ClearColor = vec4(2.0, 2.0, 2.0, 2.0);
 const bool colortex1Clear = true;
 const bool colortex2Clear = false;
 const bool colortex3Clear = true;
@@ -37,6 +38,7 @@ const bool colortex10Clear = false;
 const bool colortex11Clear = false;
 const bool colortex12Clear = false;
 const bool colortex13Clear = false;
+const bool colortex15Clear = false;
 
 const int noiseTextureResolution = 128;
 

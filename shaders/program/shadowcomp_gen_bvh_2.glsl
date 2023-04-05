@@ -96,7 +96,7 @@ void main() {
 	if (gl_WorkGroupID.x == 0) {
 		int totalCount = 0;
 		for (int i = 0; i < numBvhEntries; i++) {
-			bvhLeaves[totalCount] = 1;
+			triPointerStrip[totalCount] = 1;
 			totalCount += atomicExchange(bvhEntries[i].attachedTriLoc, totalCount) + 1;
 		}
 	}
@@ -105,8 +105,8 @@ void main() {
 		int i = strideSize * int(gl_WorkGroupID.x) + i0;
 		tri_t thisTri = tris[i];
 		int globalLeafLoc = bvhEntries[thisTri.bvhParent].attachedTriLoc;
-		int localLeafLoc = atomicAdd(bvhLeaves[globalLeafLoc], 1);
+		int localLeafLoc = atomicAdd(triPointerStrip[globalLeafLoc], 1);
 		int leafLoc = globalLeafLoc + localLeafLoc;
-		if (thisTri.bvhParent == numBvhEntries - 1 || leafLoc < bvhEntries[thisTri.bvhParent + 1].attachedTriLoc) bvhLeaves[leafLoc] = i;
+		if (thisTri.bvhParent == numBvhEntries - 1 || leafLoc < bvhEntries[thisTri.bvhParent + 1].attachedTriLoc) triPointerStrip[leafLoc] = i;
 	}
 }

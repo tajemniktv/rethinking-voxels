@@ -30,7 +30,7 @@ void main() {
 		lightClumpTriCounts[i] = 0;
 	}
 	for (int i = 1; i <= triCountHere; i++) {
-		int thisTriId = bvhLeaves[triStripStart + i];
+		int thisTriId = triPointerStrip[triStripStart + i];
 		tri_t thisTri = tris[thisTriId];
 		vec3 lower0 = min(min(
 			thisTri.pos[0],

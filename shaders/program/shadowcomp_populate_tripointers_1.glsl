@@ -22,9 +22,9 @@ void main() {
 			thisTri.bvhParent / 262144 % 512
 		) / int(POINTER_VOLUME_RES + 0.1);
 		int globalAddr = PointerVolume[1][pointerGridCoord.x][pointerGridCoord.y][pointerGridCoord.z];
-		int localAddr = atomicAdd(bvhLeaves[globalAddr], 1);
+		int localAddr = atomicAdd(triPointerStrip[globalAddr], 1);
 		if (localAddr <= PointerVolume[0][pointerGridCoord.x][pointerGridCoord.y][pointerGridCoord.z]) {
-			bvhLeaves[globalAddr + localAddr] = i;
+			triPointerStrip[globalAddr + localAddr] = i;
 		}
 	}
 }

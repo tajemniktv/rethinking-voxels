@@ -12,7 +12,8 @@ noperspective in vec2 texCoord;
 
 //Uniforms//
 uniform float viewWidth, viewHeight;
-
+uniform mat4 gbufferProjectionInverse;
+uniform mat4 gbufferModelViewInverse;
 uniform sampler2D colortex3;
 
 #ifdef UNDERWATER_DISTORTION
@@ -53,6 +54,7 @@ uniform sampler2D colortex3;
 //Includes//
 
 //Program//
+uniform sampler2D colortex12;
 void main() {
 	vec2 texCoordM = texCoord;
 
@@ -72,11 +74,13 @@ void main() {
 			numFaces = 0;
 		#endif
 		numLights = 0;
+		gbufferPreviousModelViewInverse = gbufferModelViewInverse;
+		gbufferPreviousProjectionInverse = gbufferProjectionInverse;
 	}
-	// just for testing, bvhLeaves doesn't need to be cleared
+	// just for testing, triPointerStrip doesn't need to be cleared
 	int pixelNum = int(gl_FragCoord.x) + int(viewWidth + 0.1) * int(gl_FragCoord.y);
 	if (pixelNum < MAX_TRIS) {
-		bvhLeaves[pixelNum] = 0;
+		triPointerStrip[pixelNum] = 0;
 	}
 	if (all(lessThan(gl_FragCoord.xy, pointerGridSize.xz))) {
 		ivec2 coords = ivec2(gl_FragCoord.xy);
@@ -85,6 +89,7 @@ void main() {
 			PointerVolume[4][coords.x][i][coords.y] = 0;
 		}
 	}
+	//color = mix(color, texelFetch(colortex12, ivec2(gl_FragCoord.xy), 0).rgb, 1.0);
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = vec4(color, 1.0);
 }
