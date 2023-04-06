@@ -90,7 +90,7 @@ void main() {
 			PointerVolume[4][coords.x][i][coords.y] = 0;
 		}
 	}
-	color = mix(color, texelFetch(colortex12, ivec2(gl_FragCoord.xy), 0).rgb, 0.7);
+	//color = mix(color, texelFetch(colortex12, ivec2(gl_FragCoord.xy), 0).rgb, 0.7);
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = vec4(color, 1.0);
 }

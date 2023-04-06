@@ -57,7 +57,7 @@ void main() {
 		vec3 vxPlayerPos = fract(cameraPosition) + gbufferModelViewInverse[3].xyz;
 		ray_hit_t rayHit;
 		#ifdef ACCURATE_RT
-			rayHit = betterRayTrace(vxPlayerPos, dir.xyz, colortex15);
+			rayHit = betterRayTrace(vxPlayerPos + normalize(dir.xyz), dir.xyz, colortex15);
 		#else
 			rayHit = raytrace(vxPlayerPos, dir.xyz, colortex15);
 		#endif

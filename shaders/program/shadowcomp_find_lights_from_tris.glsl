@@ -143,7 +143,11 @@ void main() {
 			lightCol = 0.97 * lightCol + 0.03;
 		}
 		vec3 avg = 0.5 * (upper + lower);
-		vec3 size = max(0.5 * (upper - lower), vec3(0.01));
+		#ifdef CORRECT_CUBOID_OFFSETS
+			vec3 size = max(0.5 * (upper - lower), vec3(0.01));
+		#else
+			vec3 size = vec3(BLOCKLIGHT_SOURCE_SIZE);
+		#endif
 		int lightLevel = getLightLevel(mat);
 		light_t thisLight;
 		thisLight.pos = avg;

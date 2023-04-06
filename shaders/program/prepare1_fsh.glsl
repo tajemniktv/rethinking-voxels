@@ -12,7 +12,6 @@ uniform sampler2D colortex4;
 layout(rgba16f) uniform image2D colorimg0;
 
 void main() {
-	return;
 	float prevDepth = texelFetch(colortex2, ivec2(gl_FragCoord.xy), 0).w;
 	vec4 prevClipPos = vec4(gl_FragCoord.xy / view, prevDepth, 1) * 2 - 1;
 	vec4 newClipPos = reprojectionMatrix * prevClipPos;

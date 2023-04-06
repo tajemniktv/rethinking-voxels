@@ -52,10 +52,10 @@ void main() {
 		ray_hit_t rayHit;
 		raytrace(fract(cameraPosition), 20 * normalize((gbufferModelViewInverse * (gbufferProjectionInverse * vec4(gl_FragCoord.xy / vec2(viewWidth, viewHeight) * 2 - 1, 0.9998, 1))).xyz), colortex15, rayHit);
 		color = rayHit.pos * 0.1 + 0.5;
-	}*/
+	}
 	if (texelCoord.y < 10 && texelCoord.x < numLights) {
 		color = lights[texelCoord.x].pos * 0.1 + 0.5;
-	}
+	}*/
 
 	/*DRAWBUFFERS:3*/
 	gl_FragData[0] = vec4(color, 1.0);

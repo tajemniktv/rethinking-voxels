@@ -53,7 +53,7 @@
 				light_t thisLight = lights[thisLightId];
 				float ndotl = max(0, 0.99 * dot(normalize(thisLight.pos - pos), normal) + 0.01);
 				float brightness = length((thisLight.pos - pos));
-				float lightBrightness = thisLight.brightnessMat / 65536;
+				float lightBrightness = thisLight.brightnessMat >> 16;
 				brightness = ndotl * 0.0625 * lightBrightness * pow(max(0, 1 - brightness / lightBrightness), 1.5);
 				if (brightness > 0.01) {
 					#ifdef CONST_RT_NOISE
