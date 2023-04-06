@@ -5,6 +5,7 @@ layout(local_size_x = 1) in;
 const ivec3 workGroups = ivec3(64, 32, 64);
 
 #ifdef ACCURATE_RT
+#define WRITE_TO_SSBOS
 #include "/lib/vx/SSBOs.glsl"
 
 ivec3 intWorkGroupId = abs(ivec3(gl_WorkGroupID));

@@ -51,7 +51,6 @@ void main() {
 		} else normalDepthData = vec4(2);
 	}
 	if (normalDepthData.w > 1.5) {
-		
 		vec4 clipPos = vec4(gl_FragCoord.xy / view * 2 - 1, 0.9998, 1);
 		vec4 dir = gbufferModelViewInverse * (gbufferProjectionInverse * clipPos);
 		dir /= dir.w;
@@ -64,10 +63,10 @@ void main() {
 		#endif
 		normalDepthData.xyz = rayHit.normal;
 		vec4 hitScreenPos = gbufferProjection * (gbufferModelView * vec4(rayHit.pos - vxPlayerPos, 1));
-		normalDepthData.w = hitScreenPos.z / hitScreenPos.w;
-		normalDepthData = 0.5 * normalDepthData + 0.5;
+		normalDepthData.w = -hitScreenPos.z / hitScreenPos.w;
+		normalDepthData = 0.5 + 0.5 * normalDepthData;
 	}
-	normalDepthData = 2 * normalDepthData - 1;
+	normalDepthData.xyz = 2 * normalDepthData.xyz - 1;
 	/*RENDERTARGETS:0*/
 	gl_FragData[0] = normalDepthData;
 }

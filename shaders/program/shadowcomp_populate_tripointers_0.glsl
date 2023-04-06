@@ -5,6 +5,7 @@ layout(local_size_x = 64) in;
 const ivec3 workGroups = ivec3(1, 1, 1);
 
 #ifdef ACCURATE_RT
+#define WRITE_TO_SSBOS
 #include "/lib/vx/SSBOs.glsl"
 
 shared int totalCounts[pointerGridSize.x];

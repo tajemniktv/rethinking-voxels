@@ -28,6 +28,7 @@ uniform ivec2 atlasSize;
 uniform sampler2D gtexture;
 
 //SSBOs//
+#define WRITE_TO_SSBOS
 #include "/lib/vx/SSBOs.glsl"
 
 #include "/lib/materials/shadowchecks_precise.glsl"

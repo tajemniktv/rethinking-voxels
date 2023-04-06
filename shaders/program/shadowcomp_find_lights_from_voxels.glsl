@@ -5,6 +5,7 @@ const ivec3 workGroups = ivec3(64, 32, 64);
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 #ifndef ACCURATE_RT
+#define WRITE_TO_SSBOS
 #include "/lib/vx/SSBOs.glsl"
 #include "/lib/vx/voxelReading.glsl"
 
