@@ -3,9 +3,11 @@
 #define LOCAL_MAX_TRIS 512
 #define MAX_TRIS 524288
 #define POINTER_VOLUME_RES 2.0
+
 #ifndef WRITE_TO_SSBOS
 #define WRITE_TO_SSBOS readonly
 #endif
+
 const ivec3 pointerGridSize = ivec3(64, 32, 64);
 struct tri_t {
 	uint matBools;
@@ -44,6 +46,7 @@ layout(std430, binding = 2) WRITE_TO_SSBOS buffer lightData {
 layout(std430, binding = 3) WRITE_TO_SSBOS buffer misc {
 	mat4 gbufferPreviousModelViewInverse;
 	mat4 gbufferPreviousProjectionInverse;
+	vec3[4] frustrumSideNormals;
 	int triPointerStrip[];
 };
 #endif
