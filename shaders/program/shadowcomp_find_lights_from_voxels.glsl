@@ -12,6 +12,7 @@ layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 void main() {
 	const vec3 defaultLightSize = 0.5 * vec3(BLOCKLIGHT_SOURCE_SIZE);
 	const int intPointerVolumeRes = int(POINTER_VOLUME_RES + 0.001);
+	int nLights = 0;
 	for (int x0 = 0; x0 < intPointerVolumeRes; x0++) {
 		for (int y0 = 0; y0 < intPointerVolumeRes; y0++) {
 			for (int z0 = 0; z0 < intPointerVolumeRes; z0++) {
@@ -27,7 +28,11 @@ void main() {
 					thisLight.pos = blockCoord - POINTER_VOLUME_RES * pointerGridSize / 2.0;
 					if (thisVoxelData.cuboid) {
 						thisLight.pos += 0.5 * (thisVoxelData.upper + thisVoxelData.lower);
-						thisLight.size = 0.5 * (thisVoxelData.upper - thisVoxelData.lower);
+						#ifdef CORRECT_CUBOID_OFFSETS
+							thisLight.size = 0.5 * (thisVoxelData.upper - thisVoxelData.lower);
+						#else
+							thisLight.size = defaultLightSize;
+						#endif
 					} else {
 						thisLight.pos += thisVoxelData.midcoord;
 						thisLight.size = defaultLightSize;
@@ -36,7 +41,9 @@ void main() {
 					thisLight.brightnessMat = thisVoxelData.mat + (thisVoxelData.lightlevel << 16);
 					int globalLightId = atomicAdd(numLights, 1);
 					lights[globalLightId] = thisLight;
-					for (int x = -thisVoxelData.lightlevel/2 - 1; x <= thisVoxelData.lightlevel/2 + 1; x++) {
+					PointerVolume[5 + nLights][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = globalLightId;
+					nLights++;
+/*					for (int x = -thisVoxelData.lightlevel/2 - 1; x <= thisVoxelData.lightlevel/2 + 1; x++) {
 						int xCoord = x + int(gl_WorkGroupID.x);
 						if (xCoord >= 0 && xCoord < pointerGridSize.x) {
 							for (int y = -thisVoxelData.lightlevel/2 - 1; y <= thisVoxelData.lightlevel/2 + 1; y++) {
@@ -53,10 +60,11 @@ void main() {
 							}
 						}
 					}
-				}
+*/				}
 			}
 		}
 	}
+	PointerVolume[4][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = nLights;
 }
 #else
 void main() {}

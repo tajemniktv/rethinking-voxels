@@ -84,7 +84,7 @@ vxData readVxMap(ivec3 coords) {
 					) + 1) / 16.0;
 			} else {
 				data.lower = vec3(0);
-				data.upper = vec3(0);
+				data.upper = vec3(1);
 			}
 			if (data.crossmodel || data.entity) {
 				data.midcoord = vec3(packedData.w % 256, (packedData.w >> 8) % 256, (packedData.w >> 16) % 256) / 256.0;

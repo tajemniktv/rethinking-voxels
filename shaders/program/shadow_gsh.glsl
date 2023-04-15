@@ -154,7 +154,7 @@ void main() {
 			bool cuboid = false;
 			bool full = false;
 			bool connectSides = false;
-			ivec3[2] bounds = ivec3[2](ivec3(0), ivec3(16));
+			ivec3[2] bounds = ivec3[2](ivec3(0), ivec3(15));
 			if (!notrace) {
 				alphatest = getAlphaTest(mat0);
 				crossmodel = getCrossModel(mat0);
@@ -205,9 +205,17 @@ void main() {
 					lightCol = lightcol0.rgb / max(max(lightcol0.r, lightcol0.g), lightcol0.b) * maxbrightness;
 				}
 			} else lightCol = avgVertexCol;
-
-			int blocktype = (alphatest ? 1 : 0) + (crossmodel ? 2 : 0) + (full ? 4 : 0) + (emissive ? 8 : 0) + (cuboid ? 16 : 0) + (notrace ? 32 : 0) + (connectSides ? 64 : 0) + (entity ? 128 : 0);
-			uint lmCoord = uint(5.333 * (lmCoordV[0] + lmCoordV[0] + lmCoordV[0]));
+			lightCol = clamp(lightCol, vec3(0), vec3(1));
+			uint blocktype = 
+				(alphatest ? 1 : 0) +
+				(crossmodel ? 2 : 0) +
+				(full ? 4 : 0) +
+				(emissive ? 8 : 0) +
+				(cuboid ? 16 : 0) +
+				(notrace ? 32 : 0) +
+				(connectSides ? 64 : 0) +
+				(entity ? 128 : 0);
+			uint lmCoord = uint(5.333 * clamp(lmCoordV[0] + lmCoordV[1] + lmCoordV[2], vec2(0), vec2(3)));
 
 			uint spritelog = 0;
 			while (spriteSizeV[0] >> spritelog + 1 != 0 && spritelog < 15) spritelog++;

@@ -156,7 +156,8 @@ void main() {
 		thisLight.brightnessMat = mat + (lightLevel << 16);
 		int globalLightId = atomicAdd(numLights, 1);
 		lights[globalLightId] = thisLight;
-		for (int x = -lightLevel/2 - 1; x <= lightLevel/2 + 1; x++) {
+		PointerVolume[5 + i][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = globalLightId;
+/*		for (int x = -lightLevel/2 - 1; x <= lightLevel/2 + 1; x++) {
 			int xCoord = x + int(gl_WorkGroupID.x);
 			if (xCoord >= 0 && xCoord < pointerGridSize.x) {
 				for (int y = -lightLevel/2 - 1; y <= lightLevel/2 + 1; y++) {
@@ -173,7 +174,8 @@ void main() {
 				}
 			}
 		}
-	}
+*/	}
+	PointerVolume[4][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = nLights;
 }
 #else
 void main() {}

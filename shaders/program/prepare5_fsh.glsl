@@ -82,5 +82,6 @@ void main() {
 		}
 	}
 	/*RENDERTARGETS:0*/
-	gl_FragData[0] = vec4(log(lightCol * 0.2 + 1), oneMinusDepth);
+	float lightColBrightness = max(max(lightCol.x, lightCol.y), max(lightCol.z, 0.000000001));
+	gl_FragData[0] = vec4(lightCol / lightColBrightness * log(lightColBrightness * 0.2 + 1), oneMinusDepth);
 }

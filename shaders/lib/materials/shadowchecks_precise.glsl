@@ -1434,6 +1434,7 @@ bool getVoxelise(int mat, vec3 cnormal, float area) {
 			mat == 10472 ||
 			mat == 50016 ||
 			mat == 60004 ||
+			(mat == 60008 && area < 0.3) ||
 			mat == 60018
 		)
 	);

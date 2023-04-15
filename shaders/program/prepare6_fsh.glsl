@@ -32,7 +32,7 @@ void main() {
 	vec4 prevPos = reprojectionMatrix * (vec4(gl_FragCoord.xy / view, depth, 1) * 2 - 1);
 	prevPos = prevPos * 0.5 / prevPos.w + 0.5;
 	vec4 prevCol = texture2D(colortex12, prevPos.xy);
-	float blendFactor = float(prevPos.x > 0.0 && prevPos.x < 1.0 &&
+	float blendFactor = 0 * float(prevPos.x > 0.0 && prevPos.x < 1.0 &&
 	                          prevPos.y > 0.0 && prevPos.y < 1.0);
 	float prevDepth0 = GetLinearDepth(prevPos.z);
 	float prevDepth1 = GetLinearDepth(texture2D(colortex12, prevPos.xy).a);
