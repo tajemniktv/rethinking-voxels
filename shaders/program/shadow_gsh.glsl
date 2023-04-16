@@ -169,81 +169,82 @@ void main() {
 					bounds[1] -= ivec3(1);
 				}
 			}
-
-			int lightlevel = 0;
-			vec3 lightCol = vec3(0);
-			vec3 avgVertexCol = 0.33 * (
-				vertexColV[0].rgb +
-				vertexColV[1].rgb +
-				vertexColV[2].rgb
-			);
-			if (emissive) {
-				lightlevel = getLightLevel(mat0);
-				lightCol = getLightCol(mat0);
-				if (lightCol == vec3(0)) {
-					vec4[10] lightcols0;
-					vec4 lightcol0 = texture(gtexture, outTexCoord) * vec4(avgVertexCol, 1);
-					lightcol0.rgb *= lightcol0.a;
-					const vec3 avoidcol = vec3(1); // pure white is unsaturated and should be avoided
-					float avgbrightness = max(max(lightcol0.x, lightcol0.y), lightcol0.z);
-					lightcol0.rgb += 0.00001;
-					lightcol0.w = avgbrightness - dot(normalize(lightcol0.rgb), avoidcol);
-					lightcols0[9] = lightcol0;
-					float maxbrightness = avgbrightness;
-					for (int i = 0; i < 9; i++) {
-						lightcols0[i] = texture2D(gtexture, outTexCoord + offsets[i] * spriteSizeV[0] / atlasSize) * vec4(avgVertexCol, 1);
-						lightcols0[i].xyz *= lightcols0[i].w;
-						lightcols0[i].xyz += 0.00001;
-						float thisbrightness = max(lightcols0[i].x, max(lightcols0[i].y, lightcols0[i].z));
-						avgbrightness += thisbrightness;
-						maxbrightness = max(maxbrightness, thisbrightness);
-						lightcols0[i].w = thisbrightness - dot(normalize(lightcols0[i].rgb), avoidcol);
-					}
-					avgbrightness /= 10.0;
-					for (int i = 0; i < 10; i++) {
-						if (lightcols0[i].w > lightcol0.w && max(lightcols0[i].x, max(lightcols0[i].y, lightcols0[i].z)) > (avgbrightness + maxbrightness) * 0.5) {
-							lightcol0 = lightcols0[i];
+			if (!cuboid || bounds[1].y == 15 || cnormal.y > 0.5) {
+				int lightlevel = 0;
+				vec3 lightCol = vec3(0);
+				vec3 avgVertexCol = 0.33 * (
+					vertexColV[0].rgb +
+					vertexColV[1].rgb +
+					vertexColV[2].rgb
+				);
+				if (emissive) {
+					lightlevel = getLightLevel(mat0);
+					lightCol = getLightCol(mat0);
+					if (lightCol == vec3(0)) {
+						vec4[10] lightcols0;
+						vec4 lightcol0 = texture(gtexture, outTexCoord) * vec4(avgVertexCol, 1);
+						lightcol0.rgb *= lightcol0.a;
+						const vec3 avoidcol = vec3(1); // pure white is unsaturated and should be avoided
+						float avgbrightness = max(max(lightcol0.x, lightcol0.y), lightcol0.z);
+						lightcol0.rgb += 0.00001;
+						lightcol0.w = avgbrightness - dot(normalize(lightcol0.rgb), avoidcol);
+						lightcols0[9] = lightcol0;
+						float maxbrightness = avgbrightness;
+						for (int i = 0; i < 9; i++) {
+							lightcols0[i] = texture2D(gtexture, outTexCoord + offsets[i] * spriteSizeV[0] / atlasSize) * vec4(avgVertexCol, 1);
+							lightcols0[i].xyz *= lightcols0[i].w;
+							lightcols0[i].xyz += 0.00001;
+							float thisbrightness = max(lightcols0[i].x, max(lightcols0[i].y, lightcols0[i].z));
+							avgbrightness += thisbrightness;
+							maxbrightness = max(maxbrightness, thisbrightness);
+							lightcols0[i].w = thisbrightness - dot(normalize(lightcols0[i].rgb), avoidcol);
 						}
+						avgbrightness /= 10.0;
+						for (int i = 0; i < 10; i++) {
+							if (lightcols0[i].w > lightcol0.w && max(lightcols0[i].x, max(lightcols0[i].y, lightcols0[i].z)) > (avgbrightness + maxbrightness) * 0.5) {
+								lightcol0 = lightcols0[i];
+							}
+						}
+						lightCol = lightcol0.rgb / max(max(lightcol0.r, lightcol0.g), lightcol0.b) * maxbrightness;
 					}
-					lightCol = lightcol0.rgb / max(max(lightcol0.r, lightcol0.g), lightcol0.b) * maxbrightness;
+				} else lightCol = avgVertexCol;
+				lightCol = clamp(lightCol, vec3(0), vec3(1));
+				uint blocktype = 
+					(alphatest ? 1 : 0) +
+					(crossmodel ? 2 : 0) +
+					(full ? 4 : 0) +
+					(emissive ? 8 : 0) +
+					(cuboid ? 16 : 0) +
+					(notrace ? 32 : 0) +
+					(connectSides ? 64 : 0) +
+					(entity ? 128 : 0);
+				uint lmCoord = uint(5.333 * clamp(lmCoordV[0] + lmCoordV[1] + lmCoordV[2], vec2(0), vec2(3)));
+
+				uint spritelog = 0;
+				while (spriteSizeV[0] >> spritelog + 1 != 0 && spritelog < 15) spritelog++;
+
+				uvec2 midTexelCoord = uvec2(atlasSize * outTexCoord);
+				dataToWrite.x = mat0 + (lightlevel << 16);
+				dataToWrite.y = midTexelCoord.x + (midTexelCoord.y << 16);
+				dataToWrite.z =
+					uint(lightCol.r * 255.9) +
+					(uint(lightCol.g * 255.9) << 8) +
+					(uint(lightCol.b * 255.9) << 16) +
+					(blocktype << 24);
+				if (cuboid) dataToWrite.w = uint(
+					bounds[0].x +
+					(bounds[0].y << 4) +
+					(bounds[0].z << 8) +
+					(bounds[1].x << 12) +
+					(bounds[1].y << 16) +
+					(bounds[1].z << 20)
+				);
+				if (entity || crossmodel) {
+					dataToWrite.w = uint(256 * fract(avgPos0.x)) + (uint(256 * fract(avgPos0.y)) << 8) + (uint(256 * fract(avgPos0.z)) << 16);
 				}
-			} else lightCol = avgVertexCol;
-			lightCol = clamp(lightCol, vec3(0), vec3(1));
-			uint blocktype = 
-				(alphatest ? 1 : 0) +
-				(crossmodel ? 2 : 0) +
-				(full ? 4 : 0) +
-				(emissive ? 8 : 0) +
-				(cuboid ? 16 : 0) +
-				(notrace ? 32 : 0) +
-				(connectSides ? 64 : 0) +
-				(entity ? 128 : 0);
-			uint lmCoord = uint(5.333 * clamp(lmCoordV[0] + lmCoordV[1] + lmCoordV[2], vec2(0), vec2(3)));
-
-			uint spritelog = 0;
-			while (spriteSizeV[0] >> spritelog + 1 != 0 && spritelog < 15) spritelog++;
-
-			uvec2 midTexelCoord = uvec2(atlasSize * outTexCoord);
-			dataToWrite.x = mat0 + (lightlevel << 16);
-			dataToWrite.y = midTexelCoord.x + (midTexelCoord.y << 16);
-			dataToWrite.z =
-				uint(lightCol.r * 255.9) +
-				(uint(lightCol.g * 255.9) << 8) +
-				(uint(lightCol.b * 255.9) << 16) +
-				(blocktype << 24);
-			if (cuboid) dataToWrite.w = uint(
-				bounds[0].x +
-				(bounds[0].y << 4) +
-				(bounds[0].z << 8) +
-				(bounds[1].x << 12) +
-				(bounds[1].y << 16) +
-				(bounds[1].z << 20)
-			);
-			if (entity || crossmodel) {
-				dataToWrite.w = uint(256 * fract(avgPos0.x)) + (uint(256 * fract(avgPos0.y)) << 8) + (uint(256 * fract(avgPos0.z)) << 16);
+				dataToWrite.w += (spritelog << 24) + (lmCoord << 28);
+				voxelVolume[1][originBlock.x][originBlock.y][originBlock.z] = dataToWrite;
 			}
-			dataToWrite.w += (spritelog << 24) + (lmCoord << 28);
-			voxelVolume[1][originBlock.x][originBlock.y][originBlock.z] = dataToWrite;
 		}
 		#endif
 	}

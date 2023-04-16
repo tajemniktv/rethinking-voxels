@@ -19,8 +19,8 @@ void main() {
 			vec4(1, 0, 0, 0),
 			vec4(0, 1, 0, 0),
 			vec4(0, 0, 1, 0),
-			vec4(dcamPos, 1)) *
-		gbufferModelViewInverse *
+			vec4(dcamPos, 1)) * 
+		gbufferModelViewInverse * 
 		gbufferProjectionInverse;
 	gl_Position = ftransform();
 }

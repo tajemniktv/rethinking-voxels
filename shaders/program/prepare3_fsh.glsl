@@ -1,71 +1,22 @@
 #include "/lib/common.glsl"
 
-uniform int frameCounter;
+flat in mat4 reprojectionMatrix;
 
 uniform float viewWidth;
 uniform float viewHeight;
-ivec2 view = ivec2(viewWidth + 0.1, viewHeight + 0.1);
-ivec2 lowResView = view / 8;
-uniform vec3 fogColor;
-uniform vec3 cameraPosition;
-uniform mat4 gbufferProjection;
-uniform mat4 gbufferModelView;
-uniform mat4 gbufferProjectionInverse;
-uniform mat4 gbufferModelViewInverse;
+vec2 view = vec2(viewWidth, viewHeight);
+uniform sampler2D colortex1;
 uniform sampler2D colortex8;
-uniform sampler2D colortex15;
-
-#include "/lib/vx/SSBOs.glsl"
-#include "/lib/vx/raytrace.glsl"
 
 void main() {
-	ivec2 coords = ivec2(gl_FragCoord.xy);
-	ivec2 tileCoords = coords / lowResView;
-	float visibility = 0.5;
-	vec4 debug = vec4(0);
-	if (all(lessThan(tileCoords, ivec2(8)))) {
-		int lightNum = tileCoords.x + 8 * tileCoords.y;
-		ivec2 localCoords = coords % lowResView * 8;
-		if (all(lessThan(localCoords, view))) {
-			vec4 normalDepthData = texelFetch(colortex8, localCoords, 0);
-			if (length(normalDepthData.xyz) > 0.5) {
-				vec4 pos = vec4(localCoords, 1 - normalDepthData.w, 1);
-				pos.xy = (pos.xy + 0.5) / view;
-				pos.xyz = 2 * pos.xyz - 1;
-				pos = gbufferModelViewInverse * (gbufferProjectionInverse * pos);
-				pos.xyz = pos.xyz / pos.w + fract(cameraPosition);
-				debug.xyz = (pos.xyz + floor(cameraPosition) - vec3(50, 65, 0)) * 0.1;
-				pos.xyz += max(0.05, 0.008 * length(pos)) * normalDepthData.xyz;
-				if (clamp(pos.xyz, -pointerGridSize / POINTER_VOLUME_RES, pointerGridSize / POINTER_VOLUME_RES) == pos.xyz) {
-					ivec3 pgc = ivec3(pos.xyz / POINTER_VOLUME_RES + pointerGridSize / 2.0);
-					int lightCount = PointerVolume[4][pgc.x][pgc.y][pgc.z];
-					if (lightCount > lightNum) {
-						light_t thisLight = lights[PointerVolume[5 + lightNum][pgc.x][pgc.y][pgc.z]];
-						vec3 dir = thisLight.pos - pos.xyz;
-						vec3 offset = hash33(vec3(localCoords, frameCounter)) * 1.98 - 0.99;
-						offset *= thisLight.size;
-						if (dot(dir, normalDepthData.xyz) > 0) {
-							#ifdef ACCURATE_RT
-								ray_hit_t rayHit = betterRayTrace(pos.xyz, dir + offset, colortex15, false);
-							#else
-								ray_hit_t rayHit = raytrace(pos.xyz, dir + offset, colortex15);
-							#endif
-							if (rayHit.rayColor.a < 0.1) {
-								visibility = 1.0;
-							} else if (rayHit.rayColor.a < 0.9) {
-								visibility = 0.5;
-							} else {
-								vec3 dist = abs(rayHit.pos - thisLight.pos) / (max(thisLight.size, vec3(0.5)) + 0.01);
-								if (max(max(dist.x, dist.y), dist.z) > 1.0) visibility = 0.0;
-								else if (rayHit.transColor.a > 0.1) visibility = 0.5;
-								else visibility = 1.0;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	/*RENDERTARGETS:3*/
-	gl_FragData[0] = vec4(visibility, 0, 0, 1);
+	vec4 pos = vec4(
+		gl_FragCoord.xy / view * 2 - 1,
+		1 - texelFetch(colortex8, ivec2(gl_FragCoord.xy), 0).w,
+		1);
+	vec4 prevPos = reprojectionMatrix * pos;
+	prevPos /= prevPos.w;
+	prevPos.xy = 0.5 * prevPos.xy + 0.5;
+	vec4 materialData = texelFetch(colortex1, ivec2(prevPos.xy * view), 0);
+	/*RENDERTARGETS:1*/
+	gl_FragData[0] = materialData;
 }
