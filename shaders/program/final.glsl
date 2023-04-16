@@ -7,7 +7,9 @@
 
 //////////Fragment Shader//////////Fragment Shader//////////Fragment Shader//////////
 #ifdef FRAGMENT_SHADER
-
+#ifndef IS_IRIS
+#include "/lib/misc/irisRequired.glsl"
+#else
 noperspective in vec2 texCoord;
 
 //Uniforms//
@@ -96,7 +98,7 @@ void main() {
 }
 
 #endif
-
+#endif
 //////////Vertex Shader//////////Vertex Shader//////////Vertex Shader//////////
 #ifdef VERTEX_SHADER
 
