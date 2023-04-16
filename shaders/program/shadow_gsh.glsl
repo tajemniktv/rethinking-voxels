@@ -6,21 +6,25 @@ in vec4[3] vertexColV;
 in vec3[3] posV;
 in vec3[3] normalV;
 in vec3[3] blockCenterOffsetV;
+flat in vec3[3] sunVecV;
+flat in vec3[3] upVecV;
 flat in int[3] vertexID;
 flat in int[3] spriteSizeV;
 flat in int[3] matV;
 
-out vec2 texCoord;
-out vec2 lmCoord;
-out vec3 normal;
-out vec4 vertexCol;
-out vec3 pos;
-flat out int spriteSize;
 flat out int mat;
-const int maxVerticesOut = 0;
+
+out vec2 texCoord;
+
+flat out vec3 sunVec, upVec;
+
+out vec4 position;
+flat out vec4 glColor;
+
+const int maxVerticesOut = 3;
 
 layout(triangles) in;
-layout(triangle_strip, max_vertices = 0) out;
+layout(triangle_strip, max_vertices = 3) out;
 
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
@@ -60,9 +64,8 @@ void main() {
 		avgPos -= normalOffset;
 		if (doFullPosOffset(mat0)) avgPos0 -= normalOffset;
 		adjustZpos(zpos, mat0, avgPos, cnormal);
-	}
-	#ifndef ACCURATE_RT
-	else return;
+	#ifdef ACCURATE_RT
+		}
 	#endif
 
 	vec3 avgCenterOffset = 0.5 * (
@@ -244,4 +247,20 @@ void main() {
 		}
 		#endif
 	}
+
+	#ifndef ACCURATE_RT
+		}
+	#endif
+
+	for (int i = 0; i < 3; i++) {
+		gl_Position = gl_in[i].gl_Position;
+		mat = matV[i];
+		texCoord = texCoordV[i];
+		sunVec = sunVecV[i];
+		upVec = upVecV[i];
+		position = vec4(posV[i], 1.0);
+		glColor = vertexColV[i];
+		EmitVertex();
+	}
+	EndPrimitive();
 }

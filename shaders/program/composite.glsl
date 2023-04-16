@@ -28,9 +28,7 @@ uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 
 #if LIGHTSHAFT_QUALITY > 0
-	#ifndef VBL_INTPOL
-		#undef OCCLUSION_FILTER
-	#endif
+
 	#undef BL_SHADOW_MODE
 	#undef PP_BL_SHADOWS
 	#undef PP_SUN_SHADOWS
@@ -62,6 +60,9 @@ uniform sampler2D depthtex1;
 
 	uniform sampler2D colortex3;
 	uniform sampler2D noisetex;
+	uniform sampler2DShadow shadowtex0;
+	uniform sampler2DShadow shadowtex1;
+	uniform sampler2D shadowcolor1;
 #endif
 
 //Pipeline Constants//

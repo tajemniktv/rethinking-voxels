@@ -8,7 +8,7 @@ uniform mat4 gbufferProjection;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;
-uniform sampler2D colortex0;
+uniform sampler2D colortex8;
 uniform sampler2D colortex15;
 
 const ivec2[8] offsets = ivec2[8](
@@ -25,14 +25,14 @@ const ivec2[8] offsets = ivec2[8](
 #include "/lib/vx/raytrace.glsl"
 
 void main() {
-	vec4 normalDepthData = texelFetch(colortex0, ivec2(gl_FragCoord.xy), 0);
+	vec4 normalDepthData = texelFetch(colortex8, ivec2(gl_FragCoord.xy), 0);
 	if (normalDepthData.w > 1.5) {
 		normalDepthData = vec4(0);
 		vec4 maxNormDD = vec4(-100);
 		vec4 minNormDD = vec4(100);
 		int counter = 0;
 		for (int i = 0; i < 8; i++) {
-			vec4 aroundData = texelFetch(colortex0, ivec2(gl_FragCoord.xy) + offsets[i], 0);
+			vec4 aroundData = texelFetch(colortex8, ivec2(gl_FragCoord.xy) + offsets[i], 0);
 			if (aroundData.w < 1.5) {
 				if (i % 2 == 0) {
 					maxNormDD = max(maxNormDD, aroundData);
@@ -67,6 +67,6 @@ void main() {
 		normalDepthData = 0.5 + 0.5 * normalDepthData;
 	}
 	normalDepthData.xyz = 2 * normalDepthData.xyz - 1;
-	/*RENDERTARGETS:0*/
+	/*RENDERTARGETS:8*/
 	gl_FragData[0] = normalDepthData;
 }

@@ -14,18 +14,8 @@
 
 //voxel settings//
 
-    #define SHADOWRES 1024 //[512 1024 2048 4096]
+    const int shadowMapResolution = 2048;
 
-    #if SHADOWRES == 512
-        const int shadowMapResolution = 512;
-    #elif SHADOWRES == 1024
-        const int shadowMapResolution = 1024;
-    #elif SHADOWRES == 2048
-        const int shadowMapResolution = 2048;
-    #else
-        const int shadowMapResolution = 4096;
-    #endif
-    
     #define VXHEIGHT 8 //[4 6 8 12 16]
     #define OCCLUSION_CASCADE_COUNT 5 //[1 2 3 4 5]
 
@@ -65,65 +55,8 @@
 
     #define ACCURATE_RT
 
-    #if SHADOWRES == 512
-        #if (VXHEIGHT == 4)
-            const float shadowDistance = 64.0;
-        #elif (VXHEIGHT == 6)
-            const float shadowDistance = 42.0;
-        #elif (VXHEIGHT == 8)
-            const float shadowDistance = 32.0;
-        #elif (VXHEIGHT == 12)
-            const float shadowDistance = 21.0;
-        #elif (VXHEIGHT == 16)
-            const float shadowDistance = 16.0;
-        #else
-            const float shadowDistance = 50.0;
-        #endif
-    #elif SHADOWRES == 1024
-        #if (VXHEIGHT == 4)
-            const float shadowDistance = 128.0;
-        #elif (VXHEIGHT == 6)
-            const float shadowDistance = 85.0;
-        #elif (VXHEIGHT == 8)
-            const float shadowDistance = 64.0;
-        #elif (VXHEIGHT == 12)
-            const float shadowDistance = 42.0;
-        #elif (VXHEIGHT == 16)
-            const float shadowDistance = 32.0;
-        #else
-            const float shadowDistance = 70.0;
-        #endif
-    #elif SHADOWRES == 2048
-        #if (VXHEIGHT == 4)
-            const float shadowDistance = 256.0;
-        #elif (VXHEIGHT == 6)
-            const float shadowDistance = 170.0;
-        #elif (VXHEIGHT == 8)
-            const float shadowDistance = 128.0;
-        #elif (VXHEIGHT == 12)
-            const float shadowDistance = 85.0;
-        #elif (VXHEIGHT == 16)
-            const float shadowDistance = 64.0;
-        #else
-            const float shadowDistance = 120.0;
-        #endif
-    #elif SHADOWRES == 4096
-        #if (VXHEIGHT == 4)
-            const float shadowDistance = 512.0;
-        #elif (VXHEIGHT == 6)
-            const float shadowDistance = 341.0;
-        #elif (VXHEIGHT == 8)
-            const float shadowDistance = 256.0;
-        #elif (VXHEIGHT == 12)
-            const float shadowDistance = 170.0;
-        #elif (VXHEIGHT == 16)
-            const float shadowDistance = 128.0;
-        #else
-            const float shadowDistance = 200.0;
-        #endif
-    #else
-        const float shadowDistance = 100.0;
-    #endif
+    const float shadowDistance = 64.0;
+
     #if (defined PP_SUN_SHADOWS || defined VOXEL_REFLECTIONS)
         #define DISTANCE_FIELD
     #endif

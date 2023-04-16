@@ -12,7 +12,7 @@ uniform mat4 gbufferProjection;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;
-uniform sampler2D colortex0;
+uniform sampler2D colortex8;
 uniform sampler2D colortex15;
 
 #include "/lib/vx/SSBOs.glsl"
@@ -27,7 +27,7 @@ void main() {
 		int lightNum = tileCoords.x + 8 * tileCoords.y;
 		ivec2 localCoords = coords % lowResView * 8;
 		if (all(lessThan(localCoords, view))) {
-			vec4 normalDepthData = texelFetch(colortex0, localCoords, 0);
+			vec4 normalDepthData = texelFetch(colortex8, localCoords, 0);
 			if (length(normalDepthData.xyz) > 0.5) {
 				vec4 pos = vec4(localCoords, 1 - normalDepthData.w, 1);
 				pos.xy = (pos.xy + 0.5) / view;

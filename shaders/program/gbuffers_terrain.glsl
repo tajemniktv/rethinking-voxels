@@ -172,6 +172,8 @@ void main() {
 
 	float smoothnessD = 0.0, materialMask = 0.0, skyLightFactor = 0.0;
 	vec3 normalM = normal;
+	int subsurfaceMode = 0;
+
 	if (color.a > 0.00001) {
 		vec3 colorP = color.rgb;
 		color.rgb *= glColor.rgb;
@@ -185,7 +187,6 @@ void main() {
 		float lViewPos = length(viewPos);
 		vec3 playerPos = ViewToPlayer(viewPos);
 
-		int subsurfaceMode = 0;
 		bool noSmoothLighting = false, noDirectionalShading = false, noVanillaAO = false, centerShadowBias = false;
 		#ifdef SNOWY_WORLD
 			float snowFactor = 1.0;
@@ -332,7 +333,7 @@ void main() {
 
 	/* DRAWBUFFERS:01 */
 	gl_FragData[0] = color;
-	gl_FragData[1] = vec4(smoothnessD, materialMask, skyLightFactor, 1.0);
+	gl_FragData[1] = vec4(smoothnessD, materialMask, skyLightFactor, 1 - 0.5 * subsurfaceMode);
 
 	#if (REFLECTION_QUALITY >= 3 && RP_MODE != 0) || BL_SHADOW_MODE == 1
 		/* DRAWBUFFERS:015 */

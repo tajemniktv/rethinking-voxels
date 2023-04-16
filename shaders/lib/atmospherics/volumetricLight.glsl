@@ -3,7 +3,6 @@
 #include "/lib/colors/lightAndAmbientColors.glsl"
 #include "/lib/vx/getLighting.glsl"
 
-
 float GetDepth(float depth) {
 	return 2.0 * near * far / (far + near - (2.0 * depth - 1.0) * (far - near));
 }
@@ -114,6 +113,18 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 			enderBeamSample /= sampleCount;
 		#endif
 		float blSampleMult = 1.0 / sampleCount;
+		
+		float shadowSample = 1.0;
+		vec3 vlSample = vec3(1.0);
+		#ifdef REALTIME_SHADOWS
+			wpos = shadowModelView * wpos;
+			wpos = shadowProjection * wpos;
+			wpos /= wpos.w;
+			float distb = sqrt(wpos.x * wpos.x + wpos.y * wpos.y);
+			float distortFactor = 1.0 - shadowMapBias + distb * shadowMapBias;
+			vec4 shadowPosition = DistortShadow(wpos,distortFactor);
+			//shadowPosition.z += 0.0001;
+		#endif
 		#ifdef OVERWORLD
 			float percentComplete = currentDist / maxDist;
 			float sampleMult = mix(percentComplete * 3.0, sampleMultIntense, max(rainFactor, vlSceneIntensity));
@@ -131,18 +142,22 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 			blSample = getBlockLight(vxPos);
 		}
 		#ifdef REALTIME_SHADOWS
-			float shadowSample = 1.0;
-			vec3 vlSample = vec3(1.0);
-			vec3 prevVxPos = getPreviousVxPos(playerPos);
-			if (isInRange(prevVxPos, 2)) {
-				vlSample = getSunLight(prevVxPos, true);
-			#ifndef END
-				} else {
-					vlSample = vec3(eyeBrightnessSmooth.y / 240.0);
-			#endif
+			if (length(shadowPosition.xy * 2.0 - 1.0) < 1.0) {
+				shadowSample = shadow2D(shadowtex0, shadowPosition.xyz).z;
+				vlSample = vec3(shadowSample);
+
+				if (shadowSample == 0.0) {
+					float testsample = shadow2D(shadowtex1, shadowPosition.xyz).z;
+					if (testsample == 1.0) {
+						vec3 colsample = texture2D(shadowcolor1, shadowPosition.xy).rgb * 4.0;
+						colsample *= colsample;
+						vlSample = colsample * (1.0 - vlSample) + vlSample;
+						#ifdef OVERWORLD
+							vlSample *= vlColorReducer;
+						#endif
+					}
+				} else if (isEyeInWater == 1 && translucentMult == vec3(1.0)) vlSample = vec3(0.0);
 			}
-			vlSample *= vlSample + 0.1;
-			shadowSample = dot(vlSample, vec3(1)) > 0.5 ? 1.0 : 0.0;
 		#endif
 		if (currentDist > depth0)  {
 			#ifdef REALTIME_SHADOWS
@@ -166,9 +181,12 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 			if (frameCounter % int(0.06666 / frameTimeSmooth + 0.5) == 0) { // Change speed is not too different above 10 fps
 				if (eyeBrightness.y < 180) {
 					vec4 wpos = vec4(shadowModelView[3][0], shadowModelView[3][1], shadowModelView[3][2], shadowModelView[3][3]);
-					wpos = shadowModelViewInverse * wpos;
+					wpos = shadowProjection * wpos;
 					wpos /= wpos.w;
-					float shadowSample = length(getSunLight(getPreviousVxPos(wpos.xyz))) > 0.3 ? 1.0 : 0.0;
+					vec4 shadowPosition = DistortShadow(wpos, 1.0 - shadowMapBias);
+					shadowPosition.z -= 0.0005;
+					float shadowSample = shadow2D(shadowtex0, shadowPosition.xyz).z;
+
 					if (shadowSample < 0.5) {
 						int salsX = 8;
 						int salsY = 5;

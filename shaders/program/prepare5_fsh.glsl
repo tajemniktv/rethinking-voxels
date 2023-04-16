@@ -8,7 +8,8 @@ uniform int frameCounter;
 uniform vec3 cameraPosition;
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;
-uniform sampler2D colortex0;
+uniform sampler2D colortex8;
+uniform sampler2D colortex1;
 uniform sampler2D colortex3;
 uniform sampler2D colortex15;
 
@@ -22,11 +23,11 @@ const ivec2[4] offsets = ivec2[4](
 );
 void main() {
 	ivec2 coords = ivec2(gl_FragCoord.xy);
-	float oneMinusDepth = texelFetch(colortex0, coords, 0).a;
+	float oneMinusDepth = texelFetch(colortex8, coords, 0).a;
 	ivec2 localCoords = coords * 2 + offsets[frameCounter % 4];
 	vec3 lightCol = vec3(0);
 	if (all(lessThan(localCoords, view))) {
-		vec4 normalDepthData = texelFetch(colortex0, localCoords, 0);
+		vec4 normalDepthData = texelFetch(colortex8, localCoords, 0);
 		if (length(normalDepthData.xyz) > 0.5) {
 			vec4 pos = vec4(localCoords, 1 - normalDepthData.w, 1);
 			pos.xy = (pos.xy + 0.5) / view;
@@ -46,10 +47,10 @@ void main() {
 					vec3 dir = thisLight.pos - pos.xyz;
 					vec3 offset = hash33(vec3(localCoords, frameCounter)) * 1.98 - 0.99;
 					offset *= thisLight.size;
-					float ndotl = dot(dir, normalDepthData.xyz);
+					float ndotl = sqrt(max(0, dot(normalize(dir), normalDepthData.xyz)));
 					float brightness = length(dir);
 					float lightBrightness = thisLight.brightnessMat >> 16;
-					brightness = ndotl * 0.0625 * lightBrightness * pow(max(0, 1 - brightness / lightBrightness), 1.5);
+					brightness = ndotl * 0.0625 * lightBrightness * pow(max(0, 1 - brightness / lightBrightness), 2);
 					if (brightness > 0.01) {
 						vec3 thisLightColor = vec3(
 							thisLight.packedColor % 256,
@@ -81,7 +82,7 @@ void main() {
 			}
 		}
 	}
-	/*RENDERTARGETS:0*/
+	/*RENDERTARGETS:8*/
 	float lightColBrightness = max(max(lightCol.x, lightCol.y), max(lightCol.z, 0.000000001));
-	gl_FragData[0] = vec4(lightCol / lightColBrightness * log(lightColBrightness * 0.2 + 1), oneMinusDepth);
+	gl_FragData[0] = vec4(lightCol / lightColBrightness * log(lightColBrightness * 0.4 + 1), oneMinusDepth);
 }
