@@ -70,7 +70,7 @@ void DoTAA(inout vec3 color, inout vec4 temp) {
 	float depth = texelFetch(depthtex1, texelCoord, 0).r;
 
 	if (materialMask == 254) {// No SSAO, No TAA
-		temp.a = depth;
+		temp.a = 1 - depth;
 		return;
 	}
 
@@ -87,7 +87,7 @@ void DoTAA(inout vec3 color, inout vec4 temp) {
 	#ifdef ACCUM
 		temp.rgb = mix(color, tempColor.rgb, 0.99);
 		color = temp.rgb;
-		temp.a = depth;
+		temp.a = 1 - depth;
 		return;
 	#endif
 	float edge = 0.0;
@@ -108,7 +108,7 @@ void DoTAA(inout vec3 color, inout vec4 temp) {
 	float blendVariable = 0.28;
 	float velocityFactor = dot(velocity, velocity) * 10.0;
 	float lPrvDepth0 = GetLinearDepth(prvCoord.z);
-	float lPrvDepth1 = GetLinearDepth(tempColor.w);
+	float lPrvDepth1 = GetLinearDepth(1 - tempColor.w);
 	float ddepth = abs(lPrvDepth0 - lPrvDepth1) * (1 / abs(lPrvDepth0) + 1);
 	#else
 	float blendMinimum = 0.3;
@@ -120,5 +120,5 @@ void DoTAA(inout vec3 color, inout vec4 temp) {
 	blendFactor *= max(exp(-velocityFactor) * blendVariable + blendConstant - ddepth * (edge < 0.1 ? 10 : 0) - length(cameraOffset) * edge, blendMinimum);
 	
 	color = mix(color, tempColor.xyz, blendFactor);
-	temp = vec4(color, depth);
+	temp = vec4(color, 1 - depth);
 }

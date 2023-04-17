@@ -44,7 +44,7 @@ void main() {
 			if (clamp(pos.xyz, -pointerGridSize / POINTER_VOLUME_RES, pointerGridSize / POINTER_VOLUME_RES) == pos.xyz) {
 				ivec3 pgc = ivec3(pos.xyz / POINTER_VOLUME_RES + pointerGridSize / 2.0); // pointer grid coord
 				int lightCount = PointerVolume[4][pgc.x][pgc.y][pgc.z];
-				ivec2 roughCoords = localCoords / 8;
+				ivec2 roughCoords = min(localCoords / 8, lowResView - 1);
 				for (int lightNum = 0; lightNum < lightCount; lightNum++) {
 					ivec2 tileCoords = ivec2(lightNum % 8, lightNum / 8);
 					float visible = texelFetch(colortex3, lowResView * tileCoords + roughCoords, 0).x;

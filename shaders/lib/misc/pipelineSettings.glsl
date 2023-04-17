@@ -1,7 +1,7 @@
 /*
 const int colortex0Format = RGBA16F;		//main color
 const int colortex1Format = RGBA8;			//smoothnessD & materialMask & skyLightFactor & SSS
-const int colortex2Format = RGBA16;			//taa, previous depth
+const int colortex2Format = RGBA16F;		//taa, previous depth
 const int colortex3Format = RGB8;			//*cloud texture on deferred* & translucentMult & bloom & final color
 const int colortex4Format = RGBA8;			//volumetric cloud linear depth & volumetric light factor & normals in composite
 const int colortex5Format = RGBA8_SNORM;	//normalM & scene image for water reflections
