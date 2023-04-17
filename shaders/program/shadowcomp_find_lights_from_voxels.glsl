@@ -35,7 +35,11 @@ void main() {
 						#endif
 					} else {
 						thisLight.pos += thisVoxelData.midcoord;
-						thisLight.size = defaultLightSize;
+						#ifdef CORRECT_CUBOID_OFFSETS
+							thisLight.size = thisVoxelData.full ? vec3(0.5) : defaultLightSize;
+						#else
+							thisLight.size = defaultLightSize;
+						#endif
 					}
 					thisLight.packedColor = int(thisVoxelData.lightcol.x * 255.9) + (int(thisVoxelData.lightcol.y * 255.9) << 8) + (int(thisVoxelData.lightcol.z * 255.9) << 16);
 					thisLight.brightnessMat = thisVoxelData.mat + (thisVoxelData.lightlevel << 16);

@@ -1,4 +1,4 @@
-for i in 6 5 4 3 2
+for i in 7
 do
 	echo "asd"
 	for F in $(find . -name "prepare$i*")
