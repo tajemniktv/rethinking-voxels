@@ -27,6 +27,7 @@ in vec4 glColor;
 
 //Uniforms//
 uniform int isEyeInWater;
+uniform int frameCounter;
 
 uniform float viewWidth;
 uniform float viewHeight;
@@ -52,7 +53,6 @@ uniform mat4 shadowProjection;
 uniform sampler2D gtexture;
 
 #if defined PP_BL_SHADOWS || defined PP_SUN_SHADOWS || (defined HELD_LIGHT_OCCLUSION_CHECK && HELD_LIGHTING_MODE > 0)
-	uniform int frameCounter;
 	#define ATLASTEX gtexture
 #endif
 

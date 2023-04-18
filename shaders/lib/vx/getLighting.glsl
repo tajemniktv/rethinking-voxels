@@ -18,9 +18,9 @@
 				if (length(fract(volumePos + 0.5) - 0.5) < 0.1) return vec3(1, 0, 0);
 			#endif
 			ivec3 volumeCoords = ivec3(volumePos);
-			int localLightCount = PointerVolume[4][volumeCoords.x][volumeCoords.y][volumeCoords.z];
+			int localLightCount = pointerVolume[4][volumeCoords.x][volumeCoords.y][volumeCoords.z];
 			for (int i = 0; i < localLightCount; i++) {
-				int thisLightId = PointerVolume[5 + i][volumeCoords.x][volumeCoords.y][volumeCoords.z];
+				int thisLightId = pointerVolume[5 + i][volumeCoords.x][volumeCoords.y][volumeCoords.z];
 				light_t thisLight = lights[thisLightId];
 				float ndotl = max(0, 0.99 * dot(normalize(thisLight.pos - pos), normal) + 0.01);
 				float brightness = length((thisLight.pos - pos));

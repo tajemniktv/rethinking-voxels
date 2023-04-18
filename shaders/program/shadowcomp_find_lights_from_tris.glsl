@@ -6,22 +6,23 @@ layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 #ifdef ACCURATE_RT
 
+uniform int frameCounter;
+uniform sampler2D colortex15;
+
 #define WRITE_TO_SSBOS
 #include "/lib/vx/SSBOs.glsl"
 #include "/lib/materials/shadowchecks_precise.glsl"
-
-uniform sampler2D colortex15;
 
 #define LOCAL_MAX_LIGHTCOUNT 8
 void main() {
 	vec3 thisVoxelLower = vec3(gl_WorkGroupID - pointerGridSize * 0.5);
 	vec3 thisVoxelUpper = vec3(gl_WorkGroupID - pointerGridSize * 0.5 + 1);
-	int triCountHere = PointerVolume[0][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z];
-	int triStripStart = PointerVolume[1][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z];
+	int triCountHere = pointerVolume[0][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z];
+	int triStripStart = pointerVolume[1][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z];
 	int mats[LOCAL_MAX_LIGHTCOUNT];
 	ivec3 locs[LOCAL_MAX_LIGHTCOUNT];
 	int nLights = 0;
-	int lightClumps[LOCAL_MAX_TRIS][LOCAL_MAX_LIGHTCOUNT];
+	int lightClumps[LOCAL_MAX_TRIS/2][LOCAL_MAX_LIGHTCOUNT];
 	int lightClumpTriCounts[LOCAL_MAX_LIGHTCOUNT];
 	vec3 lowerBound = vec3(100000);
 	vec3 upperBound = vec3(-100000);
@@ -59,7 +60,7 @@ void main() {
 				if (mats[j] == mat && max(max(dpos.x, dpos.y), dpos.z) < 0.27) {
 					newLight = false;
 					lightClumps[lightClumpTriCounts[j]][j] = thisTriId;
-					if (lightClumpTriCounts[j] < LOCAL_MAX_TRIS - 1) lightClumpTriCounts[j]++;
+					if (lightClumpTriCounts[j] < LOCAL_MAX_TRIS / 2 - 1) lightClumpTriCounts[j]++;
 				}
 			}
 			if (newLight && nLights < LOCAL_MAX_LIGHTCOUNT) {
@@ -82,7 +83,7 @@ void main() {
 		(upperBoundQuantized.x << 15) +
 		(upperBoundQuantized.y << 20) +
 		(upperBoundQuantized.z << 25);
-	PointerVolume[2][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = packedBounds;
+	pointerVolume[2][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = packedBounds;
 	for (int i = 0; i < nLights; i++) {
 		int mat = mats[i];
 		vec3 lower = vec3( 10000.0);
@@ -155,8 +156,13 @@ void main() {
 		thisLight.packedColor = int(255 * lightCol.x + 0.5) + (int(255 * lightCol.y + 0.5) << 8) + (int(255 * lightCol.z + 0.5) << 16);
 		thisLight.brightnessMat = mat + (lightLevel << 16);
 		int globalLightId = atomicAdd(numLights, 1);
-		lights[globalLightId] = thisLight;
-		PointerVolume[5 + i][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = globalLightId;
+		if (globalLightId < MAX_LIGHTS) {
+			lights[globalLightId] = thisLight;
+			pointerVolume[5 + i][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = globalLightId;
+		} else {
+			nLights = i - 1;
+			break;
+		}
 /*		for (int x = -lightLevel/2 - 1; x <= lightLevel/2 + 1; x++) {
 			int xCoord = x + int(gl_WorkGroupID.x);
 			if (xCoord >= 0 && xCoord < pointerGridSize.x) {
@@ -166,8 +172,8 @@ void main() {
 						for (int z = -lightLevel/2 - 1; z <= lightLevel/2 + 1; z++) {
 							int zCoord = z + int(gl_WorkGroupID.z);
 							if (zCoord >= 0 && zCoord < pointerGridSize.z && length(vec3(x, y, z)) < lightLevel/2 + 1) {
-								int localLightId = atomicAdd(PointerVolume[4][xCoord][yCoord][zCoord], 1);
-								if (localLightId < 64) PointerVolume[5 + localLightId][xCoord][yCoord][zCoord] = globalLightId;
+								int localLightId = atomicAdd(pointerVolume[4][xCoord][yCoord][zCoord], 1);
+								if (localLightId < 64) pointerVolume[5 + localLightId][xCoord][yCoord][zCoord] = globalLightId;
 							}
 						}
 					}
@@ -175,7 +181,7 @@ void main() {
 			}
 		}
 */	}
-	PointerVolume[4][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = nLights;
+	pointerVolume[4][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = nLights;
 }
 #else
 void main() {}

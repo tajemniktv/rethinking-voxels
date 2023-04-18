@@ -27,7 +27,8 @@ struct vxData {
 vxData readVxMap(ivec3 coords) {
 	vxData data;
 	#ifndef ACCURATE_RT
-		uvec4 packedData = voxelVolume[1][coords.x][coords.y][coords.z];
+		int nonConstant1Index_nvidiaIsStupid = max(1, -coords.x);
+		uvec4 packedData = voxelVolume[nonConstant1Index_nvidiaIsStupid][coords.x][coords.y][coords.z];
 		if (packedData.x == 0) {
 		#endif
 		data.lightcol = vec3(0); // lightcol is gl_Color.rgb for anything that isn't a light source

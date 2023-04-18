@@ -11,6 +11,7 @@
 noperspective in vec2 texCoord;
 
 //Uniforms//
+uniform int frameCounter;
 uniform float viewWidth, viewHeight;
 
 uniform sampler2D colortex3;
@@ -48,14 +49,14 @@ void main() {
 	#ifdef FXAA
 		FXAA311(color);
 	#endif
-	/*if (length(texelCoord - vec2(viewWidth, viewHeight) / 2) < 300) {
-		ray_hit_t rayHit;
-		raytrace(fract(cameraPosition), 20 * normalize((gbufferModelViewInverse * (gbufferProjectionInverse * vec4(gl_FragCoord.xy / vec2(viewWidth, viewHeight) * 2 - 1, 0.9998, 1))).xyz), colortex15, rayHit);
-		color = rayHit.pos * 0.1 + 0.5;
+	if (length(texelCoord - vec2(viewWidth, viewHeight) / 2) < 300) {
+		ray_hit_t rayHit = betterRayTrace(fract(cameraPosition), 20 * normalize((gbufferModelViewInverse * (gbufferProjectionInverse * vec4(gl_FragCoord.xy / vec2(viewWidth, viewHeight) * 2 - 1, 0.9998, 1))).xyz), colortex15);
+		color = rayHit.rayColor.rgb;
 	}
-	if (texelCoord.y < 10 && texelCoord.x < numLights) {
-		color = lights[texelCoord.x].pos * 0.1 + 0.5;
-	}*/
+	if (texelCoord.y < 10) {
+		if (texelCoord.x < 10) color = numFaces < MAX_TRIS ? vec3(numFaces) / MAX_TRIS : vec3(1, 0, 0);
+		else color.r = triPointerStrip[texelCoord.x - 10] * 0.1;
+	}
 
 	/*DRAWBUFFERS:3*/
 	gl_FragData[0] = vec4(color, 1.0);

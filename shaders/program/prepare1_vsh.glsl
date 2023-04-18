@@ -4,6 +4,7 @@ uniform mat4 gbufferModelView;
 uniform mat4 gbufferProjection;
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
+uniform int frameCounter;
 
 #include "/lib/vx/SSBOs.glsl"
 

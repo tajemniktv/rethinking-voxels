@@ -2,6 +2,7 @@
 #define SSBO
 #define LOCAL_MAX_TRIS 512
 #define MAX_TRIS 524288
+#define MAX_LIGHTS 65536
 #define POINTER_VOLUME_RES 2.0
 
 #ifndef WRITE_TO_SSBOS
@@ -9,6 +10,7 @@
 #endif
 
 const ivec3 pointerGridSize = ivec3(64, 32, 64);
+const int maxStripIndex = MAX_TRIS + pointerGridSize.x * pointerGridSize.y * pointerGridSize.z;
 struct tri_t {
 	uint matBools;
 	int bvhParent;
@@ -23,13 +25,12 @@ struct tri_t {
 	};
 #else
 	layout(std430, binding = 0) WRITE_TO_SSBOS buffer voxelData {
-		int numFaces;
 		uvec4 voxelVolume[][2 * pointerGridSize.x][2 * pointerGridSize.y][2 * pointerGridSize.z];
 	};
 #endif
 
 layout(std430, binding = 1) WRITE_TO_SSBOS buffer volumePointers {
-	int PointerVolume[][pointerGridSize.x][pointerGridSize.y][pointerGridSize.z];
+	int pointerVolume[][pointerGridSize.x][pointerGridSize.y][pointerGridSize.z];
 };
 
 struct light_t {

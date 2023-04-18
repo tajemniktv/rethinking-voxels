@@ -13,6 +13,7 @@
 noperspective in vec2 texCoord;
 
 //Uniforms//
+uniform int frameCounter;
 uniform float viewWidth, viewHeight;
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;
@@ -81,18 +82,17 @@ void main() {
 		gbufferPreviousProjectionInverse = gbufferProjectionInverse;
 	}
 	// just for testing, triPointerStrip doesn't need to be cleared
-	int pixelNum = int(gl_FragCoord.x) + int(viewWidth + 0.1) * int(gl_FragCoord.y);
+/*	int pixelNum = int(gl_FragCoord.x) + int(viewWidth + 0.1) * int(gl_FragCoord.y);
 	if (pixelNum < MAX_TRIS) {
 		triPointerStrip[pixelNum] = 0;
-	}
+	}*/
 	if (all(lessThan(gl_FragCoord.xy, pointerGridSize.xz))) {
 		ivec2 coords = ivec2(gl_FragCoord.xy);
 		for (int i = 0; i < pointerGridSize.y; i++) {
-			PointerVolume[0][coords.x][i][coords.y] = 0;
-			PointerVolume[4][coords.x][i][coords.y] = 0;
+			pointerVolume[0][coords.x][i][coords.y] = 0;
+			pointerVolume[4][coords.x][i][coords.y] = 0;
 		}
 	}
-	//color = mix(color, texelFetch(colortex12, ivec2(gl_FragCoord.xy), 0).rgb, 0.7);
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = vec4(color, 1.0);
 }

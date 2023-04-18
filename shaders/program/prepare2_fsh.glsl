@@ -1,5 +1,6 @@
 #include "/lib/common.glsl"
 
+uniform int frameCounter;
 uniform float viewWidth;
 uniform float viewHeight;
 vec2 view = vec2(viewWidth, viewHeight);

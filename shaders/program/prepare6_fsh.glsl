@@ -43,13 +43,13 @@ void main() {
 			pos.xyz += max(0.05, 0.01 * posLen) * normalDepthData.xyz;
 			if (clamp(pos.xyz, -pointerGridSize / POINTER_VOLUME_RES, pointerGridSize / POINTER_VOLUME_RES) == pos.xyz) {
 				ivec3 pgc = ivec3(pos.xyz / POINTER_VOLUME_RES + pointerGridSize / 2.0); // pointer grid coord
-				int lightCount = PointerVolume[4][pgc.x][pgc.y][pgc.z];
+				int lightCount = pointerVolume[4][pgc.x][pgc.y][pgc.z];
 				ivec2 roughCoords = min(localCoords / 8, lowResView - 1);
 				for (int lightNum = 0; lightNum < lightCount; lightNum++) {
 					ivec2 tileCoords = ivec2(lightNum % 8, lightNum / 8);
 					float visible = texelFetch(colortex3, lowResView * tileCoords + roughCoords, 0).x;
 					if (visible < 0.01) continue;
-					light_t thisLight = lights[PointerVolume[5 + lightNum][pgc.x][pgc.y][pgc.z]];
+					light_t thisLight = lights[pointerVolume[5 + lightNum][pgc.x][pgc.y][pgc.z]];
 
 					vec3 dir = thisLight.pos - pos.xyz;
 					vec3 normDir = normalize(dir);

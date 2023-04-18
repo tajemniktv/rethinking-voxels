@@ -13,20 +13,11 @@ shared int totalCounts[pointerGridSize.x];
 void main() {
 
 	int thisTotalCount = 0;
-	/*for (int x = 0; x < pointerGridSize.x; x++) {
-		for (int y = 0; y < pointerGridSize.y; y++) {
-			for (int z = 0; z < pointerGridSize.z; z++) {
-				PointerVolume[1][x][y][z] = thisTotalCount;
-				thisTotalCount += PointerVolume[0][x][y][z] + 1;
-			}
-		}
-	}
-	return;*/
 	int x = int(gl_LocalInvocationID.x);
 	for (int y = 0; y < pointerGridSize.y; y++) {
 		for (int z = 0; z < pointerGridSize.z; z++) {
-			PointerVolume[1][x][y][z] = thisTotalCount;
-			thisTotalCount += PointerVolume[0][x][y][z] + 1;
+			pointerVolume[1][x][y][z] = thisTotalCount;
+			thisTotalCount += pointerVolume[0][x][y][z] + 1;
 		}
 	}
 	totalCounts[x] = thisTotalCount;
@@ -41,8 +32,8 @@ void main() {
 	for (int y = 0; y < pointerGridSize.y; y++) {
 		for (int z = 0; z < pointerGridSize.z; z++) {
 			triPointerStrip[totalCounts[x]] = 1;
-			PointerVolume[1][x][y][z] = totalCounts[x];
-			totalCounts[x] += PointerVolume[0][x][y][z] + 1;
+			pointerVolume[1][x][y][z] = totalCounts[x];
+			totalCounts[x] += pointerVolume[0][x][y][z] + 1;
 		}
 	}
 }

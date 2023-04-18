@@ -428,10 +428,10 @@
 				if (isInBounds(pos, -pointerGridSize / 2, pointerGridSize / 2)) {
 					wasInRange = true;
 					ivec3 coords = ivec3(pos + pointerGridSize / 2);
-					int triLocHere = PointerVolume[1][coords.x][coords.y][coords.z];
-					int triCountHere = triPointerStrip[triLocHere] - 1;//PointerVolume[0][coords.x][coords.y][coords.z];
+					int triLocHere = pointerVolume[1][coords.x][coords.y][coords.z];
+					int triCountHere = triPointerStrip[triLocHere] - 1;//pointerVolume[0][coords.x][coords.y][coords.z];
 					while (triCountHere > 0) {
-						int packedBounds = PointerVolume[2][coords.x][coords.y][coords.z];
+						int packedBounds = pointerVolume[2][coords.x][coords.y][coords.z];
 						vec3 lowerBound = vec3(
 							packedBounds % 32,
 							(packedBounds >> 5) % 32,
