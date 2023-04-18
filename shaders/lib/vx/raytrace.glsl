@@ -1,6 +1,7 @@
 #ifndef RAYTRACE
 	#define RAYTRACE
-	#include "/lib/vx/voxelMapping.glsl"
+	#include "/lib/vx/SSBOs.glsl"
+	//#include "/lib/vx/voxelMapping.glsl"
 	#ifndef ACCURATE_RT
 		#include "/lib/vx/voxelReading.glsl"
 	#endif
@@ -37,7 +38,7 @@
 					connectCuboids[k].y = (k % 2 == 0) ? (abs(data.lower.x - 0.375) < 0.01 ? 0.375 : 0.0) : (abs(data.lower.x - 0.25) < 0.01 ? 0.875 : (abs(data.lower.x - 0.375) < 0.01 ? 0.9375 : 1.0));
 					vec3 blockOffset = vec3(k % 2 * 2 - 1) * vec3(1 - (k >> 1), 0, k >> 1);
 					vec3 thisOffsetPos = pos + offset + blockOffset;
-					if (isInRange(thisOffsetPos)) {
+					if (all(greaterThan(thisOffsetPos, -pointerGridSize * POINTER_VOLUME_RES / 2.0)) && all(lessThan(thisOffsetPos, pointerGridSize * POINTER_VOLUME_RES / 2.0))) {
 						vxData offsetData = readVxMap(thisOffsetPos);
 						if ((offsetData.connectsides && !(abs(offsetData.lower.x - 0.375) < 0.01 ^^ abs(data.lower.x - 0.375) < 0.01)) || (offsetData.full && !offsetData.alphatest)) {
 							connectCuboids[k][2 * (k >> 1)] = k % 2;
@@ -203,7 +204,11 @@
 				returnVal.rayColor = vec4(0, 0, 0, 1);
 				return returnVal;
 			}
-			if (isInRange(pos) && voxeldata.trace && !lowDetail) {
+			if (all(greaterThan(pos, -pointerGridSize * POINTER_VOLUME_RES / 2.0)) &&
+				all(lessThan(pos, pointerGridSize * POINTER_VOLUME_RES / 2.0)) &&
+				voxeldata.trace &&
+				!lowDetail
+			) {
 				returnVal.normal = dir;
 				rayColor = handledata(voxeldata, atlas, pos, returnVal.normal, i);
 				if (dot(pos - pos0, dir / dirlen) <= 0.01) rayColor.a = 0;
@@ -227,7 +232,7 @@
 				oldRayColor = rayColor;
 				pos = pos0 + (min(w, 1.0)) * dir + eyeOffsets[i];
 				// read voxel data at new position and update ray colour accordingly
-				if (isInRange(pos)) {
+				if (all(greaterThan(pos, -pointerGridSize * POINTER_VOLUME_RES / 2.0)) && all(lessThan(pos, pointerGridSize * POINTER_VOLUME_RES / 2.0))) {
 					wasInRange = true;
 					voxeldata = readVxMap(pos);
 					pos -= eyeOffsets[i];
@@ -257,7 +262,7 @@
 						}
 					}
 					#if CAVE_SUNLIGHT_FIX > 0
-					if (!isInRange(pos, 2)) {
+					if (!all(greaterThan(pos, -pointerGridSize * POINTER_VOLUME_RES / 2.0 + 2)) && all(lessThan(pos, pointerGridSize * POINTER_VOLUME_RES / 2.0 - 2))) {
 						int height0 = -100; //TODO: get the actual height
 						if (pos.y < height0) {
 							rayColor.a = 1;
