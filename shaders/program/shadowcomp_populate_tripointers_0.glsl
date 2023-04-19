@@ -16,7 +16,6 @@ void main() {
 	int x = int(gl_LocalInvocationID.x);
 	for (int y = 0; y < pointerGridSize.y; y++) {
 		for (int z = 0; z < pointerGridSize.z; z++) {
-			pointerVolume[1][x][y][z] = thisTotalCount;
 			thisTotalCount += pointerVolume[0][x][y][z] + 1;
 		}
 	}
@@ -28,12 +27,12 @@ void main() {
 		}
 	}
 	groupMemoryBarrier();
-	totalCounts[x] -= thisTotalCount;
+	thisTotalCount = totalCounts[x] - thisTotalCount;
 	for (int y = 0; y < pointerGridSize.y; y++) {
 		for (int z = 0; z < pointerGridSize.z; z++) {
-			triPointerStrip[totalCounts[x]] = 1;
-			pointerVolume[1][x][y][z] = totalCounts[x];
-			totalCounts[x] += pointerVolume[0][x][y][z] + 1;
+			triPointerStrip[thisTotalCount] = 1;
+			pointerVolume[1][x][y][z] = thisTotalCount;
+			thisTotalCount += pointerVolume[0][x][y][z] + 1;
 		}
 	}
 }

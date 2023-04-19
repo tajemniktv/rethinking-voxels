@@ -19,6 +19,7 @@ void main() {
 	vec3 thisVoxelUpper = vec3(gl_WorkGroupID - pointerGridSize * 0.5 + 1);
 	int triCountHere = pointerVolume[0][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z];
 	int triStripStart = pointerVolume[1][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z];
+	triCountHere = min(triCountHere, maxStripIndex - triStripStart);
 	int mats[LOCAL_MAX_LIGHTCOUNT];
 	ivec3 locs[LOCAL_MAX_LIGHTCOUNT];
 	int nLights = 0;
