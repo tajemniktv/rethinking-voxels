@@ -51,31 +51,24 @@ void main() {
 					int globalLightId = atomicAdd(numLights, 1);
 					if (globalLightId < MAX_LIGHTS) {
 						lights[globalLightId] = thisLight;
-						pointerVolume[5 + nLights][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = globalLightId;
+						//pointerVolume[5 + nLights][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = globalLightId;
 						nLights++;
 					} else break;
-/*					for (int x = -thisVoxelData.lightlevel/2 - 1; x <= thisVoxelData.lightlevel/2 + 1; x++) {
-						int xCoord = x + int(gl_WorkGroupID.x);
-						if (xCoord >= 0 && xCoord < pointerGridSize.x) {
-							for (int y = -thisVoxelData.lightlevel/2 - 1; y <= thisVoxelData.lightlevel/2 + 1; y++) {
-								int yCoord = y + int(gl_WorkGroupID.y);
-								if (yCoord >= 0 && yCoord < pointerGridSize.y && length(vec2(x, y)) < thisVoxelData.lightlevel/2 + 1) {
-									for (int z = -thisVoxelData.lightlevel/2 - 1; z <= thisVoxelData.lightlevel/2 + 1; z++) {
-										int zCoord = z + int(gl_WorkGroupID.z);
-										if (zCoord >= 0 && zCoord < pointerGridSize.z && length(vec3(x, y, z)) < thisVoxelData.lightlevel/2 + 1) {
-											int localLightId = atomicAdd(pointerVolume[4][xCoord][yCoord][zCoord], 1);
-											if (localLightId < 64) pointerVolume[5 + localLightId][xCoord][yCoord][zCoord] = globalLightId;
-										}
-									}
-								}
+					ivec3 coords = ivec3(thisLight.pos / POINTER_VOLUME_RES + pointerGridSize / 2) / 4;
+					ivec3 lowerBound = max(coords - lightLevel / int(4.01 * POINTER_VOLUME_RES) - 1, ivec3(0));
+					ivec3 upperBound = min(coords + lightLevel / int(4.01 * POINTER_VOLUME_RES) + 1, pointerGridSize / 4);
+					for (int x = lowerBound.x; x <= upperBound.x; x++) {
+						for (int y = lowerBound.y; y <= upperBound.y; y++) {
+							for (int z = lowerBound.z; z <= upperBound.z; z++) {
+								incrementVolumePointer(ivec3(x, y, z), 4);
 							}
 						}
 					}
-*/				}
+				}
 			}
 		}
 	}
-	pointerVolume[4][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = nLights;
+	//pointerVolume[4][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = nLights;
 }
 #else
 void main() {}

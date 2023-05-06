@@ -44,7 +44,7 @@ vec3 getPreviousVxPos(vec3 worldPos) {
 
 // determine if a position is within the voxelisation range
 bool isInRange(vec3 pos, float margin) {
-	return (max(abs(pos.x), abs(pos.z)) < vxRange / 2 - margin && abs(pos.y) < VXHEIGHT * VXHEIGHT / 2 - margin);
+	return all(lessThan(abs(pos) + margin, POINTER_VOLUME_RES * pointerGridSize / 2.0));
 }
 bool isInRange(vec3 pos) {
 	return isInRange(pos, 0);

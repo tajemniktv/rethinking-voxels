@@ -428,10 +428,10 @@
 				if (isInBounds(pos, -pointerGridSize / 2, pointerGridSize / 2)) {
 					wasInRange = true;
 					ivec3 coords = ivec3(pos + pointerGridSize / 2);
-					int triLocHere = pointerVolume[1][coords.x][coords.y][coords.z];
-					int triCountHere = triPointerStrip[triLocHere] - 1;//pointerVolume[0][coords.x][coords.y][coords.z];
+					int triLocHere = readVolumePointer(coords, 1);//pointerVolume[1][coords.x][coords.y][coords.z];
+					int triCountHere = readTriPointer(triLocHere) - 1;//triPointerStrip[triLocHere] - 1;//pointerVolume[0][coords.x][coords.y][coords.z];
 					while (triCountHere > 0) {
-						int packedBounds = pointerVolume[2][coords.x][coords.y][coords.z];
+						int packedBounds = readVolumePointer(coords, 2);//pointerVolume[2][coords.x][coords.y][coords.z];
 						vec3 lowerBound = vec3(
 							packedBounds % 32,
 							(packedBounds >> 5) % 32,
@@ -448,8 +448,9 @@
 						upperBound += coords - pointerGridSize / 2;
 						vec2 vxBoundIsct = boundsIntersect(pos0, dir, lowerBound, upperBound);
 						if (vxBoundIsct.y <= 0 || vxBoundIsct.x > hitW) break;
+
 						for (int j = 1; j <= triCountHere; j++) {
-							int thisTriId = triPointerStrip[triLocHere + j];
+							int thisTriId = readTriPointer(triLocHere + j);
 							if (thisTriId == 0) rayColor.r += 0.1;
 							tri_t thisTri = tris[thisTriId];
 							vec3 cnormal = cross(thisTri.pos[0] - thisTri.pos[1], thisTri.pos[0] - thisTri.pos[2]);

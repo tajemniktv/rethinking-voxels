@@ -17,8 +17,8 @@ uniform sampler2D colortex15;
 void main() {
 	vec3 thisVoxelLower = vec3(gl_WorkGroupID - pointerGridSize * 0.5);
 	vec3 thisVoxelUpper = vec3(gl_WorkGroupID - pointerGridSize * 0.5 + 1);
-	int triCountHere = pointerVolume[0][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z];
-	int triStripStart = pointerVolume[1][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z];
+	int triCountHere = readVolumePointer(ivec3(gl_WorkGroupID.xyz), 0);//pointerVolume[0][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z];
+	int triStripStart = readVolumePointer(ivec3(gl_WorkGroupID.xyz), 1);//pointerVolume[1][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z];
 	triCountHere = min(triCountHere, maxStripIndex - triStripStart);
 	int mats[LOCAL_MAX_LIGHTCOUNT];
 	ivec3 locs[LOCAL_MAX_LIGHTCOUNT];
@@ -33,7 +33,7 @@ void main() {
 		lightClumpTriCounts[i] = 0;
 	}
 	for (int i = 1; i <= triCountHere; i++) {
-		int thisTriId = triPointerStrip[triStripStart + i];
+		int thisTriId = readTriPointer(triStripStart + i);//triPointerStrip[triStripStart + i];
 		tri_t thisTri = tris[thisTriId];
 		vec3 lower0 = min(min(
 			thisTri.pos[0],
@@ -84,10 +84,10 @@ void main() {
 		(upperBoundQuantized.x << 15) +
 		(upperBoundQuantized.y << 20) +
 		(upperBoundQuantized.z << 25);
-	pointerVolume[2][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = packedBounds;
+	writeVolumePointer(ivec3(gl_WorkGroupID.xyz), 2, packedBounds);//pointerVolume[2][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = packedBounds;
 	for (int i = 0; i < nLights; i++) {
 		int mat = mats[i];
-		vec3 lower = vec3( 10000.0);
+		vec3 lower = vec3( 100000.0);
 		vec3 upper = vec3(-10000.0);
 		float area = 0;
 		bool detectLightCol = false;
@@ -159,30 +159,22 @@ void main() {
 		int globalLightId = atomicAdd(numLights, 1);
 		if (globalLightId < MAX_LIGHTS) {
 			lights[globalLightId] = thisLight;
-			pointerVolume[5 + i][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = globalLightId;
+			//pointerVolume[5 + i][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = globalLightId;
 		} else {
 			nLights = i - 1;
 			break;
 		}
-/*		for (int x = -lightLevel/2 - 1; x <= lightLevel/2 + 1; x++) {
-			int xCoord = x + int(gl_WorkGroupID.x);
-			if (xCoord >= 0 && xCoord < pointerGridSize.x) {
-				for (int y = -lightLevel/2 - 1; y <= lightLevel/2 + 1; y++) {
-					int yCoord = y + int(gl_WorkGroupID.y);
-					if (yCoord >= 0 && yCoord < pointerGridSize.y && length(vec2(x, y)) < lightLevel/2 + 1) {
-						for (int z = -lightLevel/2 - 1; z <= lightLevel/2 + 1; z++) {
-							int zCoord = z + int(gl_WorkGroupID.z);
-							if (zCoord >= 0 && zCoord < pointerGridSize.z && length(vec3(x, y, z)) < lightLevel/2 + 1) {
-								int localLightId = atomicAdd(pointerVolume[4][xCoord][yCoord][zCoord], 1);
-								if (localLightId < 64) pointerVolume[5 + localLightId][xCoord][yCoord][zCoord] = globalLightId;
-							}
-						}
-					}
+		ivec3 coords = ivec3(thisLight.pos / POINTER_VOLUME_RES + pointerGridSize / 2) / 4;
+		ivec3 lowerBound = max(coords - lightLevel / int(4.01 * POINTER_VOLUME_RES) - 1, ivec3(0));
+		ivec3 upperBound = min(coords + lightLevel / int(4.01 * POINTER_VOLUME_RES) + 1, pointerGridSize / 4);
+		for (int x = lowerBound.x; x <= upperBound.x; x++) {
+			for (int y = lowerBound.y; y <= upperBound.y; y++) {
+				for (int z = lowerBound.z; z <= upperBound.z; z++) {
+					incrementVolumePointer(ivec3(x, y, z), 4);
 				}
 			}
 		}
-*/	}
-	pointerVolume[4][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = nLights;
+	}
 }
 #else
 void main() {}

@@ -58,7 +58,7 @@ void main() {
 	float zpos = 0.5 - clamp(sqrt(area), 0, 1) - 0.02 * fract(avgPos.y - 0.01 * cnormal.x) - 0.01 * fract(avgPos.x - 0.01 * cnormal.y) - 0.015 * fract(avgPos.z - 0.01 * cnormal.z) - 0.2 * cnormal.y;
 	vec2 coord;
 	adjustMat(mat0, cnormal, avgPos, area);
-	if (getVoxelise(mat0, cnormal, area)) {
+	if (getVoxelise(mat0, cnormal, area, posV)) {
 		float normalOffset = getNormalOffset(mat0, area);
 		avgPos -= normalOffset;
 		if (doFullPosOffset(mat0)) avgPos0 -= normalOffset;
@@ -116,7 +116,7 @@ void main() {
 					tris[faceNum].texCoord[i] = pixelCoord.x + 65536 * pixelCoord.y;
 					tris[faceNum].pos[i] = posV[j] + fract(cameraPosition) + 0.001 * blockCenterOffsetV[j];
 				}
-				atomicAdd(pointerVolume[0][pointerGridCoords.x][pointerGridCoords.y][pointerGridCoords.z], 1);
+				incrementVolumePointer(pointerGridCoords, 0);//atomicAdd(pointerVolume[0][pointerGridCoords.x][pointerGridCoords.y][pointerGridCoords.z], 1);
 			}
 		#else
 			uint zpos2 = uint(100000 * (2 - zpos));

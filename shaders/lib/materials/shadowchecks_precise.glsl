@@ -1409,7 +1409,7 @@ void adjustMat(inout int mat, vec3 cnormal, vec3 avgPos, float area) {
 		}
 	}
 }
-bool getVoxelise(int mat, vec3 cnormal, float area) {
+bool getVoxelise(int mat, vec3 cnormal, float area, vec3[3] posV) {
 	return (
 		mat > 1000 && 
 		!(

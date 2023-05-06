@@ -40,10 +40,11 @@ void main() {
 				float posLen = length(pos);
 				pos.xyz += max(0.05, 0.01 * posLen) * normalDepthData.xyz;
 				if (clamp(pos.xyz, -pointerGridSize / POINTER_VOLUME_RES, pointerGridSize / POINTER_VOLUME_RES) == pos.xyz) {
-					ivec3 pgc = ivec3(pos.xyz / POINTER_VOLUME_RES + pointerGridSize / 2.0);
-					int lightCount = pointerVolume[ 4][pgc.x][pgc.y][pgc.z];
+					ivec3 pgc = ivec3(pos.xyz / POINTER_VOLUME_RES + pointerGridSize / 2.0) / 4;
+					int lightCount = readVolumePointer(pgc, 4);//pointerVolume[ 4][pgc.x][pgc.y][pgc.z];
+					int lightStripLoc = readVolumePointer(pgc, 5) + 1;
 					if (lightCount > lightNum) {
-						light_t thisLight = lights[pointerVolume[5 + lightNum][pgc.x][pgc.y][pgc.z]];
+						light_t thisLight = lights[readLightPointer(lightStripLoc + lightNum)];
 						vec3 dir = thisLight.pos - pos.xyz;
 						vec3 offset = hash33(vec3(localCoords, frameCounter)) * 1.98 - 0.99;
 						vec3 sssOffset = materialData.a < 0.75 ? max(posLen * 0.03, 0.3) * normalize(dir) : vec3(0);

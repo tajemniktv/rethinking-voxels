@@ -81,18 +81,7 @@ void main() {
 		gbufferPreviousModelViewInverse = gbufferModelViewInverse;
 		gbufferPreviousProjectionInverse = gbufferProjectionInverse;
 	}
-	// just for testing, triPointerStrip doesn't need to be cleared
-/*	int pixelNum = int(gl_FragCoord.x) + int(viewWidth + 0.1) * int(gl_FragCoord.y);
-	if (pixelNum < MAX_TRIS) {
-		triPointerStrip[pixelNum] = 0;
-	}*/
-	if (all(lessThan(gl_FragCoord.xy, pointerGridSize.xz))) {
-		ivec2 coords = ivec2(gl_FragCoord.xy);
-		for (int i = 0; i < pointerGridSize.y; i++) {
-			pointerVolume[0][coords.x][i][coords.y] = 0;
-			pointerVolume[4][coords.x][i][coords.y] = 0;
-		}
-	}
+	//color = imageLoad(pointerStrip, ivec2(gl_FragCoord.xy) + ivec2(0, 1000)).rgb * 0.01;
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = vec4(color, 1.0);
 }

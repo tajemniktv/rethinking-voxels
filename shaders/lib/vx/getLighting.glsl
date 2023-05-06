@@ -18,9 +18,10 @@
 				if (length(fract(volumePos + 0.5) - 0.5) < 0.1) return vec3(1, 0, 0);
 			#endif
 			ivec3 volumeCoords = ivec3(volumePos);
-			int localLightCount = pointerVolume[4][volumeCoords.x][volumeCoords.y][volumeCoords.z];
-			for (int i = 0; i < localLightCount; i++) {
-				int thisLightId = pointerVolume[5 + i][volumeCoords.x][volumeCoords.y][volumeCoords.z];
+			int localLightCount = readVolumePointer(volumeCoords, 4);//pointerVolume[4][volumeCoords.x][volumeCoords.y][volumeCoords.z];
+			int lightStripLoc = readVolumePointer(volumeCoords, 5);
+			for (int i = 1; i <= localLightCount; i++) {
+				int thisLightId = readLightPointer(lightStripLoc + i);//pointerVolume[5 + i][volumeCoords.x][volumeCoords.y][volumeCoords.z];
 				light_t thisLight = lights[thisLightId];
 				float ndotl = max(0, 0.99 * dot(normalize(thisLight.pos - pos), normal) + 0.01);
 				float brightness = length((thisLight.pos - pos));
@@ -35,7 +36,7 @@
 					offset *= thisLight.size;
 					ray_hit_t rayHit;
 					#ifdef ACCURATE_RT
-						rayHit = betterRayTrace(pos, thisLight.pos - pos + offset, ATLASTEX);
+						//rayHit = betterRayTrace(pos, thisLight.pos - pos + offset, ATLASTEX);
 					#else
 						raytrace(pos, thisLight.pos - pos + offset, ATLASTEX, rayHit);
 						vxData thisLightData = readVxMap(thisLight.pos);

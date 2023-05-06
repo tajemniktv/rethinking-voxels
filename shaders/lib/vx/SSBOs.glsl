@@ -30,7 +30,7 @@ struct tri_t {
 #endif
 
 layout(std430, binding = 1) WRITE_TO_SSBOS buffer volumePointers {
-	int pointerVolume[][pointerGridSize.x][pointerGridSize.y][pointerGridSize.z];
+	int asdfghjk;
 };
 
 struct light_t {
@@ -50,4 +50,41 @@ layout(std430, binding = 3) WRITE_TO_SSBOS buffer misc {
 	vec3[4] frustrumSideNormals;
 	int triPointerStrip[];
 };
+
+layout(r32i) uniform iimage3D pointerVolumeI;
+int readVolumePointer(ivec3 coords, int index) {
+	return imageLoad(pointerVolumeI, ivec3(coords.x, 8 * coords.y + index, coords.z)).x;
+}
+void writeVolumePointer(ivec3 coords, int index, int data) {
+	imageStore(pointerVolumeI, ivec3(coords.x, 8 * coords.y + index, coords.z), ivec4(data));
+}
+
+int incrementVolumePointer(ivec3 coords, int index) {
+	return imageAtomicAdd(pointerVolumeI, ivec3(coords.x, 8 * coords.y + index, coords.z), 1);
+}
+int maxVolumePointer(ivec3 coords, int index, int data) {
+	return imageAtomicMax(pointerVolumeI, ivec3(coords.x, 8 * coords.y + index, coords.z), data);
+}
+
+// pseudo-1D data storage
+layout(r32i) uniform iimage2D pointerStrip;
+
+int readTriPointer(int index) {
+	return imageLoad(pointerStrip, ivec2(index % 2048, index / 2048)).x;
+}
+void writeTriPointer(int index, int data) {
+	imageStore(pointerStrip, ivec2(index % 2048, index / 2048), ivec4(data));
+}
+int incrementTriPointer(int index) {
+	return imageAtomicAdd(pointerStrip, ivec2(index % 2048, index / 2048), 1);
+}
+int readLightPointer(int index) {
+	return imageLoad(pointerStrip, ivec2(index % 2048, index / 2048 + 1024)).x;
+}
+void writeLightPointer(int index, int data) {
+	imageStore(pointerStrip, ivec2(index % 2048, index / 2048 + 1024), ivec4(data));
+}
+int incrementLightPointer(int index) {
+	return imageAtomicAdd(pointerStrip, ivec2(index % 2048, index / 2048 + 1024), 1);
+}
 #endif

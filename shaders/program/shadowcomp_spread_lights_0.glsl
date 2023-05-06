@@ -1,34 +1,36 @@
 #include "/lib/common.glsl"
 
-const ivec3 workGroups = ivec3(16, 8, 16);
+const ivec3 workGroups = ivec3(1, 1, 1);
 
-layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
-
-uniform int frameCounter;
+layout(local_size_x = 16) in;
 
 #define WRITE_TO_SSBOS
 #include "/lib/vx/SSBOs.glsl"
 
-shared int lightCount = 0;
-shared int[64] lightPointers;
+shared int totalCounts[pointerGridSize.x / 4];
 
 void main() {
-	int nLights = pointerVolume[4][gl_GlobalInvocationID.x][gl_GlobalInvocationID.y][gl_GlobalInvocationID.z];
-	for (int i = 0; i < nLights; i++) {
-		int sharedLightId = atomicAdd(lightCount, 1);
-		if (sharedLightId < 64) {
-			lightPointers[sharedLightId] = pointerVolume[5 + i][gl_GlobalInvocationID.x][gl_GlobalInvocationID.y][gl_GlobalInvocationID.z];
+	int thisTotalCount = 0;
+	int x = int(gl_LocalInvocationID.x);
+	for (int y = 0; y < pointerGridSize.y / 4; y++) {
+		for (int z = 0; z < pointerGridSize.z / 4; z++) {
+			thisTotalCount += readVolumePointer(ivec3(x, y, z), 4) + 1;//pointerVolume[0][x][y][z] + 1;
 		}
 	}
-	vec3 pos = POINTER_VOLUME_RES * (0.5 + gl_GlobalInvocationID - pointerGridSize / 2);
+	totalCounts[x] = thisTotalCount;
 	groupMemoryBarrier();
-	if (gl_LocalInvocationID == uvec3(0)) {
-		lightCount = min(lightCount, 64);
-		for (int i = 0; i < lightCount; i++) {
-			pointerVolume[5 + i][gl_GlobalInvocationID.x][gl_GlobalInvocationID.y][gl_GlobalInvocationID.z] = lightPointers[i];
+	if (x == 0) {
+		for (int x0 = 1; x0 < pointerGridSize.x / 4; x0++) {
+			totalCounts[x0] += totalCounts[x0-1];
 		}
-		pointerVolume[4][gl_GlobalInvocationID.x][gl_GlobalInvocationID.y][gl_GlobalInvocationID.z] = lightCount;
-	} else if (gl_LocalInvocationID.yz == uvec2(0)) {
-		pointerVolume[4][gl_GlobalInvocationID.x][gl_GlobalInvocationID.y][gl_GlobalInvocationID.z] = 0;
+	}
+	groupMemoryBarrier();
+	thisTotalCount = totalCounts[x] - thisTotalCount;
+	for (int y = 0; y < pointerGridSize.y / 4; y++) {
+		for (int z = 0; z < pointerGridSize.z / 4; z++) {
+			writeLightPointer(thisTotalCount, 1);//triPointerStrip[thisTotalCount] = 1;
+			writeVolumePointer(ivec3(x, y, z), 5, thisTotalCount);//pointerVolume[1][x][y][z] = thisTotalCount;
+			thisTotalCount += readVolumePointer(ivec3(x, y, z), 4) + 1;//pointerVolume[0][x][y][z] + 1;
+		}
 	}
 }

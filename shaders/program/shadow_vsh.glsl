@@ -24,6 +24,8 @@ uniform mat4 shadowModelView;
 uniform mat4 shadowModelViewInverse;
 uniform mat4 shadowProjection;
 uniform mat4 shadowProjectionInverse;
+uniform mat4 gbufferProjectionInverse;
+uniform mat4 gbufferModelViewInverse;
 uniform ivec2 atlasSize;
 
 #if defined WAVING_ANYTHING_TERRAIN || defined WAVING_WATER_VERTEX

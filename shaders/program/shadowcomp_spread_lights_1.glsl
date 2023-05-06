@@ -1,46 +1,28 @@
 #include "/lib/common.glsl"
 
-const ivec3 workGroups = ivec3(16, 8, 16);
+const ivec3 workGroups = ivec3(65536, 1, 1);
 
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
-
-uniform int frameCounter;
 
 #define WRITE_TO_SSBOS
 #include "/lib/vx/SSBOs.glsl"
 
 void main() {
-	ivec3 coords0 = 4 * ivec3(gl_WorkGroupID);
-	int nLights = pointerVolume[4][coords0.x][coords0.y][coords0.z];
-	for (int i = 0; i < nLights; i++) {
-		int pointer = pointerVolume[5 + i][coords0.x][coords0.y][coords0.z];
-		int lightlevel = lights[pointer].brightnessMat >> 16;
-		int range = int(lightlevel / (4 * POINTER_VOLUME_RES) + 1.5);
-		ivec2[3] bounds;
-		for (int j = 0; j < 3; j++) {
-			bounds[j].x = max(-range, -int(gl_WorkGroupID[i]));
-			bounds[j].y = min(range + 1, pointerGridSize[i] / 4 - int(gl_WorkGroupID[i]));
-		}
-		for (int x = bounds[0].x; x < bounds[0].y; x++) {
-			int xid = 4 * (int(gl_WorkGroupID.x) + x) + 1;
-			for (int y = bounds[1].x; y < bounds[1].y; y++) {
-				if (length(vec2(x, y)) > range) continue;
-				int yid = 4 * (int(gl_WorkGroupID.y) + y);
-				for (int z = bounds[2].x; z < bounds[2].y; z++) {
-					if (length(vec3(x, y, z)) > range) continue;
-					int zid = 4 * (int(gl_WorkGroupID.z) + z);
-					int localLightId = atomicAdd(pointerVolume[4][xid][yid][zid], 1);
-					if (localLightId < 64) pointerVolume[5 + localLightId][xid][yid][zid] = pointer;
-					else {
-						localLightId = atomicAdd(pointerVolume[4][xid + 1][yid][zid], 1);
-						if (localLightId < 64) pointerVolume[5 + localLightId][xid + 1][yid][zid] = pointer;
-						else {
-							localLightId = atomicAdd(pointerVolume[4][xid + 2][yid][zid], 1);
-							if (localLightId < 64) pointerVolume[5 + localLightId][xid + 2][yid][zid] = pointer;
-						}
-					}
+	if (gl_GlobalInvocationID.x >= numLights) return;
+	light_t thisLight = lights[gl_GlobalInvocationID.x];
+	ivec3 coords = ivec3(thisLight.pos / POINTER_VOLUME_RES + vec3(pointerGridSize) / 2.0) / 4;
+	int lightlevel = thisLight.brightnessMat >> 16;
+		ivec3 lowerBound = max(coords - lightlevel / int(4.01 * POINTER_VOLUME_RES) - 1, ivec3(0));
+		ivec3 upperBound = min(coords + lightlevel / int(4.01 * POINTER_VOLUME_RES) + 1, pointerGridSize / 4);
+		for (int x = lowerBound.x; x <= upperBound.x; x++) {
+			for (int y = lowerBound.y; y <= upperBound.y; y++) {
+				for (int z = lowerBound.z; z <= upperBound.z; z++) {
+					int globalCoord = readVolumePointer(ivec3(x, y, z), 5);
+					int localCoord = incrementLightPointer(globalCoord);
+					if (localCoord <= readVolumePointer(ivec3(x, y, z), 4))
+						writeLightPointer(globalCoord + localCoord, int(gl_GlobalInvocationID.x));
 				}
 			}
 		}
-	}
+
 }

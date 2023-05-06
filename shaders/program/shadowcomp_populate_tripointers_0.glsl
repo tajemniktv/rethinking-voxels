@@ -16,7 +16,7 @@ void main() {
 	int x = int(gl_LocalInvocationID.x);
 	for (int y = 0; y < pointerGridSize.y; y++) {
 		for (int z = 0; z < pointerGridSize.z; z++) {
-			thisTotalCount += pointerVolume[0][x][y][z] + 1;
+			thisTotalCount += readVolumePointer(ivec3(x, y, z), 0) + 1;//pointerVolume[0][x][y][z] + 1;
 		}
 	}
 	totalCounts[x] = thisTotalCount;
@@ -30,9 +30,9 @@ void main() {
 	thisTotalCount = totalCounts[x] - thisTotalCount;
 	for (int y = 0; y < pointerGridSize.y; y++) {
 		for (int z = 0; z < pointerGridSize.z; z++) {
-			triPointerStrip[thisTotalCount] = 1;
-			pointerVolume[1][x][y][z] = thisTotalCount;
-			thisTotalCount += pointerVolume[0][x][y][z] + 1;
+			writeTriPointer(thisTotalCount, 1);//triPointerStrip[thisTotalCount] = 1;
+			writeVolumePointer(ivec3(x, y, z), 1, thisTotalCount);//pointerVolume[1][x][y][z] = thisTotalCount;
+			thisTotalCount += readVolumePointer(ivec3(x, y, z), 0) + 1;//pointerVolume[0][x][y][z] + 1;
 		}
 	}
 }

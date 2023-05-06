@@ -22,11 +22,11 @@ void main() {
 			thisTri.bvhParent / 512 % 512,
 			thisTri.bvhParent / 262144 % 512
 		) / int(POINTER_VOLUME_RES + 0.1);
-		int globalAddr = pointerVolume[1][pointerGridCoord.x][pointerGridCoord.y][pointerGridCoord.z];
+		int globalAddr = readVolumePointer(pointerGridCoord, 1);//pointerVolume[1][pointerGridCoord.x][pointerGridCoord.y][pointerGridCoord.z];
 		if (globalAddr < maxStripIndex) {
-			int localAddr = atomicAdd(triPointerStrip[globalAddr], 1);
-			if (localAddr <= pointerVolume[0][pointerGridCoord.x][pointerGridCoord.y][pointerGridCoord.z] && globalAddr < maxStripIndex) {
-				triPointerStrip[globalAddr + localAddr] = i;
+			int localAddr = incrementTriPointer(globalAddr);//atomicAdd(triPointerStrip[globalAddr], 1);
+			if (localAddr <= readVolumePointer(pointerGridCoord, 0) /*pointerVolume[0][pointerGridCoord.x][pointerGridCoord.y][pointerGridCoord.z]*/ && globalAddr < maxStripIndex) {
+				writeTriPointer(globalAddr + localAddr, i);//triPointerStrip[globalAddr + localAddr] = i;
 			}
 		}
 	}

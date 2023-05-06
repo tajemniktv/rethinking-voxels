@@ -13,7 +13,7 @@ shared int lightCount = 0;
 shared int[192] lightPointers;
 
 void main() {
-	if (gl_LocalInvocationID == uvec3(0, 0, 0)) {
+/*	if (gl_LocalInvocationID == uvec3(0, 0, 0)) {
 		for (int k = 1; k < 4; k++) {
 			ivec3 coords = ivec3(gl_GlobalInvocationID) + ivec3(k, 0, 0);
 			int lightCount0 = pointerVolume[4][coords.x][coords.y][coords.z];
@@ -36,4 +36,4 @@ void main() {
 		}
 	}
 	pointerVolume[4][gl_GlobalInvocationID.x][gl_GlobalInvocationID.y][gl_GlobalInvocationID.z] = nLights;
-}
+*/}
