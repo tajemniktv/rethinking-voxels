@@ -18,12 +18,14 @@ void main() {
 		}
 	}
 	totalCounts[x] = thisTotalCount;
+	barrier();
 	groupMemoryBarrier();
 	if (x == 0) {
 		for (int x0 = 1; x0 < pointerGridSize.x / 4; x0++) {
 			totalCounts[x0] += totalCounts[x0-1];
 		}
 	}
+	barrier();
 	groupMemoryBarrier();
 	thisTotalCount = totalCounts[x] - thisTotalCount;
 	for (int y = 0; y < pointerGridSize.y / 4; y++) {

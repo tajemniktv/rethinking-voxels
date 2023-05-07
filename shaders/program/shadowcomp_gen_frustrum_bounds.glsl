@@ -21,6 +21,7 @@ void main() {
 	vec4 clipPos = vec4(corners[gl_LocalInvocationID.x], 0.999, 1);
 	playerPos[gl_LocalInvocationID.x] = gbufferModelViewInverse * (gbufferProjectionInverse * clipPos);
 	playerPos[gl_LocalInvocationID.x] /= playerPos[gl_LocalInvocationID.x].w;
+	barrier();
 	groupMemoryBarrier();
 	frustrumSideNormals[gl_LocalInvocationID.x] = normalize(cross(playerPos[gl_LocalInvocationID].xyz, playerPos[(gl_LocalInvocationID + 1) % 4].xyz));
 }

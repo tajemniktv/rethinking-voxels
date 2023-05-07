@@ -54,11 +54,12 @@ void main() {
 		ray_hit_t rayHit = betterRayTrace(fract(cameraPosition) + dir, 20 * dir, colortex15);
 		color = rayHit.rayColor.rgb;
 	}
-*/	if (texelCoord.y < 10) {
-		if (texelCoord.x < 10) color = numLights < MAX_LIGHTS ? vec3(numLights) / MAX_LIGHTS : vec3(1, 0, 0);
-		else color.r = readLightPointer(texelCoord.x - 10) * 0.1;
+	if (texelCoord.y < 10) {
+		if (texelCoord.x < 10) color = numFaces < MAX_TRIS ? vec3(numFaces) / MAX_TRIS : vec3(1, 0, 0);
+		else color.r = readTriPointer(texelCoord.x - 10) * 0.1;
 	}
-
+*/
+	if (all(lessThan(gl_FragCoord.xy, vec2(pointerGridSize.xy)))) color = vec3(readVolumePointer(ivec3(gl_FragCoord.xy, 32), 1)) * 0.000001;
 	/*DRAWBUFFERS:3*/
 	gl_FragData[0] = vec4(color, 1.0);
 }

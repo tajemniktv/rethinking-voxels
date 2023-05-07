@@ -1,6 +1,6 @@
 #include "/lib/common.glsl"
-
-layout(local_size_x = 64) in;
+	layout(local_size_x = 64) in;
+#endif
 //layout(local_size_x = 1) in;
 const ivec3 workGroups = ivec3(1, 1, 1);
 
@@ -20,12 +20,14 @@ void main() {
 		}
 	}
 	totalCounts[x] = thisTotalCount;
+	barrier();
 	groupMemoryBarrier();
 	if (x == 0) {
 		for (int x0 = 1; x0 < pointerGridSize.x; x0++) {
 			totalCounts[x0] += totalCounts[x0-1];
 		}
 	}
+	barrier();
 	groupMemoryBarrier();
 	thisTotalCount = totalCounts[x] - thisTotalCount;
 	for (int y = 0; y < pointerGridSize.y; y++) {

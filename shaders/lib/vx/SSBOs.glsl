@@ -48,9 +48,9 @@ layout(std430, binding = 3) WRITE_TO_SSBOS buffer misc {
 	mat4 gbufferPreviousModelViewInverse;
 	mat4 gbufferPreviousProjectionInverse;
 	vec3[4] frustrumSideNormals;
-	int triPointerStrip[];
 };
 
+// 3D pointer storage
 layout(r32i) uniform iimage3D pointerVolumeI;
 int readVolumePointer(ivec3 coords, int index) {
 	return imageLoad(pointerVolumeI, ivec3(coords.x, 8 * coords.y + index, coords.z)).x;

@@ -99,6 +99,7 @@ void main() {
 		#ifdef ACCURATE_RT
 			int faceNum = atomicAdd(numFaces, 1);
 			if (faceNum < MAX_TRIS) {
+				incrementVolumePointer(pointerGridCoords, 0);//atomicAdd(pointerVolume[0][pointerGridCoords.x][pointerGridCoords.y][pointerGridCoords.z], 1);
 				int bools = ((mat0 / 10000 >= 5) ? 1 : 0);
 				tris[faceNum].matBools = mat0 + (bools << 16);
 				tris[faceNum].bvhParent =
@@ -116,14 +117,11 @@ void main() {
 					tris[faceNum].texCoord[i] = pixelCoord.x + 65536 * pixelCoord.y;
 					tris[faceNum].pos[i] = posV[j] + fract(cameraPosition) + 0.001 * blockCenterOffsetV[j];
 				}
-				incrementVolumePointer(pointerGridCoords, 0);//atomicAdd(pointerVolume[0][pointerGridCoords.x][pointerGridCoords.y][pointerGridCoords.z], 1);
 			}
 		#else
 			uint zpos2 = uint(100000 * (2 - zpos));
-			int nonConstant0Index_nvidiaIsStupid = max(0, -int(abs(zpos2)));
-			int nonConstant1Index_nvidiaIsStupid = max(1, -int(abs(zpos2)));
 
-			if (atomicMax(voxelVolume[nonConstant0Index_nvidiaIsStupid][originBlock.x][originBlock.y][originBlock.z].x, zpos2) < zpos2) {
+			if (atomicMax(voxelVolume[0][originBlock.x][originBlock.y][originBlock.z].x, zpos2) < zpos2) {
 				vec2 outTexCoord = 0.5 * (max(max(texCoordV[0], texCoordV[1]), texCoordV[2]) + min(min(texCoordV[0], texCoordV[1]), texCoordV[2]));
 
 				if (max(max(abs(cnormal.x), abs(cnormal.y)), abs(cnormal.z)) > 0.9 && doCuboidTexCoordCorrection) {
@@ -245,7 +243,7 @@ void main() {
 						dataToWrite.w = uint(256 * fract(avgPos0.x)) + (uint(256 * fract(avgPos0.y)) << 8) + (uint(256 * fract(avgPos0.z)) << 16);
 					}
 					dataToWrite.w += (spritelog << 24) + (lmCoord << 28);
-					voxelVolume[nonConstant1Index_nvidiaIsStupid][originBlock.x][originBlock.y][originBlock.z] = dataToWrite;
+					voxelVolume[1][originBlock.x][originBlock.y][originBlock.z] = dataToWrite;
 				}
 			}
 		#endif
