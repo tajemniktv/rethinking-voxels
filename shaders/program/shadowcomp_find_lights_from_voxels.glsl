@@ -19,14 +19,12 @@ void main() {
 	for (int x0 = 0; x0 < intpointerVolumeRes; x0++) {
 		for (int y0 = 0; y0 < intpointerVolumeRes; y0++) {
 			for (int z0 = 0; z0 < intpointerVolumeRes; z0++) {
-				int nonConstant0Index_nvidiaIsStupid = max(0, -nLights);
-				int nonConstant1Index_nvidiaIsStupid = max(1, -nLights);
 				ivec3 blockCoord = intpointerVolumeRes * ivec3(gl_WorkGroupID) + ivec3(x0, y0, z0);
-				if (voxelVolume[nonConstant0Index_nvidiaIsStupid][blockCoord.x][blockCoord.y][blockCoord.z].x == 0) {
-					voxelVolume[nonConstant1Index_nvidiaIsStupid][blockCoord.x][blockCoord.y][blockCoord.z] = uvec4(0);
+				if (voxelVolume[0][blockCoord.x][blockCoord.y][blockCoord.z].x == 0) {
+					voxelVolume[1][blockCoord.x][blockCoord.y][blockCoord.z] = uvec4(0);
 					continue;
 				}
-				voxelVolume[nonConstant0Index_nvidiaIsStupid][blockCoord.x][blockCoord.y][blockCoord.z].x = 0;
+				voxelVolume[0][blockCoord.x][blockCoord.y][blockCoord.z].x = 0;
 				vxData thisVoxelData = readVxMap(blockCoord);
 				if (thisVoxelData.emissive) {
 					light_t thisLight;
@@ -55,8 +53,8 @@ void main() {
 						nLights++;
 					} else break;
 					ivec3 coords = ivec3(thisLight.pos / POINTER_VOLUME_RES + pointerGridSize / 2) / 4;
-					ivec3 lowerBound = max(coords - lightLevel / int(4.01 * POINTER_VOLUME_RES) - 1, ivec3(0));
-					ivec3 upperBound = min(coords + lightLevel / int(4.01 * POINTER_VOLUME_RES) + 1, pointerGridSize / 4);
+					ivec3 lowerBound = max(coords - thisVoxelData.lightlevel / int(4.01 * POINTER_VOLUME_RES) - 1, ivec3(0));
+					ivec3 upperBound = min(coords + thisVoxelData.lightlevel / int(4.01 * POINTER_VOLUME_RES) + 1, pointerGridSize / 4);
 					for (int x = lowerBound.x; x <= upperBound.x; x++) {
 						for (int y = lowerBound.y; y <= upperBound.y; y++) {
 							for (int z = lowerBound.z; z <= upperBound.z; z++) {

@@ -41,7 +41,7 @@ void main() {
 			pos.xyz = pos.xyz + fract(cameraPosition);
 			float posLen = length(pos);
 			pos.xyz += max(0.05, 0.01 * posLen) * normalDepthData.xyz;
-			if (clamp(pos.xyz, -pointerGridSize / POINTER_VOLUME_RES, pointerGridSize / POINTER_VOLUME_RES) == pos.xyz) {
+			if (clamp(pos.xyz, -pointerGridSize * POINTER_VOLUME_RES / 2.0, pointerGridSize * POINTER_VOLUME_RES / 2.0) == pos.xyz) {
 				ivec3 pgc = ivec3(pos.xyz / POINTER_VOLUME_RES + pointerGridSize / 2.0) / 4; // pointer grid coord
 				int lightCount = readVolumePointer(pgc, 4);//pointerVolume[4][pgc.x][pgc.y][pgc.z];
 				int lightStripLoc = readVolumePointer(pgc, 5) + 1;

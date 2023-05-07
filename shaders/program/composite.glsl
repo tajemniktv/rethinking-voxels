@@ -59,6 +59,10 @@ uniform sampler2D depthtex1;
 	uniform mat4 shadowProjection;
 
 	uniform sampler2D colortex3;
+	#ifndef ACCURATE_RT
+		uniform sampler2D colortex15;
+		#define ATLASTEX colortex15
+	#endif
 	uniform sampler2D noisetex;
 	uniform sampler2DShadow shadowtex0;
 	uniform sampler2DShadow shadowtex1;

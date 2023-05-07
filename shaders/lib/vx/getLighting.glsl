@@ -10,6 +10,7 @@
 	#include "/lib/vx/raytrace.glsl"
 	#include "/lib/vx/SSBOs.glsl"
 	#define DEBUG_OCCLUDERS
+	/*
 	vec3 newGetBlockLight(vec3 pos, vec3 normal, int mat) {
 		vec3 lightCol = vec3(0);
 		vec3 volumePos = 1.0 / POINTER_VOLUME_RES * pos + pointerGridSize * 0.5;
@@ -53,6 +54,7 @@
 		}
 		return lightCol;
 	}
+	*/
 	#ifndef NEW_BLOCKLIGHT_ONLY
 		vec3 getGI(vec3 vxPos, vec3 normal, int mat, bool doScattering) {
 			vxPos += 0.5 * normal;

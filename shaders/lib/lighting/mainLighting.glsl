@@ -99,7 +99,10 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
             #ifdef REALTIME_SHADOWS
                 if (NdotLM > 0.0001) {
                     vec3 shadowMultBeforeLighting = shadowMult;
-                    float shadowLength = min(vxRange / 2.0 - abs(vxPos.x), min(VXHEIGHT * VXHEIGHT - 2.0 * abs(vxPos.y), vxRange / 2.0 - abs(vxPos.z)));
+                    float shadowLength = min(
+                        POINTER_VOLUME_RES * pointerGridSize.x / 2.0 - abs(vxPos.x),
+                        min(POINTER_VOLUME_RES * pointerGridSize.y - 2.0 * abs(vxPos.y),
+                        POINTER_VOLUME_RES * pointerGridSize.z / 2.0 - abs(vxPos.z)));
 
                     if (shadowLength > 0.000001) {
                         float offset = 0.0009765;
@@ -271,7 +274,14 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
         vec3 dir = heldLightPos - vxPos;
         heldLight *= heldLight0 * max(0.0, dot(-normalize(vxPos1 - fract(cameraPosition)), worldNormal));
         #ifdef HELD_LIGHT_OCCLUSION_CHECK
-        if (length(heldLight) > 0.01) heldLight *= (1 - raytrace(vxPos1, dir + 0.3 * hash33(vec3(gl_FragCoord.xy, frameCounter)), ATLASTEX).a);
+        if (length(heldLight) > 0.01) {
+            #ifdef ACCURATE_RT
+                ray_hit_t rayHit = betterRayTrace(vxPos1, dir + 0.3 * hash33(vec3(gl_FragCoord.xy, frameCounter)), ATLASTEX);
+            #else
+                ray_hit_t rayHit = raytrace(vxPos1, dir + 0.3 * hash33(vec3(gl_FragCoord.xy, frameCounter)), ATLASTEX);
+            #endif
+            heldLight *= (1 - rayHit.rayColor.a);
+        }
         #endif
         } else heldLight = vec3(0);
     #endif
