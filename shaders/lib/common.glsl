@@ -163,7 +163,8 @@
     #define BLOOM_FOG
 
     #define TAA
-    //#define TEMPORAL_FILTER
+  //#define TEMPORAL_FILTER
+  //#define DENOISING
 
     #define GLOWING_ENTITY_FIX
     #define FLICKERING_FIX
