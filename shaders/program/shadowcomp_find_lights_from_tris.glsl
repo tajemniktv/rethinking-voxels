@@ -159,7 +159,6 @@ void main() {
 		int globalLightId = atomicAdd(numLights, 1);
 		if (globalLightId < MAX_LIGHTS) {
 			lights[globalLightId] = thisLight;
-			//pointerVolume[5 + i][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = globalLightId;
 		} else {
 			nLights = i - 1;
 			break;

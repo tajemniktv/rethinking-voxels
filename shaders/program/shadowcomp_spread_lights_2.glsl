@@ -1,39 +1,32 @@
 #include "/lib/common.glsl"
 
-const ivec3 workGroups = ivec3(16, 8, 16);
+const ivec3 workGroups = ivec3(4, 2, 4);
 
 layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
-
-uniform int frameCounter;
 
 #define WRITE_TO_SSBOS
 #include "/lib/vx/SSBOs.glsl"
 
-shared int lightCount = 0;
-shared int[192] lightPointers;
-
 void main() {
-/*	if (gl_LocalInvocationID == uvec3(0, 0, 0)) {
-		for (int k = 1; k < 4; k++) {
-			ivec3 coords = ivec3(gl_GlobalInvocationID) + ivec3(k, 0, 0);
-			int lightCount0 = pointerVolume[4][coords.x][coords.y][coords.z];
-			if (lightCount0 == 0) break;
-			lightCount0 = min(lightCount0, 64);
-			for (int i = 0; i < lightCount0; i++) {
-				lightPointers[i + lightCount] = pointerVolume[5 + i][coords.x][coords.y][coords.z];
+	float scores[64];
+	int localLightCount = readVolumePointer(ivec3(gl_GlobalInvocationID.xyz), 4) - 1;
+	if (localLightCount > 0) {
+		vec3 midPos = ((gl_GlobalInvocationID.xyz + 0.5) * 4.0 - pointerGridSize / 2.0) * POINTER_VOLUME_RES;
+		int lightStripLoc = readVolumePointer(ivec3(gl_GlobalInvocationID.xyz), 5) + 1;
+		for (int k = 1; k < localLightCount; k++) {
+			int thisPointer = readLightPointer(lightStripLoc + k);
+			light_t thisLight = lights[thisPointer];
+			float score = (thisLight.brightnessMat >> 16) - length(midPos - thisLight.pos);
+			int j;
+			for (j = 0; j < min(k, 64) && scores[j] > score; j++);
+			for (int i = min(k, 63); i > j; i--) {
+				writeLightPointer(lightStripLoc + i, readLightPointer(lightStripLoc + i - 1));
+				scores[i] = scores[i-1];
 			}
-			lightCount += lightCount0;
+			if (j < 64) {
+				writeLightPointer(lightStripLoc + j, thisPointer);
+				scores[j] = score;
+			}
 		}
 	}
-	groupMemoryBarrier();
-	vec3 pos = POINTER_VOLUME_RES * (0.5 + gl_GlobalInvocationID - pointerGridSize / 2);
-	int nLights = 0;
-	for (int i = 0; i < lightCount && nLights < 64; i++) {
-		light_t thisLight = lights[lightPointers[i]];
-		if (length(thisLight.pos - pos) < (thisLight.brightnessMat >> 16) + 0.79 * POINTER_VOLUME_RES) {
-			pointerVolume[5 + nLights][gl_GlobalInvocationID.x][gl_GlobalInvocationID.y][gl_GlobalInvocationID.z] = lightPointers[i];
-			nLights++;
-		}
-	}
-	pointerVolume[4][gl_GlobalInvocationID.x][gl_GlobalInvocationID.y][gl_GlobalInvocationID.z] = nLights;
-*/}
+}
