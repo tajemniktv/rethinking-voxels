@@ -1423,7 +1423,14 @@ bool getVoxelise(int mat, vec3 cnormal, float area, vec3[3] posV) {
 			) && area < 0.8) ||
 			((
 				mat == 10350 ||
+				mat == 10496 ||
+				mat == 10497 ||
+				mat == 10528 ||
+				mat == 10529 ||
 				mat == 10604 ||
+				mat == 10605 ||
+				mat == 12604 ||
+				mat == 12605 ||
 				mat >= 60000
 			) && cnormal.y < 0.5) ||
 			(mat == 60012 && area < 0.3) ||

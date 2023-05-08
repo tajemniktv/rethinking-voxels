@@ -37,7 +37,9 @@ uniform sampler2D gtexture;
 #include "/lib/materials/shadowchecks_precise.glsl"
 #include "/lib/vx/voxelMapping.glsl"
 
-const vec2[4] offsets = vec2[4](vec2(-1.0, -1.0), vec2(1.0, -1.0), vec2(1.0, 1.0), vec2(-1.0, 1.0));
+vec2[9] offsets = vec2[9](
+    vec2(0.3, -0.2), vec2(0.2, 0), vec2(0.2, 0.2), vec2(0, 0.23), vec2(-0.2, 0.4), vec2(-0.8, 0), vec2(-0.9, -0.2), vec2(0, -0.2), vec2(0, 0)
+);
 
 void main() {
 	vec3 avgPos = 0.5 * (max(max(posV[0], posV[1]), posV[2]) + min(min(posV[0], posV[1]), posV[2]));
@@ -181,7 +183,7 @@ void main() {
 						lightlevel = getLightLevel(mat0);
 						lightCol = getLightCol(mat0);
 						if (lightCol == vec3(0)) {
-							vec4[10] lightcols0;
+							vec4 lightcols0[10];
 							vec4 lightcol0 = texture(gtexture, outTexCoord) * vec4(avgVertexCol, 1);
 							lightcol0.rgb *= lightcol0.a;
 							const vec3 avoidcol = vec3(1); // pure white is unsaturated and should be avoided
@@ -192,6 +194,7 @@ void main() {
 							float maxbrightness = avgbrightness;
 							for (int i = 0; i < 9; i++) {
 								lightcols0[i] = texture2D(gtexture, outTexCoord + offsets[i] * spriteSizeV[0] / atlasSize) * vec4(avgVertexCol, 1);
+dataToWrite = uvec4(0);
 								lightcols0[i].xyz *= lightcols0[i].w;
 								lightcols0[i].xyz += 0.00001;
 								float thisbrightness = max(lightcols0[i].x, max(lightcols0[i].y, lightcols0[i].z));
