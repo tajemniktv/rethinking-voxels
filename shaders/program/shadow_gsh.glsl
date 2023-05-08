@@ -121,7 +121,7 @@ void main() {
 		#else
 			uint zpos2 = uint(100000 * (2 - zpos));
 
-			if (atomicMax(voxelVolume[0][originBlock.x][originBlock.y][originBlock.z].x, zpos2) < zpos2) {
+			if (maxVoxelVolume(originBlock, 0, 0, zpos2) < zpos2) {
 				vec2 outTexCoord = 0.5 * (max(max(texCoordV[0], texCoordV[1]), texCoordV[2]) + min(min(texCoordV[0], texCoordV[1]), texCoordV[2]));
 
 				if (max(max(abs(cnormal.x), abs(cnormal.y)), abs(cnormal.z)) > 0.9 && doCuboidTexCoordCorrection) {
@@ -243,7 +243,7 @@ void main() {
 						dataToWrite.w = uint(256 * fract(avgPos0.x)) + (uint(256 * fract(avgPos0.y)) << 8) + (uint(256 * fract(avgPos0.z)) << 16);
 					}
 					dataToWrite.w += (spritelog << 24) + (lmCoord << 28);
-					voxelVolume[1][originBlock.x][originBlock.y][originBlock.z] = dataToWrite;
+					writeVoxelVolume(originBlock, 1, dataToWrite);
 				}
 			}
 		#endif

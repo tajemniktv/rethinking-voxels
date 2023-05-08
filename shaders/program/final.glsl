@@ -81,6 +81,14 @@ void main() {
 		gbufferPreviousModelViewInverse = gbufferModelViewInverse;
 		gbufferPreviousProjectionInverse = gbufferProjectionInverse;
 	}
+	// this is needed when using SSBOs for pointer strip storage.
+/*	ivec2 localCoords = ivec2(gl_FragCoord.x + viewWidth * (int(gl_FragCoord.y) / pointerGridSize.y),int(gl_FragCoord.y) % pointerGridSize.y);
+	ivec3 pointerGridCoords = ivec3(localCoords.x % pointerGridSize.x, localCoords.y, localCoords.x / pointerGridSize.x);
+	if (all(lessThan(pointerGridCoords, pointerGridSize))) {
+		writeVolumePointer(pointerGridCoords, 0, 0);
+		writeVolumePointer(pointerGridCoords, 4, 0);
+	}
+*/
 	//color = imageLoad(pointerStrip, ivec2(gl_FragCoord.xy) + ivec2(0, 1000)).rgb * 0.01;
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = vec4(color, 1.0);

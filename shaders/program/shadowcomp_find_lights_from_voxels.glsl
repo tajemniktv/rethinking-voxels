@@ -20,11 +20,11 @@ void main() {
 		for (int y0 = 0; y0 < intpointerVolumeRes; y0++) {
 			for (int z0 = 0; z0 < intpointerVolumeRes; z0++) {
 				ivec3 blockCoord = intpointerVolumeRes * ivec3(gl_WorkGroupID) + ivec3(x0, y0, z0);
-				if (voxelVolume[0][blockCoord.x][blockCoord.y][blockCoord.z].x == 0) {
-					voxelVolume[1][blockCoord.x][blockCoord.y][blockCoord.z] = uvec4(0);
+				if (readVoxelVolume(blockCoord, 0).x == 0) {
+					writeVoxelVolume(blockCoord, 1, uvec4(0));
 					continue;
 				}
-				voxelVolume[0][blockCoord.x][blockCoord.y][blockCoord.z].x = 0;
+				writeVoxelVolume(blockCoord, 0, uvec4(0));
 				vxData thisVoxelData = readVxMap(blockCoord);
 				if (thisVoxelData.emissive) {
 					light_t thisLight;
