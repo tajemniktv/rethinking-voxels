@@ -28,6 +28,7 @@ const ivec2[8] offsets = ivec2[8](
 void main() {
 	vec4 normalDepthData = texelFetch(colortex8, ivec2(gl_FragCoord.xy), 0);
 	if (normalDepthData.w > 1.5) {
+		bvec4 availableAdj = bvec4(false);
 		normalDepthData = vec4(0);
 		vec4 maxNormDD = vec4(-100);
 		vec4 minNormDD = vec4(100);
@@ -40,6 +41,9 @@ void main() {
 					minNormDD = min(minNormDD, aroundData);
 				}
 				normalDepthData += aroundData;
+				for (int k = 0; k < 4; k++) {
+					if (offsets[i][k / 2] * (k % 2 * 2 - 1) > 0) availableAdj[k] = true;
+				}
 				counter++;
 			}
 		}
@@ -47,7 +51,7 @@ void main() {
 			minNormDD = vec4(0);
 			maxNormDD = vec4(0);
 		}
-		if (counter > 3 && length(maxNormDD - minNormDD) < 0.4) {
+		if (availableAdj == bvec4(true) && length(maxNormDD - minNormDD) < 0.4) {
 			normalDepthData /= counter;
 		} else normalDepthData = vec4(2);
 	}

@@ -43,7 +43,7 @@ void main() {
 			pos.xyz += max(0.05, 0.01 * posLen) * normalDepthData.xyz;
 			if (clamp(pos.xyz, -pointerGridSize * POINTER_VOLUME_RES / 2.0, pointerGridSize * POINTER_VOLUME_RES / 2.0) == pos.xyz) {
 				ivec3 pgc = ivec3(pos.xyz / POINTER_VOLUME_RES + pointerGridSize / 2.0) / 4; // pointer grid coord
-				int lightCount = readVolumePointer(pgc, 4);//pointerVolume[4][pgc.x][pgc.y][pgc.z];
+				int lightCount = readVolumePointer(pgc, 4);
 				int lightStripLoc = readVolumePointer(pgc, 5) + 1;
 				ivec2 roughCoords = min(localCoords / 8, lowResView - 1);
 				for (int lightNum = 0; lightNum < lightCount; lightNum++) {
@@ -82,13 +82,13 @@ void main() {
 						) / 255.0 * brightness;
 						if (visible < 0.99) {
 							#ifdef ACCURATE_RT
-								ray_hit_t rayHit = betterRayTrace(pos.xyz + sssOffset, dir + offset, colortex15, false);
+								ray_hit_t rayHit = betterRayTrace(pos.xyz + sssOffset, dir + offset - sssOffset, colortex15, false);
 							#else
-								ray_hit_t rayHit = raytrace(pos.xyz + sssOffset, dir + offset, colortex15);
+								ray_hit_t rayHit = raytrace(pos.xyz + sssOffset, dir + offset - sssOffset, colortex15);
 							#endif
 							vec3 dist = abs(thisLight.pos - rayHit.pos) / (max(thisLight.size, vec3(0.5)) + 0.01);
 							if (max(max(dist.x, dist.y), dist.z) < 1.0) {
-								rayHit.transColor.rgb = rayHit.transColor.a < 0.001 ? vec3(1.0) : rayHit.transColor.rgb;
+								rayHit.transColor.rgb = rayHit.transColor.a < 0.1 ? vec3(1.0) : rayHit.transColor.rgb;
 								float rayBrightness = max(max(
 									rayHit.transColor.r,
 									rayHit.transColor.g),

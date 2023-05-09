@@ -41,7 +41,7 @@ void main() {
 				pos.xyz += max(0.05, 0.01 * posLen) * normalDepthData.xyz;
 				if (clamp(pos.xyz, -pointerGridSize * POINTER_VOLUME_RES / 2.0, pointerGridSize * POINTER_VOLUME_RES / 2.0) == pos.xyz) {
 					ivec3 pgc = ivec3(pos.xyz / POINTER_VOLUME_RES + pointerGridSize / 2.0) / 4;
-					int lightCount = readVolumePointer(pgc, 4);//pointerVolume[ 4][pgc.x][pgc.y][pgc.z];
+					int lightCount = readVolumePointer(pgc, 4);
 					int lightStripLoc = readVolumePointer(pgc, 5) + 1;
 					if (lightCount > lightNum) {
 						light_t thisLight = lights[readLightPointer(lightStripLoc + lightNum)];
@@ -51,9 +51,9 @@ void main() {
 						offset *= thisLight.size;
 						if (dot(dir, normalDepthData.xyz) > 0 || materialData.a < 0.75) {
 							#ifdef ACCURATE_RT
-								ray_hit_t rayHit = betterRayTrace(pos.xyz + sssOffset, dir + offset, colortex15, false);
+								ray_hit_t rayHit = betterRayTrace(pos.xyz + sssOffset, dir + offset - sssOffset, colortex15, false);
 							#else
-								ray_hit_t rayHit = raytrace(pos.xyz + sssOffset, dir + offset, colortex15);
+								ray_hit_t rayHit = raytrace(pos.xyz + sssOffset, dir + offset - sssOffset, colortex15);
 							#endif
 							if (rayHit.rayColor.a < 0.1) {
 								visibility = 1.0;

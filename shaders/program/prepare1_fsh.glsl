@@ -21,13 +21,10 @@ void main() {
 	if (prevClipPos.z > 0.56 && all(greaterThan(newClipPos.xyz, vec3(0))) && all(lessThan(newClipPos.xyz, vec3(0.999999)))) {
 		newClipPos.xy *= view;
 		vec2 diff = newClipPos.xy - gl_FragCoord.xy + 0.01;
-		ivec2 writePixelCoord = ivec2(gl_FragCoord.xy + floor(diff));
-		vec2 prevSampleCoord = (gl_FragCoord.xy - fract(diff)) / view;
+		ivec2 writePixelCoord = ivec2(gl_FragCoord.xy + floor(diff) + 0.5);
+		vec2 prevSampleCoord = (gl_FragCoord.xy - fract(diff) + 0.5) / view;
 		vec4 writeData = vec4(texture(colortex4, prevSampleCoord).xyz, 1 - newClipPos.z);
-		//if (imageLoad(colorimg8, writePixelCoord).w > newClipPos.z) {
-			imageStore(colorimg8, writePixelCoord, writeData);
-			
-		//}
+		imageStore(colorimg8, writePixelCoord, writeData);
 	}
 	/*DRAWBUFFERS:3*/
 }

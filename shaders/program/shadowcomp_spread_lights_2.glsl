@@ -24,12 +24,13 @@ void main() {
 			if (score >= 0 && nums[score] < 64) pointers[score][nums[score]++] = thisPointer;
 		}
 		int n = BIN_COUNT - 1;
+		for (; n >= 0 && nums[n] <= 0; n--);
 		int k;
 		for (k = 0; k < min(localLightCount, 64) && n >= 0; k++) {
 			writeLightPointer(lightStripLoc + k, pointers[n][--nums[n]]);
 			for (; n >= 0 && nums[n] <= 0; n--);
 		}
-		writeLightPointer(lightStripLoc, k + 1);
+		writeLightPointer(lightStripLoc - 1, k + 1);
 		writeVolumePointer(ivec3(gl_GlobalInvocationID.xyz), 4, k);
 	}
 }

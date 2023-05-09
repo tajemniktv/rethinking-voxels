@@ -89,7 +89,7 @@ void main() {
 		writeVolumePointer(pointerGridCoords, 4, 0);
 	}
 */
-	//color = imageLoad(pointerStrip, ivec2(gl_FragCoord.xy) + ivec2(0, 1000)).rgb * 0.01;
+	//color *= 1 - texelFetch(colortex12, ivec2(gl_FragCoord.xy), 0).rgb;
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = vec4(color, 1.0);
 }
