@@ -20,8 +20,8 @@ void main() {
 		for (int k = 0; k < localLightCount; k++) {
 			int thisPointer = readLightPointer(lightStripLoc + k);
 			light_t thisLight = lights[thisPointer];
-			int score = min(int((thisLight.brightnessMat >> 16) - length(midPos - thisLight.pos) * BIN_COUNT / 26.0), BIN_COUNT - 1);
-			if (nums[score] < 64) pointers[score][nums[score]++] = thisPointer;
+			int score = min(int(((thisLight.brightnessMat >> 16) - length(midPos - thisLight.pos)) * BIN_COUNT / 26.0), BIN_COUNT - 1);
+			if (score >= 0 && nums[score] < 64) pointers[score][nums[score]++] = thisPointer;
 		}
 		int n = BIN_COUNT - 1;
 		for (int k = 0; k < min(localLightCount, 64) && n >= 0; k++) {
