@@ -10,7 +10,7 @@ layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 #define BIN_COUNT 16
 
 void main() {
-	int localLightCount = readVolumePointer(ivec3(gl_GlobalInvocationID.xyz), 4) - 1;
+	int localLightCount = readVolumePointer(ivec3(gl_GlobalInvocationID.xyz), 4);
 	if (localLightCount > 0) {
 		int pointers[BIN_COUNT][64];
 		int nums[BIN_COUNT];
@@ -24,9 +24,12 @@ void main() {
 			if (score >= 0 && nums[score] < 64) pointers[score][nums[score]++] = thisPointer;
 		}
 		int n = BIN_COUNT - 1;
-		for (int k = 0; k < min(localLightCount, 64) && n >= 0; k++) {
+		int k;
+		for (k = 0; k < min(localLightCount, 64) && n >= 0; k++) {
 			writeLightPointer(lightStripLoc + k, pointers[n][--nums[n]]);
 			for (; n >= 0 && nums[n] <= 0; n--);
 		}
+		writeLightPointer(lightStripLoc, k + 1);
+		writeVolumePointer(ivec3(gl_GlobalInvocationID.xyz), 4, k);
 	}
 }
