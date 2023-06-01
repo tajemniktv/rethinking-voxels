@@ -20,6 +20,9 @@ uniform sampler2D colortex15;
 #include "/lib/vx/raytrace.glsl"
 
 void main() {
+	#ifdef PER_BLOCK_LIGHT
+		return;
+	#endif
 	ivec2 coords = ivec2(gl_FragCoord.xy);
 	ivec2 tileCoords = coords / lowResView;
 	float visibility = 0;
@@ -35,8 +38,7 @@ void main() {
 				pos.xy = (pos.xy + 0.5) / view;
 				pos.xyz = 2 * pos.xyz - 1;
 				pos = gbufferModelViewInverse * (gbufferProjectionInverse * pos);
-				pos.xyz = pos.xyz / pos.w + fract(cameraPosition);
-				debug.xyz = (pos.xyz + floor(cameraPosition) - vec3(50, 65, 0)) * 0.1;
+				pos.xyz = pos.xyz / pos.w + 8.0 * fract(0.125 * cameraPosition);
 				float posLen = length(pos);
 				pos.xyz += max(0.05, 0.01 * posLen) * normalDepthData.xyz;
 				if (clamp(pos.xyz, -pointerGridSize * POINTER_VOLUME_RES / 2.0, pointerGridSize * POINTER_VOLUME_RES / 2.0) == pos.xyz) {

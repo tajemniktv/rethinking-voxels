@@ -32,6 +32,9 @@ uniform sampler2D depthtex1;
 	#undef BL_SHADOW_MODE
 	#undef PP_BL_SHADOWS
 	#undef PP_SUN_SHADOWS
+	#ifndef PER_BLOCK_LIGHT
+		#define PER_BLOCK_LIGHT
+	#endif
 	uniform int frameCounter;
 
 	uniform float viewWidth, viewHeight;
@@ -59,10 +62,8 @@ uniform sampler2D depthtex1;
 	uniform mat4 shadowProjection;
 
 	uniform sampler2D colortex3;
-	#ifndef ACCURATE_RT
-		uniform sampler2D colortex15;
-		#define ATLASTEX colortex15
-	#endif
+	uniform sampler2D colortex15;
+	#define ATLASTEX colortex15
 	uniform sampler2D noisetex;
 	uniform sampler2DShadow shadowtex0;
 	uniform sampler2DShadow shadowtex1;

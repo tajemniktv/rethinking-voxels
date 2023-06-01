@@ -7,6 +7,9 @@ ivec2 view = ivec2(viewWidth + 0.5, viewHeight + 0.5);
 #define BLUR_SIZE_0 3
 
 void main() {
+	#ifdef PER_BLOCK_LIGHT
+		return;
+	#endif
 	#ifdef DENOISING
 		ivec2 coord = ivec2(gl_FragCoord.xy);
 		vec4 outColor = texelFetch(colortex8, coord, 0);

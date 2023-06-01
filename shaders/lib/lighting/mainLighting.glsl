@@ -268,11 +268,11 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
         #endif
         heldLight0 = max(0.0, (heldLight0 - lViewPosL) * 0.066666);
         if (heldLight0 > 0.01) {
-        vec3 heldLightPos = ViewToPlayer(vec3(0.2, 0, -0.2)) + fract(cameraPosition) - vec3(0, 0.2, 0);
+        vec3 heldLightPos = ViewToPlayer(vec3(0.2, 0, -0.2)) + 8.0 * fract(0.125 * cameraPosition) - vec3(0, 0.2, 0);
         
         vec3 vxPos1 = vxPos + 0.01 * worldNormal;
         vec3 dir = heldLightPos - vxPos;
-        heldLight *= heldLight0 * max(0.0, dot(-normalize(vxPos1 - fract(cameraPosition)), worldNormal));
+        heldLight *= heldLight0 * max(0.0, dot(-normalize(vxPos1 - 8.0 * fract(0.125 * cameraPosition)), worldNormal));
         #ifdef HELD_LIGHT_OCCLUSION_CHECK
         if (length(heldLight) > 0.01) {
             #ifdef ACCURATE_RT
@@ -386,7 +386,12 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     #ifdef GBUFFERS_ENTITIES
     if (length(lmCoord - vec2(1, 0)) > 0.01 || abs(normal.x) > 0.01 || abs(worldNormal.y) > 0.01) {
     #endif
-        blockLighting = isInRange(vxPos) ? mix(getBlockLight(vxPos, worldNormal * float(subsurfaceMode == 0), mat, subsurfaceMode != 0), lightmapXM * blocklightCol, 1 - clamp(shadowLength / 8.0, 0, 1)) : lightmapXM * blocklightCol;
+        blockLighting = 
+            isInRange(vxPos) ?
+            mix(
+                getBlockLight(vxPos, worldNormal * float(subsurfaceMode == 0), mat, subsurfaceMode != 0),
+                lightmapXM * blocklightCol, 1 - clamp(shadowLength / 8.0, 0, 1)
+            ) : lightmapXM * blocklightCol;
     #ifdef GBUFFERS_ENTITIES
     } else {
         blockLighting = blocklightCol * 5.0;

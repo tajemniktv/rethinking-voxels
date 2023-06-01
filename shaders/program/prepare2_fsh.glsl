@@ -26,6 +26,9 @@ const ivec2[8] offsets = ivec2[8](
 #include "/lib/vx/raytrace.glsl"
 
 void main() {
+	#ifdef PER_BLOCK_LIGHT
+		return;
+	#endif
 	vec4 normalDepthData = texelFetch(colortex8, ivec2(gl_FragCoord.xy), 0);
 	if (normalDepthData.w > 1.5) {
 		bvec4 availableAdj = bvec4(false);
@@ -59,7 +62,7 @@ void main() {
 		vec4 clipPos = vec4(gl_FragCoord.xy / view * 2 - 1, 0.9998, 1);
 		vec4 dir = gbufferModelViewInverse * (gbufferProjectionInverse * clipPos);
 		dir /= dir.w;
-		vec3 vxPlayerPos = fract(cameraPosition) + gbufferModelViewInverse[3].xyz;
+		vec3 vxPlayerPos = 8.0 * fract(0.125 * cameraPosition) + gbufferModelViewInverse[3].xyz;
 		ray_hit_t rayHit;
 		#ifdef ACCURATE_RT
 			rayHit = betterRayTrace(vxPlayerPos + normalize(dir.xyz), dir.xyz, colortex15);

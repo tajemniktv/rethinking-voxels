@@ -52,7 +52,7 @@ void main() {
         vec4 playerPos = gbufferModelViewInverse * viewPos;
         playerPos /= playerPos.w;
         vec3 normal = int(texelFetch(colortex1, pixelCoord, 0).g * 255.1) != 4 || depth0 < 0.56 ? texelFetch(colortex4, pixelCoord, 0).rgb * 2 - 1 : vec3(0);
-        vec3 vxPos = playerPos.xyz + fract(cameraPosition) + 0.02 * normal;
+        vec3 vxPos = playerPos.xyz + 8 * fract(cameraPosition * 0.125) + 0.02 * normal;
         #if PIXEL_SHADOW > 0
             vec3 vxPos0 = vxPos;
             vxPos = (floor(PIXEL_SHADOW * vxPos) + 0.5) / PIXEL_SHADOW;

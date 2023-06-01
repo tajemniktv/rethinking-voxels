@@ -23,6 +23,9 @@ const ivec2[4] offsets = ivec2[4](
 	ivec2(0, 1)
 );
 void main() {
+	#ifdef PER_BLOCK_LIGHT
+		return;
+	#endif
 	ivec2 coords = ivec2(gl_FragCoord.xy);
 	float oneMinusDepth = texelFetch(colortex8, coords, 0).a;
 	ivec2 localCoords = coords * 2 + offsets[frameCounter % 4];
@@ -38,7 +41,7 @@ void main() {
 			pos = gbufferModelViewInverse * (gbufferProjectionInverse * pos);
 			pos.xyz = pos.xyz / pos.w;
 			vec3 normPlayerPos = normalize(pos.xyz);
-			pos.xyz = pos.xyz + fract(cameraPosition);
+			pos.xyz = pos.xyz + 8.0 * fract(0.125 * cameraPosition);
 			float posLen = length(pos);
 			pos.xyz += max(0.05, 0.01 * posLen) * normalDepthData.xyz;
 			if (clamp(pos.xyz, -pointerGridSize * POINTER_VOLUME_RES / 2.0, pointerGridSize * POINTER_VOLUME_RES / 2.0) == pos.xyz) {

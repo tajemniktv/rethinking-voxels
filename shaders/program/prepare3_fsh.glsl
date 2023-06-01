@@ -9,6 +9,9 @@ uniform sampler2D colortex1;
 uniform sampler2D colortex8;
 
 void main() {
+	#ifdef PER_BLOCK_LIGHT
+		return;
+	#endif
 	vec4 pos = vec4(
 		gl_FragCoord.xy / view * 2 - 1,
 		1 - texelFetch(colortex8, ivec2(gl_FragCoord.xy), 0).w,

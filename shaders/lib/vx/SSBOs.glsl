@@ -41,6 +41,40 @@ struct tri_t {
 	#endif
 #endif
 
+// Irradiance cache
+#ifdef READONLY
+	uniform sampler3D irradianceCache;
+	vec3 readIrradianceCache(vec3 vxPos, vec3 normal) {
+		vec3 color = vec3(0);
+		vec3 coord = vxPos / (POINTER_VOLUME_RES * pointerGridSize) + 0.5;
+		coord.y /= 7.0;
+		for (int i = 0; i < 3; i++) {
+			color += normal[i] * normal[i] * textureLod(irradianceCache, coord + vec3(0, (i + 3 * float(normal[i] > 0)) / 7.0, 0), 0.0).xyz;
+		}
+		return color;
+	}
+	vec3 readIrradianceCache(vec3 vxPos, int index) {
+		vec3 coord = vxPos / (POINTER_VOLUME_RES * pointerGridSize) + 0.5;
+		coord.y /= 7.0;
+		return textureLod(irradianceCache, coord + vec3(0, index / 7.0, 0), 0.0).xyz;
+	}
+#else
+layout(rgba16f) uniform image3D irradianceCacheI;
+layout(rgba32ui)uniform uimage3D occlusionVolumeI;
+	vec4 readIrradianceCache(ivec3 coord, int index) {
+		return imageLoad(irradianceCacheI, coord + ivec3(0, int(0.5 + POINTER_VOLUME_RES) * pointerGridSize.y * index, 0));
+	}
+	void writeIrradianceCache(ivec3 coord, int index, vec4 data) {
+		imageStore(irradianceCacheI, coord + ivec3(0, int(0.5 + POINTER_VOLUME_RES) * pointerGridSize.y * index, 0), data);
+	}
+	uvec4 readOcclusionVolume(ivec3 coord) {
+		return imageLoad(occlusionVolumeI, coord);
+	}
+	void writeOcclusionVolume(ivec3 coord, uvec4 data) {
+		imageStore(occlusionVolumeI, coord, data);
+	}
+#endif
+
 layout(std430, binding = 1) WRITE_TO_SSBOS buffer volumePointers {
 	int wtrxmskskosfke;
 	//int pointerVolume[][pointerGridSize.x][pointerGridSize.y][pointerGridSize.z];

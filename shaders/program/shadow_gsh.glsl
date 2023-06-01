@@ -46,7 +46,7 @@ void main() {
 	vec3 cnormal = cross(posV[0] - posV[1], posV[0] - posV[2]);
 	float area = length(cnormal);
 	cnormal = normalize(cnormal);
-	avgPos += fract(cameraPosition);
+	avgPos += 8.0 * fract(0.125 * cameraPosition);
 	vec3 avgPos0 = avgPos;
 	avgPos += 0.01 * (
 	    blockCenterOffsetV[0]
@@ -117,7 +117,7 @@ void main() {
 											(uint(255.5) << 24);
 					tris[faceNum].vertexCol[i] = packedVertexCol;
 					tris[faceNum].texCoord[i] = pixelCoord.x + 65536 * pixelCoord.y;
-					tris[faceNum].pos[i] = posV[j] + fract(cameraPosition) + 0.001 * blockCenterOffsetV[j];
+					tris[faceNum].pos[i] = posV[j] + 8 * fract(0.125 * cameraPosition) + 0.001 * blockCenterOffsetV[j];
 				}
 			}
 		#else
@@ -132,9 +132,9 @@ void main() {
 					l = (l + 1) % 3;
 					int k = (l + 1) % 3;
 					vec3[3] blockRelVertPos0 = vec3[3](
-						posV[0] + fract(cameraPosition) - floor(avgPos) - 0.5,
-						posV[1] + fract(cameraPosition) - floor(avgPos) - 0.5,
-						posV[2] + fract(cameraPosition) - floor(avgPos) - 0.5);
+						posV[0] + 8 * fract(0.125 * cameraPosition) - floor(avgPos) - 0.5,
+						posV[1] + 8 * fract(0.125 * cameraPosition) - floor(avgPos) - 0.5,
+						posV[2] + 8 * fract(0.125 * cameraPosition) - floor(avgPos) - 0.5);
 					vec2[3] rPos = vec2[3](
 						vec2(blockRelVertPos0[0][l], blockRelVertPos0[0][k]),
 						vec2(blockRelVertPos0[1][l], blockRelVertPos0[1][k]),

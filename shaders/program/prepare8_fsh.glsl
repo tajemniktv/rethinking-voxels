@@ -44,6 +44,9 @@ float getEdge(float linDepth0, vec2 coords) {
 	return clamp(3 * (0.5 - maxLinDepth) * (1 - abs(minLinDepth / maxLinDepth)), 0, 1);
 }
 void main() {
+	#ifdef PER_BLOCK_LIGHT
+		return;
+	#endif
 	ivec2 pixelCoord = ivec2(gl_FragCoord.xy);
 	vec2 HRTexCoord = (pixelCoord - offsets[frameCounter % 4]) / (2.0 * view);
 	vec3 color = texture2D(colortex8, HRTexCoord).rgb;

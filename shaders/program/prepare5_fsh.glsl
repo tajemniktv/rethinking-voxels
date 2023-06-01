@@ -7,6 +7,9 @@ ivec2 lowResView = view / 8;
 uniform sampler2D colortex3;
 #define BLUR_SIZE 1
 void main() {
+	#ifdef PER_BLOCK_LIGHT
+		return;
+	#endif
 	ivec2 coords = ivec2(gl_FragCoord.xy);
 	ivec2 tileCoords = coords / lowResView;
 	float visibility = 0;

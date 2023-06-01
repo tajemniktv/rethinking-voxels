@@ -22,6 +22,7 @@
 	#ifndef ACCURATE_RT
 		// cuboid intersection algorithm
 		float aabbIntersect(vxData data, vec3 pos, vec3 dir, inout int n) {
+			float dirLen = max(length(dir), 0.00001);
 			// offset to work around floating point errors
 			vec3 offset = 0.001 * eye[n] * sign(dir[n]);
 			// for connected blocks like walls, fences etc, figure out connection sides
@@ -58,7 +59,7 @@
 						for (int l = 0; l < 2; l++) {
 							float w0 = (connectCuboids[2 * k + l][i] - pos[i]) / dir[i];
 							// ray-plane intersection position needs to be closer than the previous best one and further than approximately 0
-							bool valid = (w0 > -0.00005 / length(dir) && w0 < w);
+							bool valid = (w0 > -0.00005 / dirLen && w0 < w);
 							if (!valid) break;
 							vec3 newPos = pos + w0 * dir;
 							for (int j = 1; j < 3; j++) {
@@ -84,13 +85,13 @@
 					if (dir[i] == 0) continue;
 					float relevantBound = bounds[dir[i] < 0 ? 1 : 0][i];
 					float w0 = (relevantBound - pos[i]) / dir[i];
-					if (w0 < -0.00005 / length(dir)) {
+					if (w0 < -0.00005 / max(dirLen, 0.00001)) {
 						relevantBound = bounds[dir[i] < 0 ? 0 : 1][i];
 						w0 = (relevantBound - pos[i]) / dir[i];
 					}
 					vec3 newPos = pos + w0 * dir;
 					// ray-plane intersection position needs to be closer than the previous best one and further than approximately 0
-					bool valid = (w0 > -0.00005 / length(dir) && w0 < w);
+					bool valid = (w0 > -0.00005 / dirLen && w0 < w);
 					for (int j = 1; j < 3; j++) {
 						int ij = (i + j) % 3;
 						// intersection position also needs to be within other bounds
@@ -173,7 +174,7 @@
 			vec3 progress;
 			for (int i = 0; i < 3; i++) {
 				//set starting position in each direction
-				progress[i] = -(dir[i] < 0 ? fract(pos0[i]) : fract(pos0[i]) - 1) / dir[i];
+				progress[i] = dir[i] == 0 ? 10 : (-(dir[i] < 0 ? fract(pos0[i]) : fract(pos0[i]) - 1) / dir[i]);
 			}
 			int i = 0;
 			// get closest starting position
@@ -185,8 +186,8 @@
 				}
 			}
 			// step size in each direction (to keep to the voxel grid)
-			vec3 stp = abs(1 / dir);
-			float dirlen = length(dir);
+			vec3 stp = 1 / max(abs(dir), 0.00001);
+			float dirlen = max(length(dir), 0.0001);
 			float invDirLenScaled = 0.001 / dirlen;
 			vec3 dirsgn = sign(dir);
 			vec3[3] eyeOffsets;

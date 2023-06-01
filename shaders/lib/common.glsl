@@ -27,21 +27,15 @@
     #define OCCLUSION_BLEED_PREVENTION
     #define CAVE_SUNLIGHT_FIX 2 // [0 1 2]
     #define SMOOTH_LIGHTING 1 //[0 1]
-    #define BL_SHADOW_MODE 1 //[0 1 2]
-
-    #if BL_SHADOW_MODE == 2
-        #define PP_BL_SHADOWS
-    #endif
-  //#define PP_SUN_SHADOWS
   //#define CORRECT_CUBOID_OFFSETS
     #define BLOCKLIGHT_SOURCE_SIZE 0.1 //[0.0 0.02 0.05 0.1 0.2 0.3 0.5]
-  //#define INST_LP
     #define BIG_LIGHTS
-    #define BLOCKLIGHT_CHECK_INTERVAL 17 //[4 5 7 10 15 17 20 30]
     #define VBL_NETHER_MULT 2.0 //[1.0 1.2 1.5 1.7 2.0 2.5 3.0 4.0]
     #define VBL_END_MULT 2.0 //[1.0 1.2 1.5 1.7 2.0 2.5 3.0 4.0]
-    #define VBL_INTPOL
     #define ADVANCED_LIGHT_TRACING 1 //[0 1]
+    #if ADVANCED_LIGHT_TRACING == 0
+        #define PER_BLOCK_LIGHT
+    #endif
     #define FF_PROP_MUL 0.9999
     #define FF_PROP_SUB 0.003 //[0.0001 0.0003 0.0005 0.001 0.002 0.003 0.005 0.007 0.01]
     #define BFF_ABSORBTION_AMOUNT 0.05

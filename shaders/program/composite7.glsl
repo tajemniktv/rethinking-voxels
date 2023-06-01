@@ -55,11 +55,9 @@ void main() {
 		color = rayHit.rayColor.rgb;
 	}
 	if (texelCoord.y < 10) {
-		if (texelCoord.x < 10) color = numFaces < MAX_TRIS ? vec3(numFaces) / MAX_TRIS : vec3(1, 0, 0);
-		else color.r = readTriPointer(texelCoord.x - 10) * 0.1;
+		color.r = max(0, 1 - readLightPointer(texelCoord.x));
 	}
 */
-	if (all(lessThan(gl_FragCoord.xy, vec2(pointerGridSize.xy)))) color = vec3(readVolumePointer(ivec3(gl_FragCoord.xy, 32), 1)) * 0.000001;
 	/*DRAWBUFFERS:3*/
 	gl_FragData[0] = vec4(color, 1.0);
 }

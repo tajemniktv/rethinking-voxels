@@ -1,5 +1,6 @@
 #ifndef MAPPING
 #define MAPPING
+#include "/lib/vx/SSBOs.glsl"
 //// needs uniform vec3 cameraPosition, previousCameraPosition
 
 // voxel volume diameter
@@ -34,12 +35,12 @@ vec3 getVxPos(vec2 vxCoords) {
 
 // get voxel space position from world position
 vec3 getVxPos(vec3 worldPos) {
-	return worldPos + fract(cameraPosition);
+	return worldPos + 8.0 * fract(0.125 * cameraPosition);
 }
 
 // get previous voxel space position from world position
 vec3 getPreviousVxPos(vec3 worldPos) {
-	return getVxPos(worldPos) + (floor(cameraPosition) - floor(previousCameraPosition));
+	return getVxPos(worldPos) + 8 * (floor(0.125 * cameraPosition) - floor(0.125 * previousCameraPosition));
 }
 
 // determine if a position is within the voxelisation range

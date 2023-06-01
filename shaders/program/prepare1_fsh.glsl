@@ -12,6 +12,9 @@ uniform sampler2D colortex4;
 layout(rgba16f) uniform image2D colorimg8;
 
 void main() {
+	#ifdef PER_BLOCK_LIGHT
+		return;
+	#endif
 	float prevDepth = 1 - texelFetch(colortex2, ivec2(gl_FragCoord.xy), 0).w;
 	vec4 prevClipPos = vec4(gl_FragCoord.xy / view, prevDepth, 1) * 2 - 1;
 	vec4 newClipPos = reprojectionMatrix * prevClipPos;
