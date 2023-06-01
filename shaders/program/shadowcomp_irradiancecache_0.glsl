@@ -23,6 +23,7 @@ vec4 hash44(vec4 p) {
 
 bool getOcclusion(int lightPointer, vec3 pos0) {
 	light_t thisLight = lights[lightPointer];
+	if (length(floor(thisLight.pos / 8) - floor(pos0 / 8)) < 0.1) return true;
 	vec3 dir = thisLight.pos - pos0;
 	float brightness = length(dir);
 	float lightBrightness = thisLight.brightnessMat >> 16;

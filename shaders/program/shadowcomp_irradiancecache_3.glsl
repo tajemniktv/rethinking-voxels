@@ -79,19 +79,15 @@ void main() {
 	groupMemoryBarrier();
 	uvec4 occlusionData = readOcclusionVolume(iGlobalInvocationID);
 	bool doLighting = (frameCounter + gl_WorkGroupID.x + gl_WorkGroupID.y + gl_WorkGroupID.z) % 10 == 0;
-	float newWeight = 1.0;
-	float oldWeight = pow(1 - newWeight, frameTime);
-	if (!doLighting) oldWeight = 1.0;
-	newWeight = 1 - oldWeight;
 	vec4 irrCacheData[7];
-	for (int k = 0; k < 7; k++) irrCacheData[k] = readIrradianceCache(oldCacheCoord, k) * oldWeight;
+	for (int k = 0; k < 7; k++) irrCacheData[k] = vec4(0);
 	if (doLighting) {
 		for (int n = 0; n < lightCount; n++) {
 			if ((occlusionData[n/32] >> (n%32)) % 2 == 0) continue;
 			vec3 dir = lightPositions[n] - pos;
 			float brightness = 0.0625 * lightCols[n].a * pow(max(0, 1 - length(dir) / lightCols[n].a), 2);
 			if (brightness > 0.01) {
-				vec4 thisAdjustedCol = vec4(lightCols[n].xyz, 1) * brightness * newWeight;
+				vec4 thisAdjustedCol = vec4(lightCols[n].xyz, 1) * brightness;
 				irrCacheData[6] += thisAdjustedCol;
 				for (int k = 0; k < 3; k++) {
 					if (abs(dir[k]) > 0.5) {
@@ -104,6 +100,12 @@ void main() {
 				}
 			}
 		}
+		float lightLen = max(max(irrCacheData[6].x, irrCacheData[6].y), irrCacheData[6].z);
+		for (int k = 0; k < 7; k++) {
+			irrCacheData[k] *= log(lightLen + 1) / (lightLen + 0.0001);
+		}
+	} else {
+		for (int k = 0; k < 7; k++) irrCacheData[k] = readIrradianceCache(oldCacheCoord, k);
 	}
 	for (int k = 0; k < 7; k++) writeIrradianceCache(iGlobalInvocationID, k, irrCacheData[k]);
 }
