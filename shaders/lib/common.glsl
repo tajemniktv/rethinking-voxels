@@ -16,17 +16,10 @@
 
     const int shadowMapResolution = 2048;
 
-    #define VXHEIGHT 8 //[4 6 8 12 16]
-    #define OCCLUSION_CASCADE_COUNT 5 //[1 2 3 4 5]
-
     #define BLOCKLIGHT_STRENGTH 1.0 //[0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.5 1.7 2.0]
     #define BLOCKLIGHT_STEEPNESS 2.0 //[1.0 1.3 1.5 1.7 2.0]
     #define BLOCKLIGHT_SHAFT_STRENGTH 0.1 //[0.01 0.02 0.03 0.05 0.07 0.1 0.15 0.2 0.25 0.3 0.4 0.5 0.7 1.0 1.2 1.5 2 2.5 3]
 
-    #define OCCLUSION_FILTER 1 //[0 1 2]
-    #define OCCLUSION_BLEED_PREVENTION
-    #define CAVE_SUNLIGHT_FIX 2 // [0 1 2]
-    #define SMOOTH_LIGHTING 1 //[0 1]
   //#define CORRECT_CUBOID_OFFSETS
     #define BLOCKLIGHT_SOURCE_SIZE 0.1 //[0.0 0.02 0.05 0.1 0.2 0.3 0.5]
   //#define CLUMP_LIGHTS
@@ -37,9 +30,6 @@
     #if ADVANCED_LIGHT_TRACING == 0
         #define PER_BLOCK_LIGHT
     #endif
-    #define FF_PROP_MUL 0.9999
-    #define FF_PROP_SUB 0.003 //[0.0001 0.0003 0.0005 0.001 0.002 0.003 0.005 0.007 0.01]
-    #define BFF_ABSORBTION_AMOUNT 0.05
     #define GI_STRENGTH 3 //[0 1 2 3 4 5 10]
     #if GI_STRENGTH != 0
         #define GI
@@ -50,7 +40,7 @@
 
   //#define ACCURATE_RT
 
-    const float shadowDistance = 64.0;
+    const float shadowDistance = 192;
 
     #if (defined PP_SUN_SHADOWS || defined VOXEL_REFLECTIONS)
         #define DISTANCE_FIELD

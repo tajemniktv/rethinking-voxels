@@ -381,7 +381,13 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     #endif
 
     // Combine Lighting
-    float shadowLength = min(vxRange / 2.0 - abs(vxPos.x), min(VXHEIGHT * VXHEIGHT - 2.0 * abs(vxPos.y), vxRange / 2.0 - abs(vxPos.z)));
+    float shadowLength = min(
+        0.5 * pointerGridSize.x * POINTER_VOLUME_RES - abs(vxPos.x),
+        min(
+            0.5 * pointerGridSize.y * POINTER_VOLUME_RES - abs(vxPos.y),
+            0.5 * pointerGridSize.z * POINTER_VOLUME_RES - abs(vxPos.z)
+            )
+        );
     vec3 blockLighting;
     #ifdef GBUFFERS_ENTITIES
     if (length(lmCoord - vec2(1, 0)) > 0.01 || abs(normal.x) > 0.01 || abs(worldNormal.y) > 0.01) {

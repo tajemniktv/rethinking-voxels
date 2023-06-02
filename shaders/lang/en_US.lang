@@ -151,33 +151,14 @@ screen.TORCH_COL=Torch
 screen.YELLOWFROG_COL=Ochre Froglight
 
 #Settings
-option.SHADOWRES=Voxel Volume Size
-option.SHADOWRES.comment=Size of the cuboid in which advanced light calculation is performed.
-value.SHADOWRES.4096=§5Extreme
-value.SHADOWRES.2048=§9High
-value.SHADOWRES.1024=§aMedium
-value.SHADOWRES.512=§eLow
 
-option.VXHEIGHT=Voxel Volume Height
-option.VXHEIGHT.comment=Controls how far up and down volumetric fog and colored lights will appear.
-value.VXHEIGHT.4=16 Blocks
-value.VXHEIGHT.6=36 Blocks
-value.VXHEIGHT.8=64 Blocks
-value.VXHEIGHT.12=144 Blocks
-value.VXHEIGHT.16=256 Blocks
+option.ACCURATE_RT=Accurate Ray Tracing
+option.ACCURATE_RT.comment=use triangle data instead of voxel data for ray tracing. §a[+] §r Accounts for all geometry, including mobs and custom models. §c[-] §r multiple times slower than voxel RT.
 
 option.ADVANCED_LIGHT_TRACING=Light Propagation Mode
-option.ADVANCED_LIGHT_TRACING.comment=Toggles between two different methods of calculating block light values. Advanced yields sharp shadows from block light, but has a few more issues. Basic doesn't have sharp shadows from blocklight, but still has coloured lights and is a little faster.
-value.ADVANCED_LIGHT_TRACING.0=Basic
-value.ADVANCED_LIGHT_TRACING.1=Advanced
-
-option.BL_SHADOW_MODE=Blocklight Shadow Mode
-option.BL_SHADOW_MODE.comment=Controls the way in which the shadows that are cast from block light sources is rendered. Shadow Volume uses the same data that is used for volumetric block light. Half Res calculates the shadows at the end of rendering one frame and applies it to the scene in the next one, meaning that it has problems in movement. Per-Pixel calculates shadows for every pixel that is rendered and then some, meaning that it has the highest visual fidelity, but the worst performance.
-value.BL_SHADOW_MODE.0=Shadow Volume
-value.BL_SHADOW_MODE.1=Half-Res
-value.BL_SHADOW_MODE.2=Per-Pixel
-option.PP_SUN_SHADOWS=Pixel Perfect Sun Shadows
-option.PP_SUN_SHADOWS.comment=Perform sun occlusion check for every pixel rather than rendering a shadow map. High performance impact.
+option.ADVANCED_LIGHT_TRACING.comment=Toggles between two different methods of calculating block light values. Per-pixel yields sharp shadows from block light, but has a few more issues. per-block doesn't have as sharp shadows from blocklight, but it is a little faster at high resolutions.
+value.ADVANCED_LIGHT_TRACING.0=Per-Block
+value.ADVANCED_LIGHT_TRACING.1=Per-Pixel
 
 option.BLOCKLIGHT_SOURCE_SIZE=Blocklight Source Size
 option.BLOCKLIGHT_SOURCE_SIZE.comment=Controls softness of shadows cast by block light sources. Needs pixel perfect shadows.
@@ -185,57 +166,8 @@ option.BLOCKLIGHT_SOURCE_SIZE.comment=Controls softness of shadows cast by block
 option.CORRECT_CUBOID_OFFSETS=Cuboid-aware Shadow Softness
 option.CORRECT_CUBOID_OFFSETS.comment=If enabled, shadows cast by cuboid shaped light sources will have correct directional softness.
 
-option.OCCLUSION_CASCADE_COUNT=Max Blocklight Shadow Res
-option.OCCLUSION_CASCADE_COUNT.comment=Maximum resolution of shadows cast from block light sources.
-value.OCCLUSION_CASCADE_COUNT.1=1/Block
-value.OCCLUSION_CASCADE_COUNT.2=2/Block
-value.OCCLUSION_CASCADE_COUNT.3=4/Block
-value.OCCLUSION_CASCADE_COUNT.4=8/Block
-value.OCCLUSION_CASCADE_COUNT.5=16/Block
-
-option.OCCLUSION_FILTER=Occlusion Filter
-option.OCCLUSION_FILTER.comment=Enables smoothing of shadows cast from blocklight. Setting this to "Off" produces pixel-locked shadows.
-option.OCCLUSION_BLEED_PREVENTION=Occlusion Bleeding 'Fix'
-option.OCCLUSION_BLEED_PREVENTION.comment=This option fixes a few bright edges in the lighting while adding some hard edges.
-value.OCCLUSION_FILTER.0=Off
-value.OCCLUSION_FILTER.1=Linear
-value.OCCLUSION_FILTER.2=Best (not implemented)
-
-option.SMOOTH_LIGHTING=Smooth Lighting
-option.SMOOTH_LIGHTING.comment=Controls how much block edges have sharp brightness changes. Slow option is experimental.
-value.SMOOTH_LIGHTING.0=Low
-value.SMOOTH_LIGHTING.1=Best
-value.SMOOTH_LIGHTING.2=Slow
-
-option.TRANSLUCENT_GI_TINT=Translucent GI tint
-option.TRANSLUCENT_GI_TINT.comment=Allows GI from block light which was colored by a translucent material to also respect that color change
-
-option.TRANSLUCENT_LIGHT_TINT=Translucent Light Tint
-option.TRANSLUCENT_LIGHT_TINT.comment=Controls how much light is tinted when going through translucent materials. Lower means more saturated.
-
-option.TRANSLUCENT_LIGHT_CONDUCTION=Translucent Light Conduction
-option.TRANSLUCENT_LIGHT_CONDUCTION.comment=Controls brightness change of light passing through translucents without advanced light propagation. Values above 1 do §4not §fconserve energy.
-
-option.SUN_SHADOWS=Sunlight Shadows
-option.SUN_SHADOWS.comment=Controls whether shadows will be cast from sunlight.
-
-option.CAVE_SUNLIGHT_FIX=Cave Light Leak Fix
-option.CAVE_SUNLIGHT_FIX.comment=Prevents light shafts from incorrectly appearing in caves.
-value.CAVE_SUNLIGHT_FIX.0=Off
-value.CAVE_SUNLIGHT_FIX.1=Partial
-value.CAVE_SUNLIGHT_FIX.2=Full
-
-option.BLOCKLIGHT_CHECK_INTERVAL=Blocklight Update Interval
-option.BLOCKLIGHT_CHECK_INTERVAL.comment=Minimum time between two blocklight updates at any given position, in frames.
-
 option.BLOCKLIGHT_SHAFT_STRENGTH=Volumetric Blocklight Strength
 option.BLOCKLIGHT_SHAFT_STRENGTH.comment=Brightness of blocklight contribution to volumetric fog.
-
-option.INST_LP=Instant Light Propagation
-option.INST_LP.comment=If this is enabled, Block light will spread instantly. §cUnsupported on MacOS, OptiFine and older hardware.
-
-option.VBL_INTPOL=Volumetric Light Smoothing
-option.VBL_INTPOL.comment=Enables Blocklight filtering on light samples for volumetric blocklight.
 
 option.VBL_NETHER_MULT=Vol. Blocklight Nether Multiplier
 option.VBL_NETHER_MULT.comment=Volumetric Blocklight Strength in the nether relative to its overworld value.
@@ -243,10 +175,7 @@ option.VBL_NETHER_MULT.comment=Volumetric Blocklight Strength in the nether rela
 option.VBL_END_MULT=Vol. Blocklight End Multiplier
 option.VBL_END_MULT.comment=Volumetric Blocklight Strength in the end relative to its overworld value.
 
-option.FF_PROP_SUB=Blocklight Falloff Steepness
-option.FF_PROP_SUB.comment=Controls how fast blocklight becomes dark around a light source. Doesn't work with Advanced Light Propagation.
-
-option.GI_STRENGTH=GI Strength
+option.GI_STRENGTH=§7GI Strength (Unimplemented)
 option.GI_STRENGTH.comment=Adjusts the strength of Global Illumination. This effect allows light that falls on a surface to illuminate its surroundings.
 
 option.GLOWING_MINERAL_BLOCKS=Glowing Mineral Blocks

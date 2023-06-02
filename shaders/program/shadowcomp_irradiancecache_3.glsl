@@ -102,7 +102,7 @@ void main() {
 		}
 		float lightLen = max(max(irrCacheData[6].x, irrCacheData[6].y), irrCacheData[6].z);
 		for (int k = 0; k < 7; k++) {
-			irrCacheData[k] *= log(lightLen + 1) / (lightLen + 0.0001);
+			irrCacheData[k] *= 3 * log(lightLen / 3.0 + 1) / (lightLen + 0.0001);
 		}
 	} else {
 		for (int k = 0; k < 7; k++) irrCacheData[k] = readIrradianceCache(oldCacheCoord, k);
