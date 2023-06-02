@@ -32,7 +32,7 @@
     #endif
     #define GI_STRENGTH 3 //[0 1 2 3 4 5 10]
     #if GI_STRENGTH != 0
-        #define GI
+        //#define GI
     #endif
     #define TRANSLUCENT_GI_TINT
     #define TRANSLUCENT_LIGHT_TINT 0.5 // [0.1 0.15 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
