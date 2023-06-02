@@ -19,7 +19,10 @@
     #define BLOCKLIGHT_STRENGTH 1.0 //[0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.5 1.7 2.0]
     #define BLOCKLIGHT_STEEPNESS 2.0 //[1.0 1.3 1.5 1.7 2.0]
     #define BLOCKLIGHT_SHAFT_STRENGTH 0.1 //[0.01 0.02 0.03 0.05 0.07 0.1 0.15 0.2 0.25 0.3 0.4 0.5 0.7 1.0 1.2 1.5 2 2.5 3]
-
+    #define VOLUMETRIC_BLOCKLIGHT
+    #ifdef VOLUMETRIC_BLOCKLIGHT
+        #define IRRADIANCECACHE
+    #endif
   //#define CORRECT_CUBOID_OFFSETS
     #define BLOCKLIGHT_SOURCE_SIZE 0.1 //[0.0 0.02 0.05 0.1 0.2 0.3 0.5]
   //#define CLUMP_LIGHTS
@@ -29,6 +32,9 @@
     #define ADVANCED_LIGHT_TRACING 1 //[0 1]
     #if ADVANCED_LIGHT_TRACING == 0
         #define PER_BLOCK_LIGHT
+        #ifndef IRRADIANCECACHE
+            #define IRRADIANCECACHE
+        #endif
     #endif
     #define GI_STRENGTH 3 //[0 1 2 3 4 5 10]
     #if GI_STRENGTH != 0

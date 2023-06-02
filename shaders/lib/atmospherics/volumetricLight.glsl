@@ -112,8 +112,11 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 			vec4 enderBeamSample = vec4(DrawEnderBeams(VdotU, playerPos), 1.0);
 			enderBeamSample /= sampleCount;
 		#endif
-		float blSampleMult = 1.0 / sampleCount;
 		
+		#ifdef VOLUMETRIC_BLOCKLIGHT
+			float blSampleMult = 1.0 / sampleCount;
+		#endif
+
 		float shadowSample = 1.0;
 		vec3 vlSample = vec3(1.0);
 		#ifdef REALTIME_SHADOWS
@@ -136,11 +139,13 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 			blSampleMult *= VBL_END_MULT;
 		#endif
 
-		vec3 blSample = vec3(0.0);
-		vec3 vxPos = getVxPos(playerPos);
-		if (isInRange(vxPos, 2)) {
-			blSample = getBlockLight(vxPos);
-		}
+		#ifdef VOLUMETRIC_BLOCKLIGHT
+			vec3 blSample = vec3(0.0);
+			vec3 vxPos = getVxPos(playerPos);
+			if (isInRange(vxPos, 2)) {
+				blSample = getBlockLight(vxPos);
+			}
+		#endif
 		#ifdef REALTIME_SHADOWS
 			if (length(shadowPosition.xy * 2.0 - 1.0) < 1.0) {
 				shadowSample = shadow2D(shadowtex0, shadowPosition.xyz).z;
@@ -163,9 +168,13 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 			#ifdef REALTIME_SHADOWS
 				vlSample *= translucentMult;
 			#endif
-			blSample *= translucentMult;
+			#ifdef VOLUMETRIC_BLOCKLIGHT
+				blSample *= translucentMult;
+			#endif
 		}
-		volumetricBlockLight += blSample * blSampleMult;
+		#ifdef VOLUMETRIC_BLOCKLIGHT
+			volumetricBlockLight += blSample * blSampleMult;
+		#endif
 
 		#ifdef REALTIME_SHADOWS
 			#ifdef OVERWORLD
@@ -216,8 +225,9 @@ vec4 GetVolumetricLight(inout float vlFactor, vec3 translucentMult, float lViewP
 	#ifdef OVERWORLD
 		volumetricLight.rgb *= vlMult * pow(vlColor, vec3(0.5 + 0.5 * mix(invNoonFactor, (1.0 + sunFactor), rainFactor)));
 	#endif
-
-	volumetricLight.rgb += BLOCKLIGHT_SHAFT_STRENGTH * volumetricBlockLight;	
+	#ifdef VOLUMETRIC_BLOCKLIGHT
+		volumetricLight.rgb += BLOCKLIGHT_SHAFT_STRENGTH * volumetricBlockLight;	
+	#endif
 
 	volumetricLight = max(volumetricLight, vec4(0.0));
 	volumetricLight.a = min(volumetricLight.a, 1.0);

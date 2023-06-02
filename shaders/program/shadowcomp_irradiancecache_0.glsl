@@ -4,6 +4,8 @@ const ivec3 workGroups = ivec3(4, 2, 4);
 
 layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 
+#ifdef IRRADIANCECACHE
+
 #define WRITE_TO_SSBOS
 #include "/lib/vx/SSBOs.glsl"
 #include "/lib/vx/raytrace.glsl"
@@ -63,3 +65,7 @@ void main() {
 	}
 	writeOcclusionVolume(oldCacheCoord, occlusionData);
 }
+
+#else
+void main() {}
+#endif

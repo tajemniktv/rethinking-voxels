@@ -4,6 +4,8 @@ const ivec3 workGroups = ivec3(16, 8, 16);
 
 layout(local_size_x = 3, local_size_y = 3, local_size_z = 3) in;
 
+#ifdef IRRADIANCECACHE
+
 #define WRITE_TO_SSBOS
 #include "/lib/vx/SSBOs.glsl"
 #include "/lib/vx/raytrace.glsl"
@@ -21,8 +23,12 @@ vec4 hash44(vec4 p) {
 	return vec4(q) / 4294967295.0;
 }
 
-shared int visibility = 0;
+shared int visibility;
 void main() {
+	if (gl_LocalInvocationID == uvec3(0))
+		visibility = 0;
+	barrier();
+	groupMemoryBarrier();
 	const mat3 eye = mat3(1);
 	ivec3 camOffset = ivec3(8.01 * (floor(0.125 * cameraPosition) - floor(0.125 * previousCameraPosition)));
 	const ivec3 totalSize = workGroups;
@@ -62,3 +68,7 @@ void main() {
 		writeOcclusionVolume(oldCacheCoord, occlusionData);
 	}
 }
+
+#else
+void main() {}
+#endif

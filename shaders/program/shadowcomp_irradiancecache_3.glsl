@@ -4,6 +4,8 @@ const ivec3 workGroups = ivec3(16, 8, 16);
 
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
 
+#ifdef IRRADIANCECACHE
+
 #define WRITE_TO_SSBOS
 #include "/lib/vx/SSBOs.glsl"
 #include "/lib/vx/raytrace.glsl"
@@ -109,3 +111,7 @@ void main() {
 	}
 	for (int k = 0; k < 7; k++) writeIrradianceCache(iGlobalInvocationID, k, irrCacheData[k]);
 }
+
+#else
+void main() {}
+#endif
