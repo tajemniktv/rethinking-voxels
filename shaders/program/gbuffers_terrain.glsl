@@ -331,14 +331,10 @@ void main() {
 		#endif
 	} else discard;
 
-	/* DRAWBUFFERS:01 */
+	/* DRAWBUFFERS:015 */
 	gl_FragData[0] = color;
 	gl_FragData[1] = vec4(smoothnessD, materialMask, skyLightFactor, 1 - 0.5 * subsurfaceMode);
-
-	#if (REFLECTION_QUALITY >= 3 && RP_MODE != 0) || BL_SHADOW_MODE == 1
-		/* DRAWBUFFERS:015 */
-		gl_FragData[2] = vec4(mat3(gbufferModelViewInverse) * normalM, 1.0);
-	#endif
+	gl_FragData[2] = vec4(mat3(gbufferModelViewInverse) * normalM, 1.0);
 }
 
 #endif
