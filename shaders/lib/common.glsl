@@ -29,6 +29,7 @@
     #define SMOOTH_LIGHTING 1 //[0 1]
   //#define CORRECT_CUBOID_OFFSETS
     #define BLOCKLIGHT_SOURCE_SIZE 0.1 //[0.0 0.02 0.05 0.1 0.2 0.3 0.5]
+  //#define CLUMP_LIGHTS
     #define BIG_LIGHTS
     #define VBL_NETHER_MULT 2.0 //[1.0 1.2 1.5 1.7 2.0 2.5 3.0 4.0]
     #define VBL_END_MULT 2.0 //[1.0 1.2 1.5 1.7 2.0 2.5 3.0 4.0]

@@ -415,11 +415,8 @@ void main() {
 	/*DRAWBUFFERS:054*/
     gl_FragData[0] = vec4(color, 1.0);
 	gl_FragData[1] = vec4(waterRefColor, 1.0 - skyFade);
-	#if BL_SHADOW_MODE == 1
-		gl_FragData[2] = vec4(normal * 0.5 + 0.5, cloudLinearDepth);
-	#else
-		gl_FragData[2] = vec4(0.0, 0.0, 0.0, cloudLinearDepth);
-	#endif
+	gl_FragData[2] = vec4(normal * 0.5 + 0.5, cloudLinearDepth);
+
 	#ifdef TEMPORAL_FILTER
 		/*DRAWBUFFERS:0547*/
 		gl_FragData[3] = refAndCloudWrite;

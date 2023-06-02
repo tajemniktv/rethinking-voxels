@@ -16,6 +16,8 @@ void main() {
 	const vec3 defaultLightSize = 0.5 * vec3(BLOCKLIGHT_SOURCE_SIZE);
 	const int intpointerVolumeRes = int(POINTER_VOLUME_RES + 0.001);
 	int nLights = 0;
+	light_t localLights[intpointerVolumeRes * intpointerVolumeRes * intpointerVolumeRes];
+	vxData localVoxelData[intpointerVolumeRes * intpointerVolumeRes * intpointerVolumeRes];
 	for (int x0 = 0; x0 < intpointerVolumeRes; x0++) {
 		for (int y0 = 0; y0 < intpointerVolumeRes; y0++) {
 			for (int z0 = 0; z0 < intpointerVolumeRes; z0++) {
@@ -46,27 +48,40 @@ void main() {
 					}
 					thisLight.packedColor = int(thisVoxelData.lightcol.x * 255.9) + (int(thisVoxelData.lightcol.y * 255.9) << 8) + (int(thisVoxelData.lightcol.z * 255.9) << 16);
 					thisLight.brightnessMat = thisVoxelData.mat + (thisVoxelData.lightlevel << 16);
-					int globalLightId = atomicAdd(numLights, 1);
-					if (globalLightId < MAX_LIGHTS) {
-						lights[globalLightId] = thisLight;
-						//pointerVolume[5 + nLights][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = globalLightId;
-						nLights++;
-					} else break;
-					ivec3 coords = ivec3(thisLight.pos / POINTER_VOLUME_RES + pointerGridSize / 2) / 4;
-					ivec3 lowerBound = max(coords - thisVoxelData.lightlevel / int(4.01 * POINTER_VOLUME_RES) - 1, ivec3(0));
-					ivec3 upperBound = min(coords + thisVoxelData.lightlevel / int(4.01 * POINTER_VOLUME_RES) + 1, pointerGridSize / 4);
-					for (int x = lowerBound.x; x <= upperBound.x; x++) {
-						for (int y = lowerBound.y; y <= upperBound.y; y++) {
-							for (int z = lowerBound.z; z <= upperBound.z; z++) {
-								incrementVolumePointer(ivec3(x, y, z), 4);
-							}
+					#ifdef CLUMP_LIGHTS
+					bool alreadyHadThisOne = false;
+					for (int k = 0; k < nLights; k++)
+						if (localLights[k].brightnessMat == thisLight.brightnessMat) {
+							alreadyHadThisOne = true;
+							vec3 jointLower = min(localLights[k].pos - localLights[k].size, thisLight.pos - thisLight.size);
+							vec3 jointUpper = max(localLights[k].pos + localLights[k].size, thisLight.pos + thisLight.size);
+							localLights[k].pos = 0.5 * (jointLower + jointUpper);
+							localLights[k].size = 0.5 * (jointUpper - jointLower);
+							break;
 						}
-					}
+					if (alreadyHadThisOne) break;
+					#endif
+					localVoxelData[nLights] = thisVoxelData;
+					localLights[nLights++] = thisLight;
 				}
 			}
 		}
 	}
-	//pointerVolume[4][gl_WorkGroupID.x][gl_WorkGroupID.y][gl_WorkGroupID.z] = nLights;
+	for (int n = 0; n < nLights; n++) {
+		int globalLightId = atomicAdd(numLights, 1);
+		if (globalLightId >= MAX_LIGHTS) break;
+		lights[globalLightId] = localLights[n];
+		ivec3 coords = ivec3(localLights[n].pos / POINTER_VOLUME_RES + pointerGridSize / 2) / 4;
+		ivec3 lowerBound = max(coords - localVoxelData[n].lightlevel / int(4.01 * POINTER_VOLUME_RES) - 1, ivec3(0));
+		ivec3 upperBound = min(coords + localVoxelData[n].lightlevel / int(4.01 * POINTER_VOLUME_RES) + 1, pointerGridSize / 4);
+		for (int x = lowerBound.x; x <= upperBound.x; x++) {
+			for (int y = lowerBound.y; y <= upperBound.y; y++) {
+				for (int z = lowerBound.z; z <= upperBound.z; z++) {
+					incrementVolumePointer(ivec3(x, y, z), 4);
+				}
+			}
+		}
+	}
 }
 #else
 void main() {}
