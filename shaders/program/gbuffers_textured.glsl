@@ -61,10 +61,6 @@ uniform sampler2D gtexture;
 	uniform sampler2D gaux3;
 #endif
 
-#if defined PP_BL_SHADOWS || defined PP_SUN_SHADOWS || (defined HELD_LIGHT_OCCLUSION_CHECK && HELD_LIGHTING_MODE > 0)
-	#define ATLASTEX gtexture
-#endif
-
 #if HELD_LIGHTING_MODE >= 1
 	uniform int heldItemId;
 	uniform int heldItemId2;

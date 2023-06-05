@@ -252,39 +252,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     #endif
 
     // Blocklight
-    #if HELD_LIGHTING_MODE >= 1
-        vec3 heldLightR =  heldItemId <= 0 || heldItemId > 9999 ? vec3(0) : vec3(heldItemId % 16, (heldItemId >> 4) % 16, (heldItemId >> 8) % 16);
-        vec3 heldLightL =  heldItemId2 <= 0 || heldItemId2 > 9999 ? vec3(0) : vec3(heldItemId2 % 16, (heldItemId2 >> 4) % 16, (heldItemId2 >> 8) % 16);
-        vec3 heldLight = (heldLightR + heldLightL) / 15.0 + 0.001;
-        float heldLight0 = max(heldBlockLightValue, heldBlockLightValue2);
-        if (length(heldLight) > 0.5) heldLight0 = max(heldLight0, 8);
-        heldLight /= max(heldLight.r, max(heldLight.g, heldLight.b));
-        float lViewPosL = lViewPos;
-        #if HELD_LIGHTING_MODE == 1
-            heldLight0 *= 0.75;
-            lViewPosL *= 1.5;
-        #elif HELD_LIGHTING_MODE == 2
-            heldLight *= 0.97;
-        #endif
-        heldLight0 = max(0.0, (heldLight0 - lViewPosL) * 0.066666);
-        if (heldLight0 > 0.01) {
-        vec3 heldLightPos = ViewToPlayer(vec3(0.2, 0, -0.2)) + 8.0 * fract(0.125 * cameraPosition) - vec3(0, 0.2, 0);
-        
-        vec3 vxPos1 = vxPos + 0.01 * worldNormal;
-        vec3 dir = heldLightPos - vxPos;
-        heldLight *= heldLight0 * max(0.0, dot(-normalize(vxPos1 - 8.0 * fract(0.125 * cameraPosition)), worldNormal));
-        #ifdef HELD_LIGHT_OCCLUSION_CHECK
-        if (length(heldLight) > 0.01) {
-            #ifdef ACCURATE_RT
-                ray_hit_t rayHit = betterRayTrace(vxPos1, dir + 0.3 * hash33(vec3(gl_FragCoord.xy, frameCounter)), ATLASTEX);
-            #else
-                ray_hit_t rayHit = raytrace(vxPos1, dir + 0.3 * hash33(vec3(gl_FragCoord.xy, frameCounter)), ATLASTEX);
-            #endif
-            heldLight *= (1 - rayHit.rayColor.a);
-        }
-        #endif
-        } else heldLight = vec3(0);
-    #endif
+
     float lightmapXM;
     if (!noSmoothLighting) {
         float lightmapXMSteep = pow2(pow2(lightmap.x * lightmap.x))  * (2.30 - 0.25 * vsBrightness);
@@ -411,10 +379,7 @@ void DoLighting(inout vec3 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
         giLighting *= clamp(shadowLength / 8.0, 0, 1);
     }
     #else
-    #define giLighting 0
-    #endif
-    #if HELD_LIGHTING_MODE >= 1
-    blockLighting = sqrt(blockLighting * blockLighting + heldLight * heldLight);
+        #define giLighting 0
     #endif
 
     vec3 sceneLighting = shadowLighting * shadowMult + ambientColor * ambientMult;

@@ -49,15 +49,15 @@ void main() {
 	#ifdef FXAA
 		FXAA311(color);
 	#endif
-/*	if (length(texelCoord - vec2(viewWidth, viewHeight) / 2) < 300) {
+	/*if (length(texelCoord - vec2(viewWidth, viewHeight) / 2) < 300) {
 		vec3 dir = normalize((gbufferModelViewInverse * (gbufferProjectionInverse * vec4(gl_FragCoord.xy / vec2(viewWidth, viewHeight) * 2 - 1, 0.9998, 1))).xyz);
-		ray_hit_t rayHit = betterRayTrace(fract(cameraPosition) + dir, 20 * dir, colortex15);
+		ray_hit_t rayHit = raytrace(8 * fract(0.125 * cameraPosition) + 0.1 * dir, 20 * dir, colortex15);
 		color = rayHit.rayColor.rgb;
 	}
 	if (texelCoord.y < 10) {
 		color.r = max(0, 1 - readLightPointer(texelCoord.x));
-	}
-*/
+	}*/
+
 	/*DRAWBUFFERS:3*/
 	gl_FragData[0] = vec4(color, 1.0);
 }

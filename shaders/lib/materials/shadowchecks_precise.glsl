@@ -1437,7 +1437,11 @@ bool getVoxelise(int mat, vec3 cnormal, float area, vec3[3] posV) {
 			(mat == 50020 && (abs(area - 0.25) > 0.01 || cnormal.y < 0.7)) ||
 			(mat == 50048 && (abs(area - 0.5625) > 0.01 || cnormal.y < 0.0)) ||
 			(mat == 50052 && (area < 4.0 || cnormal.y < 0.7)) ||
-			(mat == 50080 && (abs(area - 0.097656) > 0.01 || abs(min(length(posV[1] - posV[0]), length(posV[2] - posV[0])) - 0.3125) > 0.001 || abs(cnormal.y) < 0.7)) ||
+			(mat == 50080 && (
+				abs(area - 0.097656) > 0.01 ||
+				abs(min(length(posV[1] - posV[0]), length(posV[2] - posV[0])) - 0.3125) > 0.001 ||
+				abs(cnormal.y) < 0.7)
+			) ||
 			mat == 10472 ||
 			mat == 50016 ||
 			mat == 60004 ||

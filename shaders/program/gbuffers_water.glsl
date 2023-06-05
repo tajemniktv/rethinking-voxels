@@ -60,10 +60,6 @@ uniform float viewHeight;
 
 uniform sampler2D gtexture;
 
-#if defined PP_BL_SHADOWS || defined PP_SUN_SHADOWS || (defined HELD_LIGHT_OCCLUSION_CHECK && HELD_LIGHTING_MODE > 0)
-	#define ATLASTEX gtexture
-#endif
-
 #if WATER_QUALITY >= 2 || WATER_STYLE >= 2 || defined FANCY_NETHERPORTAL
 	uniform sampler2D noisetex;
 #endif

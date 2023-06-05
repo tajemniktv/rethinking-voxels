@@ -47,7 +47,8 @@ uniform ivec2 atlasSize;
 #endif
 
 void main() {
-	matV = max(int(mc_Entity.x + 0.5), max(entityId, blockEntityId));
+	matV = max(entityId, blockEntityId);
+	if (matV <= 0) matV = int(mc_Entity.x + 0.5);
 
 	texCoordV = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
