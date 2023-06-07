@@ -58,7 +58,7 @@ uniform mat4 shadowProjection;
 uniform sampler2D gtexture;
 uniform sampler2D noisetex;
 
-#if HELD_LIGHTING_MODE >= 1
+#if HELD_LIGHTING_MODE >= 1 || defined POM
 	uniform int heldItemId;
 	uniform int heldItemId2;
 #endif
@@ -66,11 +66,6 @@ uniform sampler2D noisetex;
 #ifdef CUSTOM_PBR
 	uniform sampler2D normals;
 	uniform sampler2D specular;
-#endif
-
-#ifdef POM
-	uniform int heldItemId;
-	uniform int heldItemId2;
 #endif
 
 //Pipeline Constants//
@@ -170,7 +165,7 @@ void main() {
 		#endif
 	}
 
-	/* DRAWBUFFERS:015 */
+	/* DRAWBUFFERS:014 */
 	gl_FragData[0] = color;
 	gl_FragData[1] = vec4(smoothnessD, materialMask, skyLightFactor, 1.0);
 	gl_FragData[2] = vec4(mat3(gbufferModelViewInverse) * normalM, 1.0);
