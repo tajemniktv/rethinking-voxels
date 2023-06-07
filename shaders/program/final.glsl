@@ -66,7 +66,8 @@ uniform sampler2D colortex3;
 #endif
 
 //Program//
-uniform sampler2D colortex12;
+#define DEBUG_COLORTEX colortex12
+uniform sampler2D DEBUG_COLORTEX;
 void main() {
 	vec2 texCoordM = texCoord;
 
@@ -90,15 +91,8 @@ void main() {
 		gbufferPreviousModelViewInverse = gbufferModelViewInverse;
 		gbufferPreviousProjectionInverse = gbufferProjectionInverse;
 	}
-	// this is needed when using SSBOs for pointer strip storage.
-/*	ivec2 localCoords = ivec2(gl_FragCoord.x + viewWidth * (int(gl_FragCoord.y) / pointerGridSize.y),int(gl_FragCoord.y) % pointerGridSize.y);
-	ivec3 pointerGridCoords = ivec3(localCoords.x % pointerGridSize.x, localCoords.y, localCoords.x / pointerGridSize.x);
-	if (all(lessThan(pointerGridCoords, pointerGridSize))) {
-		writeVolumePointer(pointerGridCoords, 0, 0);
-		writeVolumePointer(pointerGridCoords, 4, 0);
-	}
-*/
-	//color *= 1 - texelFetch(colortex12, ivec2(gl_FragCoord.xy), 0).rgb;
+
+	color = texelFetch(DEBUG_COLORTEX, ivec2(gl_FragCoord.xy), 0).rgb;
 	#ifdef MC_ANISOTROPIC_FILTERING
 		color.rgb = mix(color.rgb, vec3(0.0), 0.75);
 

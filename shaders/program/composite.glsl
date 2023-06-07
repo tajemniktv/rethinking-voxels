@@ -18,6 +18,7 @@ flat in vec3 upVec, sunVec;
 uniform int isEyeInWater;
 
 uniform float viewWidth, viewHeight;
+vec2 view = vec2(viewWidth, viewHeight);
 
 uniform vec3 cameraPosition;
 
@@ -237,7 +238,7 @@ void main() {
 	
 	#if LIGHTSHAFT_QUALITY > 0 && defined OVERWORLD && defined REALTIME_SHADOWS || defined END // Can't use LIGHTSHAFTS_ACTIVE on Optifine
 		/* DRAWBUFFERS:04 */
-		gl_FragData[1] = vec4(vlFactorM, 0.0, 0.0, 1.0);
+		gl_FragData[1] = vec4(tex4val, vlFactorM);
 	#endif
 }
 

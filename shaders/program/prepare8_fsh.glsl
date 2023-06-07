@@ -17,8 +17,6 @@ uniform sampler2D colortex12;
 uniform float near;
 uniform float far;
 
-uniform vec3 fogColor;
-
 float GetLinearDepth(float depth) {
 	return (2.0 * near) / (far + near - depth * (far - near));
 }

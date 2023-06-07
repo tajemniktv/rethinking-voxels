@@ -30,7 +30,7 @@ void GetCustomMaterials(inout vec4 color, inout vec3 normalM, inout vec2 lmCoord
             parallaxLocalCoord = GetParallaxCoord(parallaxFade, texCoordM, parallaxTexDepth, parallaxTraceCoordDepth);
 
             normalMap = textureGrad(normals, texCoordM, dcdx, dcdy);
-            color = textureGrad(tex, texCoordM, dcdx, dcdy);
+            color = textureGrad(gtexture, texCoordM, dcdx, dcdy);
             #if !defined GBUFFERS_ENTITIES && !defined GBUFFERS_BLOCK
                 color.rgb *= glColor.rgb;
             #else

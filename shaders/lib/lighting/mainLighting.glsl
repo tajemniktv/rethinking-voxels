@@ -123,10 +123,7 @@ void DoLighting(inout vec4 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
             #ifdef REALTIME_SHADOWS
                 if (NdotLM > 0.0001) {
                     vec3 shadowMultBeforeLighting = shadowMult;
-                    float shadowLength = min(
-                        POINTER_VOLUME_RES * pointerGridSize.x / 2.0 - abs(vxPos.x),
-                        min(POINTER_VOLUME_RES * pointerGridSize.y - 2.0 * abs(vxPos.y),
-                        POINTER_VOLUME_RES * pointerGridSize.z / 2.0 - abs(vxPos.z)));
+                    float shadowLength = shadowDistance * 0.9166667 - length(vec4(playerPos.x, playerPos.y, playerPos.y, playerPos.z));
 
                     if (shadowLength > 0.000001) {
                         float offset = 0.0009765;
@@ -181,8 +178,11 @@ void DoLighting(inout vec4 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
 
                     bool leaves = false;
                     #ifdef GBUFFERS_TERRAIN
-                        if (subsurfaceMode > 0) {
-                            float VdotL = dot(nViewPos, lightVec);
+                        if (subsurfaceMode == 0) {
+                            #if defined PERPENDICULAR_TWEAKS && defined SIDE_SHADOWING
+                                offset *= 1.0 + pow2(absNdotN);
+                            #endif
+                        } else {                            float VdotL = dot(nViewPos, lightVec);
                             float lightFactor = pow(max(VdotL, 0.0), 10.0) * float(isEyeInWater == 0);
                             if (subsurfaceMode == 1) {
                                 offset = 0.0010235 * lightmapYM + 0.0009765;
@@ -200,9 +200,9 @@ void DoLighting(inout vec4 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
                                     NdotLM = mix(NdotL, NdotLM, 0.5);
                                 #endif
                             }
-                        #endif
-
-                        shadowMult *= GetShadow(shadowPos, lightmap.y, offset, leaves);
+                        }
+                    #endif
+                    shadowMult *= GetShadow(shadowPos, lightmap.y, offset, leaves);
                     }
 
                     float shadowSmooth = 16.0;

@@ -46,7 +46,7 @@ const vec3[] LOGO_COLORS = vec3[](
 );
 
 const float PI = 3.141592654;
-#include "/lib/misc/textRendering.glsl"
+#include "/lib/util/textRendering.glsl"
 
 
 // https://www.shadertoy.com/view/4tXyWN

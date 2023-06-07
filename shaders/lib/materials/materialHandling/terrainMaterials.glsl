@@ -1141,7 +1141,7 @@ if (mat < 10512) {
                             }
                         } else {
                             if (mat == 10456) { // Command Block+
-	                            color = texture2DLod(tex, texCoord, 0);
+	                            color = texture2DLod(gtexture, texCoord, 0);
 
                                 vec2 coord = signMidCoordPos;
                                 float blockRes = absMidCoordPos.x * atlasSize.x;

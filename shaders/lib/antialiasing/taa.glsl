@@ -63,14 +63,11 @@ void NeighbourhoodClamping(vec3 color, inout vec3 tempColor, float depth, inout 
 	#endif
 }
 
-void DoTAA(inout vec3 color, inout vec4 temp) {
+void DoTAA(inout vec3 color, inout vec3 temp, float depth) {
 
 	int materialMask = int(texelFetch(colortex1, texelCoord, 0).g * 255.1);
 
-	float depth = texelFetch(depthtex1, texelCoord, 0).r;
-
 	if (materialMask == 254) {// No SSAO, No TAA
-		temp.a = 1 - depth;
 		return;
 	}
 
@@ -85,13 +82,12 @@ void DoTAA(inout vec3 color, inout vec4 temp) {
 	vec2 view = vec2(viewWidth, viewHeight);
 	vec4 tempColor = texture2D(colortex2, prvCoord.xy);
 	if (tempColor.xyz == vec3(0.0)) { // Fixes the first frame
-		temp = vec4(color, depth);
+		temp = color;
 		return;
 	}
 	#ifdef ACCUM
-		temp.rgb = mix(color, tempColor.rgb, 0.99);
-		color = temp.rgb;
-		temp.a = 1 - depth;
+		temp = mix(color, tempColor.rgb, 0.99);
+		color = temp;
 		return;
 	#endif
 	float edge = 0.0;
@@ -124,5 +120,5 @@ void DoTAA(inout vec3 color, inout vec4 temp) {
 	blendFactor *= max(exp(-velocityFactor) * blendVariable + blendConstant - ddepth * (edge < 0.1 ? 10 : 0) - length(cameraOffset) * edge, blendMinimum);
 	
 	color = mix(color, tempColor.xyz, blendFactor);
-	temp = vec4(color, 1 - depth);
+	temp = color;
 }

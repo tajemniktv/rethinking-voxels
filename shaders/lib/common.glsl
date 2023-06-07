@@ -46,8 +46,6 @@
 
   //#define ACCURATE_RT
 
-    const float shadowDistance = 192;
-
     #if (defined PP_SUN_SHADOWS || defined VOXEL_REFLECTIONS)
         #define DISTANCE_FIELD
     #endif

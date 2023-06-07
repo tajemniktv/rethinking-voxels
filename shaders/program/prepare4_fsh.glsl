@@ -8,7 +8,6 @@ uniform float viewWidth;
 uniform float viewHeight;
 ivec2 view = ivec2(viewWidth + 0.1, viewHeight + 0.1);
 ivec2 lowResView = view / 8;
-uniform vec3 fogColor;
 uniform vec3 eyePosition;
 uniform vec3 cameraPosition;
 uniform mat4 gbufferProjection;

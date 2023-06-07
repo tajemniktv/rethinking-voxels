@@ -173,7 +173,7 @@ void main() {
 		normalM = gl_FrontFacing ? normalM : -normalM; // Inverted Normal Workaround
 
 		DoLighting(color, shadowMult, playerPos, viewPos, lViewPos, normalM, lmCoordM,
-				   noSmoothLighting, false, false, true,x
+				   noSmoothLighting, false, false, true,
 				   0, smoothnessG, highlightMult, emission, max(entityId, blockEntityId));
 
 		#if defined CUSTOM_PBR && defined PBR_REFLECTIONS
