@@ -66,8 +66,8 @@ uniform sampler2D colortex3;
 #endif
 
 //Program//
-#define DEBUG_COLORTEX colortex12
-uniform sampler2D DEBUG_COLORTEX;
+//#define DEBUG_COLORTEX colortex12
+//uniform sampler2D DEBUG_COLORTEX;
 void main() {
 	vec2 texCoordM = texCoord;
 
@@ -92,7 +92,7 @@ void main() {
 		gbufferPreviousProjectionInverse = gbufferProjectionInverse;
 	}
 
-	color = texelFetch(DEBUG_COLORTEX, ivec2(gl_FragCoord.xy), 0).rgb;
+	//color = texelFetch(DEBUG_COLORTEX, ivec2(gl_FragCoord.xy), 0).rgb;
 	#ifdef MC_ANISOTROPIC_FILTERING
 		color.rgb = mix(color.rgb, vec3(0.0), 0.75);
 
