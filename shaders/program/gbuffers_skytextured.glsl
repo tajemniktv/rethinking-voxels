@@ -22,7 +22,6 @@ uniform int isEyeInWater;
 uniform float viewWidth, viewHeight;
 
 uniform vec3 skyColor;
-uniform vec3 fogColor;
 
 uniform mat4 gbufferProjectionInverse;
 
@@ -80,7 +79,12 @@ void main() {
 
 			color.rgb *= GetHorizonFactor(VdotU);
 		} else { // Custom Sky
-			color.rgb *= color.rgb * smoothstep1(sqrt1(max0(VdotU)));
+			#if MC_VERSION >= 11300
+				color.rgb *= color.rgb * smoothstep1(sqrt1(max0(VdotU)));
+			#else
+				discard;
+				// Old mc custom skyboxes are weirdly broken, so we discard.
+			#endif
 		}
 
 		if (isEyeInWater == 1) color.rgb *= 0.25;

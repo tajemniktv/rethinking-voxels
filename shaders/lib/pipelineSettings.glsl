@@ -2,12 +2,13 @@
 const int colortex0Format = RGBA16F;		//main color
 const int colortex1Format = RGBA8;			//smoothnessD & materialMask & skyLightFactor & SSS
 const int colortex2Format = RGBA16F;		//taa, previous depth
-const int colortex3Format = RGB8;			//*cloud texture on deferred* & translucentMult & bloom & final color
+const int colortex3Format = RGB8;			//*cloud map on deferred* & translucentMult & bloom & final color
 const int colortex4Format = RGBA8;			//volumetric cloud linear depth & volumetric light factor & normals in composite
 const int colortex5Format = RGBA8_SNORM;	//normalM & scene image for water reflections
 const int colortex6Format = R8;				//*cloud texture on gbuffers*
 #ifdef TEMPORAL_FILTER
-const int colortex7Format = RGBA16F;		//temporal filter
+const int colortex6Format = R16;		    //previous depth
+const int colortex7Format = RGBA16F;		//*cloud map on gbuffers* & temporal filter
 #endif
 const int colortex8Format = RGBA16F;
 
@@ -23,8 +24,8 @@ const bool colortex2Clear = false;
 const bool colortex3Clear = true;
 const bool colortex4Clear = false;
 const bool colortex5Clear = false;
-const bool colortex6Clear = false;
 #ifdef TEMPORAL_FILTER
+const bool colortex6Clear = false;
 const bool colortex7Clear = false;
 #endif
 // temporal voxel data such as flood fill

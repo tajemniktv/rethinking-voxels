@@ -6,7 +6,7 @@ for (int x = -8; x < 8; x += 2) {
         avgColor += texelFetch(gtexture, itexCoordC + ivec2(x, y), 0).rgb;
     }
 }
-color.rgb /= (max(GetLuminance(avgColor) * 0.0390625, 0.001));
+color.rgb /= max(GetLuminance(avgColor) * 0.0390625, 0.001);
 
 #ifdef NETHER
     vec3 worldPos = playerPos + cameraPosition;

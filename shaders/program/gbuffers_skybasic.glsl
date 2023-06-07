@@ -23,7 +23,6 @@ uniform float viewWidth, viewHeight;
 uniform float blindness;
 uniform float darknessFactor;
 
-uniform vec3 fogColor;
 uniform vec3 skyColor;
 
 uniform mat4 gbufferProjectionInverse;
@@ -58,6 +57,10 @@ float shadowTime = shadowTimeVar2 * shadowTimeVar2;
 #ifdef OVERWORLD
 	#include "/lib/atmospherics/sky.glsl"
 	#include "/lib/atmospherics/stars.glsl"
+#endif
+
+#ifdef ATM_COLOR_MULTS
+    #include "/lib/colors/colorMultipliers.glsl"
 #endif
 
 //Program//
@@ -117,6 +120,10 @@ void main() {
 	} else discard;
 	#endif
 
+    #ifdef ATM_COLOR_MULTS
+        color.rgb *= GetAtmColorMult();
+    #endif
+
 	if (max(blindness, darknessFactor) > 0.1) color.rgb = vec3(0.0);
 
 	/* DRAWBUFFERS:0 */
@@ -157,7 +164,7 @@ void main() {
 	
 	#ifdef OVERWORLD
 		//Vanilla Star Dedection by Builderb0y
-		vanillaStars = float(glColor.r == glColor.g && glColor.g == glColor.b && glColor.r > 0.0);
+		vanillaStars = float(glColor.r == glColor.g && glColor.g == glColor.b && glColor.r > 0.0 && glColor.r < 0.51);
 	#endif
 }
 

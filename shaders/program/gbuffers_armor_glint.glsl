@@ -26,7 +26,7 @@ uniform sampler2D gtexture;
 //Program//
 void main() {
 	vec4 color = texture2D(gtexture, texCoord);
-	color.rgb *= glColor.rgb;
+	color *= glColor;
 
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = color;
