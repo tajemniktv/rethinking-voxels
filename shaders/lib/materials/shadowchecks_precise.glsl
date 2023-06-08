@@ -34,6 +34,7 @@ bool getNoTrace(int mat) {
 		mat == 12605 ||
 		mat == 12696 ||
 		mat == 10732 ||
+		mat == 10999 ||
 		getEntity(mat)
 	);
 }
@@ -164,6 +165,7 @@ bool getEmissive(int mat) {
 		mat == 10688 || // pearlescent froglight
 		mat == 10705 || // active sculk sensor
 		mat == 10708 || // spawner
+		mat == 10999 || // light block
 		mat == 12740 || // lit candle cake
 		mat == 30020 || // nether portal
 		mat == 31016 || // beacon
@@ -184,6 +186,7 @@ vec3 getLightCol(int mat) {
 	vec3 lightcol = vec3(0);
 		switch (mat) {
 		case 1235: // fallback with hardcoded colour
+		case 10999:
 			lightcol = blocklightCol;
 		case 10024: // brewing stand
 			#ifdef HARDCODED_BREWINGSTAND_COL
@@ -535,6 +538,7 @@ int getLightLevel(int mat) {
 	switch (mat) {
 		case 1234:
 		case 1235:
+		case 10999:
 			#ifdef LMCOORD_AVAILABLE
 				lightlevel = int(24 * lmCoord.x);
 			#else

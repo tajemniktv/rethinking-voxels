@@ -45,7 +45,7 @@ void main() {
 	vec3 avgPos = 0.5 * (max(max(posV[0], posV[1]), posV[2]) + min(min(posV[0], posV[1]), posV[2]));
 	vec3 cnormal = cross(posV[0] - posV[1], posV[0] - posV[2]);
 	float area = length(cnormal);
-	cnormal = normalize(cnormal);
+	cnormal /= max(area, 0.000000001);
 	avgPos += 8.0 * fract(0.125 * cameraPosition);
 	vec3 avgPos0 = avgPos;
 	avgPos += 0.01 * (
