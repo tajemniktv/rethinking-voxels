@@ -8,7 +8,10 @@
 //////////Fragment Shader//////////Fragment Shader//////////Fragment Shader//////////
 #ifdef FRAGMENT_SHADER
 #ifndef IS_IRIS
-#include "/lib/misc/irisRequired.glsl"
+	#ifdef IRIS_FEATURE_ENTITY_TRANSLUCENT
+		#define OLD
+	#endif
+	#include "/lib/misc/irisRequired.glsl"
 #else
 noperspective in vec2 texCoord;
 
