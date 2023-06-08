@@ -45,9 +45,7 @@ float GetLinearDepth(float depth) {
 void main() {
     vec3 color = texelFetch(colortex3, texelCoord, 0).rgb;
     vec3 temp = vec3(0.0);
-    float depth;
-
-    depth = texelFetch(depthtex1, texelCoord, 0).r;
+    float depth = texelFetch(depthtex1, texelCoord, 0).r;
 
     #ifdef TAA
         DoTAA(color, temp, depth);

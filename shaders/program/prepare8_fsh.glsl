@@ -49,7 +49,8 @@ void main() {
 	vec2 HRTexCoord = (pixelCoord - offsets[frameCounter % 4]) / (2.0 * view);
 	vec3 color = texture2D(colortex8, HRTexCoord).rgb;
 	float depth = 1 - texelFetch(colortex8, pixelCoord, 0).w;
-	vec4 prevPos = reprojectionMatrix * (vec4(gl_FragCoord.xy / view, depth, 1) * 2 - 1);
+	vec4 prevPos = vec4(gl_FragCoord.xy / view, depth, 1) * 2 - 1;
+	if (depth > 0.56) prevPos = reprojectionMatrix * prevPos;
 	prevPos = prevPos * 0.5 / prevPos.w + 0.5;
 	vec4 prevCol = texture2D(colortex12, prevPos.xy);
 	float prevDepth0 = GetLinearDepth(prevPos.z);
