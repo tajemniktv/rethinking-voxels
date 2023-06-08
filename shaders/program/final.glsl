@@ -17,6 +17,7 @@ uniform int frameCounter;
 uniform float viewWidth, viewHeight;
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;
+uniform sampler2D shadowcolor0;
 uniform sampler2D colortex3;
 
 #ifdef UNDERWATER_DISTORTION
@@ -123,6 +124,9 @@ void main() {
 
 	/* DRAWBUFFERS:0 */
 	gl_FragData[0] = vec4(color, 1.0);
+	if (gl_FragCoord.x < -1000) {
+		gl_FragData[0] = texelFetch(shadowcolor0, texelCoord, 0);
+	}
 }
 
 #endif
