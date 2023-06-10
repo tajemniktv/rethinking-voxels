@@ -7,9 +7,8 @@ uniform float viewHeight;
 vec2 view = vec2(viewWidth, viewHeight);
 
 uniform sampler2D colortex2;
-uniform sampler2D colortex4;
 
-layout(rgba16f) uniform image2D colorimg8;
+layout(r32ui) uniform uimage2D colorimg9;
 
 void main() {
 	#ifdef PER_BLOCK_LIGHT
@@ -28,9 +27,8 @@ void main() {
 		newClipPos.xy *= view;
 		vec2 diff = newClipPos.xy - gl_FragCoord.xy + 0.01;
 		ivec2 writePixelCoord = ivec2(gl_FragCoord.xy + floor(diff) + 0.5);
-		vec2 prevSampleCoord = (gl_FragCoord.xy - fract(diff) + 0.5) / view;
-		vec4 writeData = vec4(texture(colortex4, prevSampleCoord).xyz, 1 - newClipPos.z);
-		imageStore(colorimg8, writePixelCoord, writeData);
+		uint depth = uint((1<<30) * newClipPos.z);
+		imageAtomicMin(colorimg9, writePixelCoord, depth);
 	}
 	/*DRAWBUFFERS:3*/
 }

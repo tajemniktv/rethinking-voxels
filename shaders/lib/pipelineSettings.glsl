@@ -10,8 +10,8 @@ const int colortex6Format = R8;				//*cloud texture on gbuffers*
 const int colortex6Format = R16;		    //previous depth
 const int colortex7Format = RGBA16F;		//*cloud map on gbuffers* & temporal filter
 #endif
-const int colortex8Format = RGBA16F;
-
+const int colortex8Format = RGBA16F; // normal and depth data in prepare
+const int colortex9Format = R32UI; // integer depth for sorting
 const int shadowcolor0Format = RGBA16;
 const int shadowcolor1Format = RGBA16;
 const int colortex12Format = RGBA16F;		//previous frame lighting

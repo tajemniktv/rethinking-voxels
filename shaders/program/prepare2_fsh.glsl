@@ -1,80 +1,40 @@
 #include "/lib/common.glsl"
 
-uniform int frameCounter;
+flat in mat4 reprojectionMatrix;
+
 uniform float viewWidth;
 uniform float viewHeight;
 vec2 view = vec2(viewWidth, viewHeight);
-uniform vec3 cameraPosition;
-uniform mat4 gbufferProjection;
-uniform mat4 gbufferModelView;
-uniform mat4 gbufferProjectionInverse;
-uniform mat4 gbufferModelViewInverse;
-uniform sampler2D colortex8;
-uniform sampler2D colortex15;
 
-const ivec2[8] offsets = ivec2[8](
-	ivec2( 1, 0),
-	ivec2( 1, 1),
-	ivec2( 0, 1),
-	ivec2(-1, 1),
-	ivec2(-1, 0),
-	ivec2(-1,-1),
-	ivec2( 0,-1),
-	ivec2( 1,-1)
-);
+uniform sampler2D colortex2;
+uniform sampler2D colortex4;
 
-#include "/lib/vx/raytrace.glsl"
+layout(rgba16f) uniform image2D colorimg8;
+layout(r32ui) uniform uimage2D colorimg9;
 
 void main() {
 	#ifdef PER_BLOCK_LIGHT
 		return;
 	#endif
-	vec4 normalDepthData = texelFetch(colortex8, ivec2(gl_FragCoord.xy), 0);
-	if (normalDepthData.w > 1.5) {
-		bvec4 availableAdj = bvec4(false);
-		normalDepthData = vec4(0);
-		vec4 maxNormDD = vec4(-100);
-		vec4 minNormDD = vec4(100);
-		int counter = 0;
-		for (int i = 0; i < 8; i++) {
-			vec4 aroundData = texelFetch(colortex8, ivec2(gl_FragCoord.xy) + offsets[i], 0);
-			if (aroundData.w < 1.5) {
-				if (i % 2 == 0) {
-					maxNormDD = max(maxNormDD, aroundData);
-					minNormDD = min(minNormDD, aroundData);
-				}
-				normalDepthData += aroundData;
-				for (int k = 0; k < 4; k++) {
-					if (offsets[i][k / 2] * (k % 2 * 2 - 1) > 0) availableAdj[k] = true;
-				}
-				counter++;
-			}
-		}
-		if (maxNormDD.x < -99) {
-			minNormDD = vec4(0);
-			maxNormDD = vec4(0);
-		}
-		if (availableAdj == bvec4(true) && length(maxNormDD - minNormDD) < 0.4) {
-			normalDepthData /= counter;
-		} else normalDepthData = vec4(2);
+	float prevDepth = 1 - texelFetch(colortex2, ivec2(gl_FragCoord.xy), 0).w;
+	vec4 prevClipPos = vec4(gl_FragCoord.xy / view, prevDepth, 1) * 2 - 1;
+	vec4 newClipPos = prevClipPos;
+	if (prevDepth > 0.56) {
+		newClipPos = reprojectionMatrix * prevClipPos;
+		newClipPos /= newClipPos.w;
 	}
-	if (normalDepthData.w > 1.5) {
-		vec4 clipPos = vec4(gl_FragCoord.xy / view * 2 - 1, 0.9998, 1);
-		vec4 dir = gbufferModelViewInverse * (gbufferProjectionInverse * clipPos);
-		dir /= dir.w;
-		vec3 vxPlayerPos = 8.0 * fract(0.125 * cameraPosition) + gbufferModelViewInverse[3].xyz;
-		ray_hit_t rayHit;
-		#ifdef ACCURATE_RT
-			rayHit = betterRayTrace(vxPlayerPos + normalize(dir.xyz), dir.xyz, colortex15);
-		#else
-			rayHit = raytrace(vxPlayerPos, dir.xyz, colortex15);
-		#endif
-		normalDepthData.xyz = rayHit.normal;
-		vec4 hitScreenPos = gbufferProjection * (gbufferModelView * vec4(rayHit.pos - vxPlayerPos, 1));
-		normalDepthData.w = -hitScreenPos.z / hitScreenPos.w;
-		normalDepthData = 0.5 + 0.5 * normalDepthData;
+	newClipPos = 0.5 * newClipPos + 0.5;
+	if (prevClipPos.z > 0.99998) newClipPos.z = 0.999998;
+	uint depth = uint((1<<30) * newClipPos.z);
+	if (all(greaterThan(newClipPos.xyz, vec3(0))) && all(lessThan(newClipPos.xyz, vec3(0.999999)))) {
+		newClipPos.xy *= view;
+		vec2 diff = newClipPos.xy - gl_FragCoord.xy + 0.01;
+		ivec2 writePixelCoord = ivec2(gl_FragCoord.xy + floor(diff) + 0.5);
+		if (imageLoad(colorimg9, writePixelCoord).r == depth) {
+			vec2 prevSampleCoord = (gl_FragCoord.xy - fract(diff) + 0.5) / view;
+			vec4 writeData = vec4(texture(colortex4, prevSampleCoord).xyz, 1 - newClipPos.z);
+			imageStore(colorimg8, writePixelCoord, writeData);
+		}
 	}
-	normalDepthData.xyz = 2 * normalDepthData.xyz - 1;
-	/*RENDERTARGETS:8*/
-	gl_FragData[0] = normalDepthData;
+	/*DRAWBUFFERS:3*/
 }

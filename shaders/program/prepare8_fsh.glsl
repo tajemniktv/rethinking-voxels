@@ -1,69 +1,58 @@
 #include "/lib/common.glsl"
 
-flat in mat4 reprojectionMatrix;
-
-uniform int frameCounter;
-
+uniform sampler2D colortex8;
 uniform float viewWidth;
 uniform float viewHeight;
-vec2 view = vec2(viewWidth, viewHeight);
+ivec2 view = ivec2(viewWidth + 0.5, viewHeight + 0.5);
+#define BLUR_SIZE_0 3
 
-uniform vec3 cameraPosition;
-uniform vec3 previousCameraPosition;
-
-uniform sampler2D colortex8;
-uniform sampler2D colortex12;
-
-uniform float near;
-uniform float far;
-
-float GetLinearDepth(float depth) {
-	return (2.0 * near) / (far + near - depth * (far - near));
-}
-
-const ivec2[4] offsets = ivec2[4](
-	ivec2(0, 0),
-	ivec2(1, 0),
-	ivec2(1, 1),
-	ivec2(0, 1)
-);
-
-float getEdge(float linDepth0, vec2 coords) {
-	float maxLinDepth = linDepth0;
-	float minLinDepth = linDepth0;
-	for (int k = 0; k < 9; k++) {
-		if (k == 4) continue;
-		vec2 offset = (vec2(k % 3, k / 3) - vec2(1)) / view;
-		float aroundDepth = GetLinearDepth(1 - texture2D(colortex12, coords + offset).a);
-		maxLinDepth = max(maxLinDepth, aroundDepth);
-		minLinDepth = min(minLinDepth, aroundDepth);
-	}
-	maxLinDepth = min(maxLinDepth, 0.5);
-	return clamp(3 * (0.5 - maxLinDepth) * (1 - abs(minLinDepth / maxLinDepth)), 0, 1);
-}
 void main() {
 	#ifdef PER_BLOCK_LIGHT
 		return;
 	#endif
-	ivec2 pixelCoord = ivec2(gl_FragCoord.xy);
-	vec2 HRTexCoord = (pixelCoord - offsets[frameCounter % 4]) / (2.0 * view);
-	vec3 color = texture2D(colortex8, HRTexCoord).rgb;
-	float depth = 1 - texelFetch(colortex8, pixelCoord, 0).w;
-	vec4 prevPos = vec4(gl_FragCoord.xy / view, depth, 1) * 2 - 1;
-	if (depth > 0.56) prevPos = reprojectionMatrix * prevPos;
-	prevPos = prevPos * 0.5 / prevPos.w + 0.5;
-	vec4 prevCol = texture2D(colortex12, prevPos.xy);
-	float prevDepth0 = GetLinearDepth(prevPos.z);
-	float prevDepth1 = GetLinearDepth(1 - prevCol.a);
-	float edge = getEdge(prevDepth1, prevPos.xy);
-	float blendFactor = max(0, 1 - 100 * edge * length(cameraPosition - previousCameraPosition)) * float(prevPos.x > 0.0 && prevPos.x < 1.0 &&
-	                                 prevPos.y > 0.0 && prevPos.y < 1.0);
-	float ddepth = abs(prevDepth0 - prevDepth1) / abs(prevDepth0);
-	float offCenterLength = length(fract(view * HRTexCoord) - 0.5);
-	blendFactor *= 0.5 + 0.5 * offCenterLength - 3 * float(ddepth > 0.1);
-	blendFactor = clamp(blendFactor, 0, 1);
-	color = mix(color, prevCol.xyz, blendFactor);
-	/*RENDERTARGETS:1,12*/
-	gl_FragData[0] = vec4(1);
-	gl_FragData[1] = vec4(color, 1 - depth);
+	#ifdef DENOISING
+		ivec2 coord = ivec2(gl_FragCoord.xy);
+		vec4 outColor = texelFetch(colortex8, coord, 0);
+		if (all(lessThan(coord, view / 2))) {
+			ivec2[2] blurBox = ivec2[2](
+				max(ivec2(-BLUR_SIZE_0), -coord),
+				min(ivec2(BLUR_SIZE_0), view / 2 - coord) + 1
+			);
+			vec3[2] grad = vec3[2](vec3(0), vec3(0));
+			vec3 avg = vec3(0);
+			vec3[3] H = vec3[3](vec3(0), vec3(0), vec3(0));
+			for (int x = blurBox[0].x; x < blurBox[1].x; x++) {
+				for (int y = blurBox[0].y; y < blurBox[1].y; y++) {
+					vec3 col = texelFetch(colortex8, coord + ivec2(x, y), 0).rgb;
+					avg += col;
+					grad[0] += col * x;
+					grad[1] += col * y;
+				}
+			}
+			avg /= (blurBox[1].x - blurBox[0].x) * (blurBox[1].y - blurBox[0].y);
+			vec2 gradWeightAccum = (
+				blurBox[0] * (blurBox[0] - 1) / 2 +
+				blurBox[1] * (blurBox[1] - 1) / 2
+			) * (blurBox[1] - blurBox[0]).yx;
+			grad[0] /= max(gradWeightAccum[0], 0.00001);
+			grad[1] /= max(gradWeightAccum[1], 0.00001);
+			float gradVar = length(dFdx(grad[1])) + length(dFdy(grad[0]));
+			grad[0] /= max(avg, 0.00001);
+			grad[1] /= max(avg, 0.00001);
+			vec3 res = vec3(0);
+			vec3 weight = vec3(0.0000001);
+			for (int x = blurBox[0].x; x < blurBox[1].x; x++) {
+				for (int y = blurBox[0].y; y < blurBox[1].y; y++) {
+					vec3 col = texelFetch(colortex8, coord + ivec2(x, y), 0).rgb;
+					vec3 thisWeight;
+					for (int i = 0; i < 3; i++) thisWeight[i] = max(0, 1 - gradVar * length(vec2(x, y)) - 2 * abs(dot(vec2(x, y), vec2(grad[0][i], grad[1][i]))));
+					res += col * thisWeight;
+					weight += thisWeight;
+				}
+			}
+			outColor.xyz = res / weight;
+		}
+		/*RENDERTARGETS:8*/
+		gl_FragData[0] = outColor;
+	#endif
 }
