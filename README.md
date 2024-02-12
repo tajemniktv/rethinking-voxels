@@ -11,11 +11,17 @@ Once you have a shader loader installed, you can either clone this repository in
 
 you can find your shaderpacks folder by opening minecraft with Iris or OptiFine installed, navigating to `Options` -> `Video Settings` -> `Shader Packs` -> `Open Shader Pack Folder`. If you are using Iris, you can also drag-and-drop the zip file in the shader selection menu to install it.
 
+## Pull requests
+
+The main branch is no longer used for active development. Please do any pull requests against the most recently updated branch.
+
 ## Credits
 
 First and foremost, I would like to thank EminGT for creating Complementary Reimagined and allowing me to use it as the base for this shaderpack. Most of the work in this shader comes from them.
 
 zndrmn has helped me with choosing default light colours and organising their settings screen.
+
+GitHub user MsNeyla has kindly translated the Shaderpack options to French.
 
 Modded light source ID contributors:
 
