@@ -295,12 +295,17 @@ void main() {
 
     vec3[3] vxPos;
 
+    // Optimized: Cache voxelVolumeSize calculations
+    ivec3 voxelHalfSize = voxelVolumeSize >> 1; // bit shift instead of /2
+    vec3 voxelHalfSizeF = vec3(voxelHalfSize);
+    
     for (int i = 0; i < 3; i++) vxPos[i] = positionV[i].xyz + fractCamPos;
     vec3 minAbsPos = min(min(abs(vxPos[0]), abs(vxPos[1])), abs(vxPos[2]));
     int localResolution = min(VOXEL_DETAIL_AMOUNT, int(-log2(infnorm(minAbsPos / voxelVolumeSize))));
     if (localResolution > 0) {
         if (localMat == 50088) { // entity flame needs to be moved outside of entity it belongs to or it will glitch out
-            for (int i = 0; i < 3; i++) vxPos[i].y += 0.5 * sqrt(area);
+            float offset = 0.5 * sqrt(area);
+            for (int i = 0; i < 3; i++) vxPos[i].y += offset; // Optimized: cache offset
         }
         vec3 center = 0.5 * (
             min(min(vxPos[0], vxPos[1]), vxPos[2]) +
@@ -321,10 +326,18 @@ void main() {
             }
         }
         vec3 lowerBound = floor(min(min(vxPos[0], vxPos[1]), vxPos[2]));
-        int bestNormalAxis = int(dot(vec3(greaterThanEqual(abs(cnormal), max(abs(cnormal).yzx, abs(cnormal.zxy)))), vec3(0.5, 1.5, 2.5)));
+        
+        // Optimized: Cache abs(cnormal) and use vector operations
+        vec3 absCNormal = abs(cnormal);
+        int bestNormalAxis = int(dot(vec3(greaterThanEqual(absCNormal, max(absCNormal.yzx, absCNormal.zxy))), vec3(0.5, 1.5, 2.5)));
+        
         vec2 minTexCoord = min(min(texCoordV[0], texCoordV[1]), texCoordV[2]);
         vec2 maxTexCoord = max(max(texCoordV[0], texCoordV[1]), texCoordV[2]);
-        int lodLevel = int(log2(max(4.1, 1.01 * min((maxTexCoord.x - minTexCoord.x) * atlasSize.x, (maxTexCoord.y - minTexCoord.y) * atlasSize.y)))) - 2;
+        
+        // Optimized: Cache atlas size calculations
+        vec2 texCoordRange = (maxTexCoord - minTexCoord) * atlasSize;
+        int lodLevel = int(log2(max(4.1, 1.01 * min(texCoordRange.x, texCoordRange.y)))) - 2;
+        
         vec4 col = vec4(0);
         int lightLevel = 0;
         if (emissive) {
@@ -338,24 +351,40 @@ void main() {
                 #define EMISSION_CHANNEL a
             #endif
             else {
+                // Optimized: Precomputed offsets and constants
+                const vec2 gridOffsets[9] = vec2[9](
+                    vec2(0.1667, 0.1667), vec2(0.5, 0.1667), vec2(0.8333, 0.1667),
+                    vec2(0.1667, 0.5), vec2(0.5, 0.5), vec2(0.8333, 0.5),
+                    vec2(0.1667, 0.8333), vec2(0.5, 0.8333), vec2(0.8333, 0.8333)
+                );
+                const float EMISSION_MULT = 31.9;
+                
                 for (int k = 0; k < 9; k++) {
-                    vec2 offset = (vec2(k%3, k/3) + 0.5)/3.0;
-                    vec4 s = textureLod(specular, mix(minTexCoord, maxTexCoord, offset), 0);
+                    vec4 s = textureLod(specular, mix(minTexCoord, maxTexCoord, gridOffsets[k]), 0);
                     if (
                         #if RP_MODE == 3
                             s.EMISSION_CHANNEL < 0.999 &&
                         #endif
                         s.EMISSION_CHANNEL > 0.2) {
                         emissive = true;
-                        lightLevel = max(lightLevel, int(31.9 * s.EMISSION_CHANNEL));
+                        lightLevel = max(lightLevel, int(EMISSION_MULT * s.EMISSION_CHANNEL));
                     }
                 }
             }
         #endif
-        vec4 textureCol = textureLod(tex, 0.5 * (minTexCoord + maxTexCoord), lodLevel);
+        // Optimized: Cache mid coord calculation
+        vec2 midTexCoord = 0.5 * (minTexCoord + maxTexCoord);
+        vec4 textureCol = textureLod(tex, midTexCoord, lodLevel);
+        int lodLevelM2 = max(0, lodLevel - 2);
+        
+        // Optimized: Use precomputed offsets
+        const vec2 gridOffsets9[9] = vec2[9](
+            vec2(0.1667, 0.1667), vec2(0.5, 0.1667), vec2(0.8333, 0.1667),
+            vec2(0.1667, 0.5), vec2(0.5, 0.5), vec2(0.8333, 0.5),
+            vec2(0.1667, 0.8333), vec2(0.5, 0.8333), vec2(0.8333, 0.8333)
+        );
         for (int k = 0; k < 9; k++) {
-            vec2 offset = (vec2(k%3, k/3) + 0.5)/3.0;
-            vec4 textureCol2 = textureLod(tex, mix(minTexCoord, maxTexCoord, offset), max(0, lodLevel - 2));
+            vec4 textureCol2 = textureLod(tex, mix(minTexCoord, maxTexCoord, gridOffsets9[k]), lodLevelM2);
             if (textureCol2.a > textureCol.a + 0.01) textureCol = textureCol2;
         }
         col.a = textureCol.a;
@@ -363,9 +392,13 @@ void main() {
         if (detectCol) col = textureCol;
         if (localMat != 10996) col.rgb *= glColorV[0].rgb;
         col.rgb = mix(col.rgb, entityColor.rgb, entityColor.a);
-        ivec3 coords = ivec3(center - 0.1 * cnormal + 0.5 * voxelVolumeSize);
+        ivec3 coords = ivec3(center - 0.1 * cnormal + voxelHalfSizeF);
         if (correspondingBlockV[0] != ivec3(-1000)) coords = correspondingBlockV[0];
-        if (all(greaterThan((maxTexCoord - minTexCoord) * atlasSize, vec2(1.5)))) {
+        
+        // Optimized: Cache texture coordinate range check result
+        vec2 texCoordAtlasRange = (maxTexCoord - minTexCoord) * atlasSize;
+        if (all(greaterThan(texCoordAtlasRange, vec2(1.5)))) {
+            // Optimized: Use bit shifts for packing (already optimized with <<)
             ivec2 packedCol = ivec2(int(20 * col.r) + (int(20 * col.g) << 13),
                                     int(20 * col.b) + (int(4.5 * (1 - col.a)) << 13) + (1<<23));
             imageAtomicAdd(voxelCols,
@@ -390,6 +423,9 @@ void main() {
         int writeSkyLight = ivec4(0, 1, 3, 2)[skyLight];
         imageAtomicOr(occupancyVolume, coords, writeSkyLight << 28);
         bool shouldVoxelize = true;
+        // Optimized: Cache edge length threshold
+        float edgeThreshold = min(0.6, 4.5 / float(1 << localResolution));
+        
         if (
             #ifndef PLAYER_VOXELIZATION
                 entityId == 50016 ||
@@ -411,13 +447,13 @@ void main() {
             (localMat == 10941 && (
                 renderStage != MC_RENDER_STAGE_TERRAIN_SOLID
             )) ||
-            (area > 0.8 && length(center + 0.5 * cnormal - coords + voxelVolumeSize/2 - 0.5) < 0.1) ||
+            (area > 0.8 && length(center + 0.5 * cnormal - coords + voxelHalfSizeF - 0.5) < 0.1) ||
             all(lessThan(
                 vec3(
                     length(vxPos[1] - vxPos[0]),
                     length(vxPos[2] - vxPos[1]),
                     length(vxPos[0] - vxPos[2])
-                ), vec3(min(0.6, 4.5 / (1<<localResolution)))
+                ), vec3(edgeThreshold)
             ))
         ) {
             shouldVoxelize = false;
@@ -465,26 +501,23 @@ void main() {
             if (localMat == 10368) { // nether quartz ore colour doesn't work for some reason
                 col = vec4(1);
             }
-            uint hash = posToHash(coords - voxelVolumeSize/2) % uint(1<<18);
+            // Optimized: Use bit shift and cache hash*4
+            uint hash = posToHash(coords - voxelHalfSize) % uint(1<<18);
+            uint hash4 = hash << 2; // Cache hash*4
+            
             vec3[3] blockRelPos;
             for (int i = 0; i < 3; i++) {
-                blockRelPos[i] = vxPos[i] - coords + voxelVolumeSize/2 - 0.5;
+                blockRelPos[i] = vxPos[i] - coords + voxelHalfSizeF - 0.5;
                 if (correspondingBlockV[0] != ivec3(-1000)) {
                     blockRelPos[i] = clamp(blockRelPos[i] + 0.5 * cnormal, vec3(-0.5), vec3(0.5));
                 }
             }
-            vec3 meanPos = 1.0/3.0*(blockRelPos[0] + blockRelPos[1] + blockRelPos[2]) + 1.5;
+            // Optimized: Use reciprocal multiplication
+            const float INV_3 = 0.33333333;
+            vec3 meanPos = INV_3 * (blockRelPos[0] + blockRelPos[1] + blockRelPos[2]) + 1.5;
             meanPos = clamp(meanPos, vec3(0), vec3(4));
-/*
-            vec3 meanSquarePos = 1.0/6.0*(
-                blockRelPos[0] * blockRelPos[0] +
-                blockRelPos[1] * blockRelPos[1] +
-                blockRelPos[2] * blockRelPos[2] +
-                blockRelPos[0] * blockRelPos[1] +
-                blockRelPos[1] * blockRelPos[2] +
-                blockRelPos[2] * blockRelPos[0]);
-            vec3 variance = meanSquarePos - (meanPos - 1.5) * (meanPos - 1.5);
-*/
+
+            // Optimized: Precompute shift and addition values
             uvec2 packedMeanPos = uvec2(
                 uint(meanPos.x * 32 + 0.5) | (uint(meanPos.y * 32 + 0.5) << 16),
                 uint(meanPos.z * 32 + 0.5) | uint(1<<16)
@@ -493,19 +526,22 @@ void main() {
                 uint(col.x * 32 + 0.5) | (uint(col.y * 32 + 0.5) << 16),
                 uint(col.z * 32 + 0.5)
             );
-            atomicAdd(globalLightHashMap[hash*4], packedMeanPos.x);
-            atomicAdd(globalLightHashMap[hash*4+1], packedMeanPos.y);
-            atomicAdd(globalLightHashMap[hash*4+2], packedCol2.x);
-            atomicAdd(globalLightHashMap[hash*4+3], packedCol2.y);
+            atomicAdd(globalLightHashMap[hash4], packedMeanPos.x);
+            atomicAdd(globalLightHashMap[hash4 + 1], packedMeanPos.y);
+            atomicAdd(globalLightHashMap[hash4 + 2], packedCol2.x);
+            atomicAdd(globalLightHashMap[hash4 + 3], packedCol2.y);
+            
             if ((imageAtomicOr(occupancyVolume, coords, 1<<16) >> 16 & 1) == 0) {
                 int lightLevel = getLightLevel(localMat);
                 #if HELD_LIGHTING_MODE == 1
                     if (isHeldLight) {
-                        lightLevel /= 2;
+                        lightLevel >>= 1; // Optimized: bit shift instead of /2
                     }
                 #endif
                 if (lightLevel == 0) lightLevel = max(10, int(31 * lmCoordV[0].x));
-                imageAtomicOr(occupancyVolume, coords, (lightLevel + (localMat/4%32 << 5) << 17));
+                // Optimized: Use bit shifts and cache modulo result
+                int matMod32 = (localMat >> 2) & 31; // (localMat/4) % 32
+                imageAtomicOr(occupancyVolume, coords, (lightLevel + (matMod32 << 5)) << 17);
                 if (
                     renderStage != MC_RENDER_STAGE_TERRAIN_SOLID &&
                     renderStage != MC_RENDER_STAGE_TERRAIN_CUTOUT &&
@@ -516,14 +552,20 @@ void main() {
                 }
             }
         } else if (shouldVoxelize) {
+            // Optimized: Cache bit shift and modulo calculations
+            int localResShift = 1 << localResolution;
+            int bestNormPlus1Mod3 = (bestNormalAxis + 1) % 3;
+            int bestNormPlus2Mod3 = (bestNormalAxis + 2) % 3;
+            float invShadowMapRes = 1.0 / shadowMapResolution;
+            
             for (int i = 0; i < 3; i++) {
                 vec2 relProjectedPos
-                    = vec2(  vxPos[i][(bestNormalAxis+1)%3],   vxPos[i][(bestNormalAxis+2)%3])
-                    - vec2(lowerBound[(bestNormalAxis+1)%3], lowerBound[(bestNormalAxis+2)%3]);
+                    = vec2(  vxPos[i][bestNormPlus1Mod3],   vxPos[i][bestNormPlus2Mod3])
+                    - vec2(lowerBound[bestNormPlus1Mod3], lowerBound[bestNormPlus2Mod3]);
                 if (cnormal[bestNormalAxis] < 0) {
                     relProjectedPos.x *= -1;
                 }
-                gl_Position = vec4((relProjectedPos * (1<<localResolution) + 0.0981292) / shadowMapResolution - 0.9, 0.999999, 1.0);
+                gl_Position = vec4((relProjectedPos * localResShift + 0.0981292) * invShadowMapRes - 0.9, 0.999999, 1.0);
                 mat = matV[i];
                 texCoord = texCoordV[i];
                 sunVec = sunVecV[i];
