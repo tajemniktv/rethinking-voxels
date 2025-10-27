@@ -98,34 +98,53 @@ void main() {
         vec4(theseDists[4], theseDists[5], theseDists[6], theseDists[7]));
 
     // extend colour data into adjacent air for less artefacts in corners etc
+    // Optimized: Cache texCoord calculations to avoid repeated multiplications
+    ivec3 texCoordScaled = texCoord * ivec3(1, 2, 1);
+    ivec3 texCoordScaledOffset = texCoordScaled + ivec3(0, 1, 0);
+    
     ivec2 rawCol = ivec2(
-        imageLoad(voxelCols, texCoord * ivec3(1, 2, 1)).r,
-        imageLoad(voxelCols, texCoord * ivec3(1, 2, 1) + ivec3(0, 1, 0)).r
+        imageLoad(voxelCols, texCoordScaled).r,
+        imageLoad(voxelCols, texCoordScaledOffset).r
     );
     int dataBits = rawCol.x >> 26 << 26;
-    if ((rawCol.g >> 23) == 0) {
+    int rawColGShift23 = rawCol.g >> 23; // Cache the shift operation
+    
+    if (rawColGShift23 == 0) {
+        // Precomputed direction offsets - eliminates modulo and division in loop
+        const ivec3 offsets[6] = ivec3[6](
+            ivec3( 1, 0, 0), ivec3(-1, 0, 0),
+            ivec3( 0, 1, 0), ivec3( 0,-1, 0),
+            ivec3( 0, 0, 1), ivec3( 0, 0,-1)
+        );
+        
         for (int k = 0; k < 6; k++) {
-            ivec3 offset = (k/3*2-1) * ivec3(equal(ivec3(k%3), ivec3(0, 1, 2)));
+            ivec3 offsetCoord = texCoord + offsets[k];
+            ivec3 offsetCoordScaled = offsetCoord * ivec3(1, 2, 1);
+            
             ivec2 otherRawCol = ivec2(
-                imageLoad(voxelCols, (texCoord + offset) * ivec3(1, 2, 1)).r,
-                imageLoad(voxelCols, (texCoord + offset) * ivec3(1, 2, 1) + ivec3(0, 1, 0)).r
+                imageLoad(voxelCols, offsetCoordScaled).r,
+                imageLoad(voxelCols, offsetCoordScaled + ivec3(0, 1, 0)).r
             );
-            if ((otherRawCol.g >> 23) > (rawCol.g >> 23)) {
+            
+            int otherRawColGShift23 = otherRawCol.g >> 23;
+            if (otherRawColGShift23 > rawColGShift23) {
                 rawCol = otherRawCol;
                 rawCol.g &= ~(0x3ff << 13);
+                rawColGShift23 = otherRawColGShift23; // Update cached value
             }
         }
-        if ((rawCol.g >> 23) > 0) {
+        if (rawColGShift23 > 0) {
             rawCol.r &= (1<<26) - 1;
             rawCol.r |= dataBits;
-            imageStore(voxelCols, texCoord * ivec3(1, 2, 1), ivec4(rawCol.r));
-            imageStore(voxelCols, texCoord * ivec3(1, 2, 1) + ivec3(0, 1, 0), ivec4(rawCol.g));
+            imageStore(voxelCols, texCoordScaled, ivec4(rawCol.r));
+            imageStore(voxelCols, texCoordScaledOffset, ivec4(rawCol.g));
         }
     }
     if ((thisOccupancy >> 16 & 1) != 0) {
         uint hash0 = posToHash(texCoord - voxelVolumeSize/2) % uint(1<<18);
-        globalLightHashMap[hash0*4+3] |= 0xffff0000u;
-        globalLightHashMap[hash0*4+3] &= (16 + (16 << 5) + (16 << 10)) << 16 | 0xffffu;
+        uint hash0x4 = hash0 << 2; // Optimized: bit shift instead of multiply by 4
+        globalLightHashMap[hash0x4 + 3] |= 0xffff0000u;
+        globalLightHashMap[hash0x4 + 3] &= (16 + (16 << 5) + (16 << 10)) << 16 | 0xffffu;
     }
 }
 #endif
@@ -228,16 +247,22 @@ void main() {
                 restoreEmissiveness = true;
                 ivec3 otherLightCoord = linkedLights[k];
                 uint hash = posToHash(otherLightCoord - voxelVolumeSize/2) % uint(1<<18);
+                uint hashx4 = hash << 2; // Optimized: bit shift instead of multiply
                 uvec4 packedLightData = uvec4(
-                    globalLightHashMap[4 * hash],
-                    globalLightHashMap[4 * hash + 1],
-                    globalLightHashMap[4 * hash + 2],
-                    globalLightHashMap[4 * hash + 3]
+                    globalLightHashMap[hashx4],
+                    globalLightHashMap[hashx4 + 1],
+                    globalLightHashMap[hashx4 + 2],
+                    globalLightHashMap[hashx4 + 3]
                 );
-                ivec4 otherPos = ivec4(packedLightData.x & 0xffffu, packedLightData.x >> 16, packedLightData.y & 0xffffu, packedLightData.y >> 16);
-                ivec4 otherCol = ivec4(packedLightData.z & 0xffffu, packedLightData.z >> 16, packedLightData.w & 0xffffu, packedLightData.w >> 16);
+                // Optimized: Cache shift results and use constants
+                uint packedX = packedLightData.x;
+                uint packedY = packedLightData.y;
+                uint packedZ = packedLightData.z;
+                uint packedW = packedLightData.w;
+                ivec4 otherPos = ivec4(packedX & 0xffffu, packedX >> 16, packedY & 0xffffu, packedY >> 16);
+                ivec4 otherCol = ivec4(packedZ & 0xffffu, packedZ >> 16, packedW & 0xffffu, packedW >> 16);
                 ivec4 offset = ivec4(otherLightCoord - coord, 0);
-                meanPos += otherPos + offset * 32 * otherPos.w;
+                meanPos += otherPos + (offset << 5) * otherPos.w; // Optimized: << 5 instead of * 32
                 meanCol += otherCol.xyz;
                 if (otherCol.w == 0xffff) {
                     restoreEmissiveness = false;
@@ -257,7 +282,7 @@ void main() {
                         minLen = thisLen;
                     }
                 }
-                meanPos.xyz += 32 * (coord - linkedLights[bestFitIndex]);
+                meanPos.xyz += (coord - linkedLights[bestFitIndex]) << 5; // Optimized: << 5 instead of * 32
                 coord = linkedLights[bestFitIndex];
                 packedLightDataToWrite = uvec4(
                     uint(meanPos.x) | uint(meanPos.y) << 16,
@@ -330,17 +355,22 @@ void main() {
         coord = c + 8 * ivec3(gl_WorkGroupID) + ivec3(mod(cameraPosition, vec3(2)));
         ivec3 lightLoc0 = coord - voxelVolumeSize/2;
         hash = posToHash(lightLoc0) % uint(1<<18);
+        uint hash4 = hash << 2; // Optimized: cache hash*4 with bit shift
         int thisOccupancy = imageLoad(occupancyVolume, coord).r;
         uvec2 packedLightSubPos = uvec2(
-            globalLightHashMap[4 * hash],
-            globalLightHashMap[4 * hash + 1]
+            globalLightHashMap[hash4],
+            globalLightHashMap[hash4 + 1]
         );
         uvec2 packedLightCol = uvec2(
-            globalLightHashMap[4 * hash + 2],
-            globalLightHashMap[4 * hash + 3]
+            globalLightHashMap[hash4 + 2],
+            globalLightHashMap[hash4 + 3]
         );
-        ivec4 subPos = ivec4(packedLightSubPos.x & 0xffffu, packedLightSubPos.x >> 16, packedLightSubPos.y & 0xffffu, packedLightSubPos.y >> 16);
-        ivec4 col = ivec4(packedLightCol.x & 0xffffu, packedLightCol.x >> 16, packedLightCol.y & 0xffffu, packedLightCol.y >> 16);
+        // Optimized: use constants for masks
+        const uint MASK_16 = 0xffffu;
+        ivec4 subPos = ivec4(packedLightSubPos.x & MASK_16, packedLightSubPos.x >> 16, 
+                             packedLightSubPos.y & MASK_16, packedLightSubPos.y >> 16);
+        ivec4 col = ivec4(packedLightCol.x & MASK_16, packedLightCol.x >> 16, 
+                          packedLightCol.y & MASK_16, packedLightCol.y >> 16);
         ivec3 downRange = coord - (coord + ivec3(mod(cameraPosition, vec3(2))))%2;
         for (int k = 0; k < 4; k++) {
             atomicAdd(lightLocs[c.x][c.y][c.z][k], subPos[k]);
