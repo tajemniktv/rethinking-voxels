@@ -1,6 +1,6 @@
 vec3 GetShadowPos(vec3 playerPos) {
     vec3 shadowPos = PlayerToShadow(playerPos);
-    float distb = sqrt(shadowPos.x * shadowPos.x + shadowPos.y * shadowPos.y);
+    float distb = length(shadowPos.xy); // Optimized: use GPU-optimized length()
     float distortFactor = distb * shadowMapBias + (1.0 - shadowMapBias);
     shadowPos.xy /= distortFactor;
     shadowPos.z *= 0.2;
@@ -8,16 +8,15 @@ vec3 GetShadowPos(vec3 playerPos) {
 }
 
 vec3 SampleShadow(vec3 shadowPos, float colorMult, float colorPow) {
-    float shadow0 = shadow2D(shadowtex0, vec3(shadowPos.st, shadowPos.z)).x;
+    vec3 shadowPosCoord = vec3(shadowPos.st, shadowPos.z); // Cache to avoid swizzle overhead
+    float shadow0 = shadow2D(shadowtex0, shadowPosCoord).x;
 
     vec3 shadowcol = vec3(0.0);
     if (shadow0 < 1.0) {
-        float shadow1 = shadow2D(shadowtex1, vec3(shadowPos.st, shadowPos.z)).x;
+        float shadow1 = shadow2D(shadowtex1, shadowPosCoord).x;
         if (shadow1 > 0.9999) {
             shadowcol = texture2D(shadowcolor0, shadowPos.st).rgb * shadow1;
-
-            shadowcol *= colorMult;
-            shadowcol = pow(shadowcol, vec3(colorPow));
+            shadowcol = pow(shadowcol * colorMult, vec3(colorPow)); // Combined operations
         }
     }
 
@@ -35,7 +34,8 @@ float InterleavedGradientNoiseForShadows() {
 
 vec2 offsetDist(float x, int s) {
     float n = fract(x * 2.427) * 3.1415;
-    return vec2(cos(n), sin(n)) * 1.4 * x / s;
+    float invS = 1.4 / float(s); // Hoist division out of multiply
+    return vec2(cos(n), sin(n)) * (x * invS);
 }
 
 vec3 SampleTAAFilteredShadow(vec3 shadowPos, float lViewPos, float offset, bool leaves, float colorMult, float colorPow) {
@@ -63,15 +63,19 @@ vec3 SampleTAAFilteredShadow(vec3 shadowPos, float lViewPos, float offset, bool 
         offset *= 0.69375;
     #endif
 
+    // Hoist constant calculations
+    float invShadowSamples2 = 0.5 / float(shadowSamples); // Reciprocal for faster multiply
     float shadowPosZM = shadowPos.z;
+    float leavesOffsetFactor = leaves ? -0.12 * offset / float(shadowSamples) : 0.0;
+    
     for (int i = 0; i < shadowSamples; i++) {
-        vec2 offset2 = offsetDist(gradientNoise + i, shadowSamples) * offset;
-        if (leaves) shadowPosZM = shadowPos.z - 0.12 * offset * (gradientNoise + i) / shadowSamples;
+        vec2 offset2 = offsetDist(gradientNoise + float(i), shadowSamples) * offset;
+        if (leaves) shadowPosZM = shadowPos.z + leavesOffsetFactor * (gradientNoise + float(i));
         shadow += SampleShadow(vec3(shadowPos.st + offset2, shadowPosZM), colorMult, colorPow);
         shadow += SampleShadow(vec3(shadowPos.st - offset2, shadowPosZM), colorMult, colorPow);
     }
 
-    shadow /= shadowSamples * 2.0;
+    shadow *= invShadowSamples2; // Faster than division
 
     return shadow;
 }
