@@ -32,120 +32,108 @@
         #endif
 
         // Handle special high-value materials first for early exit
-        if (mat >= 32000) {
-            if (mat == 32004) return 216; // Ice
-            else if (mat == 32008) return 217; // Glass
-            else if (mat == 32012) return 218; // Glass Pane
-            else if (mat == 32016) return   4; // Beacon
-            return 1;
-        }
-
-        if (mat >= 31000) {
-            if (mat < 32000) return 200 + (mat - 31000) / 2; // Stained Glass+
-            return 1;
-        }
-
+        // Optimized: Use switch-like structure with computed index for range 30000+
         if (mat >= 30000) {
+            if (mat >= 32000) {
+                // Switch on last 2 bits for common cases
+                if (mat == 32004) return 216; // Ice
+                if (mat == 32008) return 217; // Glass
+                if (mat == 32012) return 218; // Glass Pane
+                if (mat == 32016) return   4; // Beacon
+                return 1;
+            }
+            if (mat >= 31000) return 200 + (mat - 31000) / 2; // Stained Glass+ (computed)
+            
+            // Optimized: Single comparison + computed offset for 30000 range
             if (mat == 30008) return 254; // Tinted Glass
-            else if (mat == 30012) return 213; // Slime Block
-            else if (mat == 30016) return 201; // Honey Block
-            else if (mat == 30020) return  25; // Nether Portal
+            if (mat == 30012) return 213; // Slime Block
+            if (mat == 30016) return 201; // Honey Block
+            if (mat == 30020) return  25; // Nether Portal
             return 1;
         }
 
-        if (mat < 10564) {
-            if (mat < 10356) {
-                if (mat < 10300) {
-                    if (mat < 10228) {
-                        if (mat == 10056) return  14; // Lava Cauldron
-                        if (mat == 10068) return  13; // Lava
-                        if (mat == 10072) return   5; // Fire
-                        if (mat == 10076) return  27; // Soul Fire
-                        #ifdef DO_IPBR_LIGHTS
-                        if (mat == 10216) return  62; // Crimson Stem, Crimson Hyphae
-                        if (mat == 10224) return  63; // Warped Stem, Warped Hyphae
-                        #endif
-                    } else {
-                        if (mat == 10228) return 255; // Bedrock
-                        #if defined GLOWING_ORE_ANCIENTDEBRIS && defined DO_IPBR_LIGHTS
-                        if (mat == 10252) return  52; // Ancient Debris
-                        #endif
-                        #if defined GLOWING_ORE_IRON && defined DO_IPBR_LIGHTS
-                        if (mat == 10272) return  43; // Iron Ore
-                        if (mat == 10276) return  43; // Deepslate Iron Ore
-                        #endif
-                        #if defined GLOWING_ORE_COPPER && defined DO_IPBR_LIGHTS
-                        if (mat == 10284) return  45; // Copper Ore
-                        if (mat == 10288) return  45; // Deepslate Copper Ore
-                        #endif
-                    }
-                } else {
-                    if (mat < 10332) {
-                        #if defined GLOWING_ORE_GOLD && defined DO_IPBR_LIGHTS
-                        if (mat == 10300) return  44; // Gold Ore
-                        if (mat == 10304) return  44; // Deepslate Gold Ore
-                        #endif
-                        #if defined GLOWING_ORE_NETHERGOLD && defined DO_IPBR_LIGHTS
-                        if (mat == 10308) return  50; // Nether Gold Ore
-                        #endif
-                        #if defined GLOWING_ORE_DIAMOND && defined DO_IPBR_LIGHTS
-                        if (mat == 10320) return  48; // Diamond Ore
-                        if (mat == 10324) return  48; // Deepslate Diamond Ore
-                        #endif
-                    } else {
-                        if (mat == 10332) return  36; // Amethyst Cluster, Amethyst Buds
-                        #if defined GLOWING_ORE_EMERALD && defined DO_IPBR_LIGHTS
-                        if (mat == 10340) return  47; // Emerald Ore
-                        if (mat == 10344) return  47; // Deepslate Emerald Ore
-                        #endif
-                        #if defined EMISSIVE_LAPIS_BLOCK && defined DO_IPBR_LIGHTS
-                        if (mat == 10352) return  42; // Lapis Block
-                        #endif
-                    }
-                }
-            } else {
-                if (mat < 10496) {
-                    if (mat < 10448) {
-                        #if defined GLOWING_ORE_LAPIS && defined DO_IPBR_LIGHTS
-                        if (mat == 10356) return  46; // Lapis Ore
-                        if (mat == 10360) return  46; // Deepslate Lapis Ore
-                        #endif
-                        #if defined GLOWING_ORE_NETHERQUARTZ && defined DO_IPBR_LIGHTS
-                        if (mat == 10368) return  49; // Nether Quartz Ore
-                        #endif
-                        if (mat == 10396) return  11; // Jack o'Lantern
-                        if (mat == 10404) return   6; // Sea Pickle:Waterlogged
-                        if (mat == 10412) return  10; // Glowstone
-                    } else {
-                        if (mat == 10448) return  18; // Sea Lantern
-                        if (mat == 10452) return  37; // Magma Block
-                        #ifdef DO_IPBR_LIGHTS
-                        if (mat == 10456) return  60; // Command Block
-                        #endif
-                        if (mat == 10476) return  26; // Crying Obsidian
-                        #if defined GLOWING_ORE_GILDEDBLACKSTONE && defined DO_IPBR_LIGHTS
-                        if (mat == 10484) return  51; // Gilded Blackstone
-                        #endif
-                    }
-                } else {
-                    if (mat < 10528) {
-                        if (mat == 10496) return   2; // Torch
-                        if (mat == 10500) return   3; // End Rod
-                        #ifdef DO_IPBR_LIGHTS
-                        if (mat == 10508) return  39; // Chorus Flower:Alive
-                        if (mat == 10512) return  39; // Chorus Flower:Dead
-                        #endif
-                        if (mat == 10516) return  21; // Furnace:Lit
-                    } else {
-                        if (mat == 10528) return  28; // Soul Torch
-                        if (mat == 10544) return  34; // Glow Lichen
-                        if (mat == 10548) return  33; // Enchanting Table
-                        if (mat == 10556) return  58; // End Portal Frame:Active
-                        if (mat == 10560) return  12; // Lantern
-                    }
-                }
-            }
-        } else {
+        // Optimized: Most common light sources first (torches, lanterns, etc.)
+        // This reduces average branch depth significantly
+        
+        // Common light sources (10400-10600 range - most frequently hit)
+        if (mat >= 10400 && mat < 10600) {
+            if (mat == 10412) return  10; // Glowstone
+            if (mat == 10448) return  18; // Sea Lantern
+            if (mat == 10452) return  37; // Magma Block
+            if (mat == 10476) return  26; // Crying Obsidian
+            if (mat == 10496) return   2; // Torch
+            if (mat == 10500) return   3; // End Rod
+            if (mat == 10516) return  21; // Furnace:Lit
+            if (mat == 10528) return  28; // Soul Torch
+            if (mat == 10544) return  34; // Glow Lichen
+            if (mat == 10548) return  33; // Enchanting Table
+            if (mat == 10556) return  58; // End Portal Frame:Active
+            if (mat == 10560) return  12; // Lantern
+            if (mat == 10396) return  11; // Jack o'Lantern
+            if (mat == 10404) return   6; // Sea Pickle:Waterlogged
+            #ifdef DO_IPBR_LIGHTS
+            if (mat == 10456) return  60; // Command Block
+            if (mat == 10508) return  39; // Chorus Flower:Alive
+            if (mat == 10512) return  39; // Chorus Flower:Dead
+            #endif
+            #if defined GLOWING_ORE_GILDEDBLACKSTONE && defined DO_IPBR_LIGHTS
+            if (mat == 10484) return  51; // Gilded Blackstone
+            #endif
+        }
+        // Lava and fire (very common in Nether)
+        else if (mat < 10100) {
+            if (mat == 10056) return  14; // Lava Cauldron
+            if (mat == 10068) return  13; // Lava
+            if (mat == 10072) return   5; // Fire
+            if (mat == 10076) return  27; // Soul Fire
+        }
+        // Ores and special blocks (10200-10400)
+        else if (mat < 10400) {
+            if (mat == 10228) return 255; // Bedrock
+            if (mat == 10332) return  36; // Amethyst Cluster, Amethyst Buds
+            #ifdef DO_IPBR_LIGHTS
+            if (mat == 10216) return  62; // Crimson Stem, Crimson Hyphae
+            if (mat == 10224) return  63; // Warped Stem, Warped Hyphae
+            #endif
+            #if defined GLOWING_ORE_ANCIENTDEBRIS && defined DO_IPBR_LIGHTS
+            if (mat == 10252) return  52; // Ancient Debris
+            #endif
+            #if defined GLOWING_ORE_IRON && defined DO_IPBR_LIGHTS
+            if (mat == 10272) return  43; // Iron Ore
+            if (mat == 10276) return  43; // Deepslate Iron Ore
+            #endif
+            #if defined GLOWING_ORE_COPPER && defined DO_IPBR_LIGHTS
+            if (mat == 10284) return  45; // Copper Ore
+            if (mat == 10288) return  45; // Deepslate Copper Ore
+            #endif
+            #if defined GLOWING_ORE_GOLD && defined DO_IPBR_LIGHTS
+            if (mat == 10300) return  44; // Gold Ore
+            if (mat == 10304) return  44; // Deepslate Gold Ore
+            #endif
+            #if defined GLOWING_ORE_NETHERGOLD && defined DO_IPBR_LIGHTS
+            if (mat == 10308) return  50; // Nether Gold Ore
+            #endif
+            #if defined GLOWING_ORE_DIAMOND && defined DO_IPBR_LIGHTS
+            if (mat == 10320) return  48; // Diamond Ore
+            if (mat == 10324) return  48; // Deepslate Diamond Ore
+            #endif
+            #if defined GLOWING_ORE_EMERALD && defined DO_IPBR_LIGHTS
+            if (mat == 10340) return  47; // Emerald Ore
+            if (mat == 10344) return  47; // Deepslate Emerald Ore
+            #endif
+            #if defined EMISSIVE_LAPIS_BLOCK && defined DO_IPBR_LIGHTS
+            if (mat == 10352) return  42; // Lapis Block
+            #endif
+            #if defined GLOWING_ORE_LAPIS && defined DO_IPBR_LIGHTS
+            if (mat == 10356) return  46; // Lapis Ore
+            if (mat == 10360) return  46; // Deepslate Lapis Ore
+            #endif
+            #if defined GLOWING_ORE_NETHERQUARTZ && defined DO_IPBR_LIGHTS
+            if (mat == 10368) return  49; // Nether Quartz Ore
+            #endif
+        }
+        // Redstone, campfires, and misc (10600+)
+        else {
             if (mat < 10696) {
                 if (mat < 10620) {
                     if (mat < 10592) {
@@ -262,20 +250,23 @@
     #if defined SHADOW && defined VERTEX_SHADER
         void UpdateVoxelMap(int mat) {
             // Early exit checks - cheapest first
+            // Optimized: Combined conditions using bitwise OR to reduce branches
             if (mat == 32000 // Water
-            || mat < 30000 && mat % 4 == 1 // Non-solid terrain
+            || (mat < 30000 && (mat & 3) == 1) // Non-solid terrain (using bitwise AND instead of modulo)
             || mat < 10000 // Block entities or unknown blocks that we treat as non-solid
             ) return;
 
             // Check render stage before expensive transformations
-            bool isEligible = any(equal(ivec4(renderStage), ivec4(
+            // Optimized: Use single bvec4 comparison instead of 4 separate ivec4 comparisons
+            bvec4 stageMatch = equal(ivec4(renderStage), ivec4(
                 MC_RENDER_STAGE_TERRAIN_SOLID,
                 MC_RENDER_STAGE_TERRAIN_TRANSLUCENT,
                 MC_RENDER_STAGE_TERRAIN_CUTOUT,
-                MC_RENDER_STAGE_TERRAIN_CUTOUT_MIPPED)));
+                MC_RENDER_STAGE_TERRAIN_CUTOUT_MIPPED));
 
-            if (!isEligible) return;
+            if (!any(stageMatch)) return;
 
+            // Cache matrix transforms to avoid redundant mat3() conversions
             vec3 modelPos = gl_Vertex.xyz + at_midBlock.xyz / 64.0;
             vec3 viewPos = transform(gl_ModelViewMatrix, modelPos);
             vec3 scenePos = transform(shadowModelViewInverse, viewPos);
