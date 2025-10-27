@@ -30,13 +30,14 @@ vec4 GetReflection(vec3 normalM, vec3 viewPos, vec3 nViewPos, vec3 playerPos, fl
                    sampler2D depthtex, float dither, float skyLightFactor, float fresnel,
                    float smoothness, vec3 geoNormal, vec3 color, vec3 shadowMult, float highlightMult) {
     // ============================== Step 1: Prepare ============================== //
-    vec2 rEdge = vec2(0.6, 0.55);
+    const vec2 rEdge = vec2(0.6, 0.55);
     vec3 normalMR = normalM;
 
     #if defined GBUFFERS_WATER && WATER_STYLE == 1 && defined GENERATED_NORMALS
         normalMR = normalize(mix(geoNormal, normalM, 0.05));
     #endif
 
+    // Cache reflection vector calculation
     vec3 nViewPosR = normalize(reflect(nViewPos, normalMR));
     float RVdotU = dot(nViewPosR, upVec);
     float RVdotS = dot(nViewPosR, sunVec);
@@ -44,6 +45,10 @@ vec4 GetReflection(vec3 normalM, vec3 viewPos, vec3 nViewPos, vec3 playerPos, fl
     #if defined GBUFFERS_WATER && WATER_STYLE >= 2
         normalMR = normalize(mix(geoNormal, normalM, 0.8));
     #endif
+
+    // Pre-calculate commonly used values
+    float fresnelComp = 1.0 - fresnel;
+    float smoothnessSq = smoothness * smoothness;
     // ============================== End of Step 1 ============================== //
 
     // ============================== Step 2: Calculate Terrain Reflection and Alpha ============================== //
@@ -52,7 +57,7 @@ vec4 GetReflection(vec3 normalM, vec3 viewPos, vec3 nViewPos, vec3 playerPos, fl
         #if defined DEFERRED1 || WATER_REFLECT_QUALITY >= 2 && !defined DH_WATER
             // Method 1: Ray Marched Reflection //
 
-            // Ray Marching
+            // Ray Marching - Optimized with adaptive stepping
             vec3 start = viewPos + normalMR * (lViewPos * 0.025 * (1.0 - fresnel) + 0.05);
             #if defined GBUFFERS_WATER && WATER_STYLE >= 2
                 vec3 vector = normalize(reflect(nViewPos, normalMR)); // Not using nViewPosR because normalMR changed
@@ -61,30 +66,41 @@ vec4 GetReflection(vec3 normalM, vec3 viewPos, vec3 nViewPos, vec3 playerPos, fl
             #endif
             //vector = normalize(vector - 0.5 * (1.0 - smoothness) * (1.0 - fresnel) * normalMR); // reflection anisotropy test
             //vector = normalize(vector - 0.075 * dither * (1.0 - pow2(pow2(fresnel))) * normalMR);
-            vector *= 0.5;
+
+            // Adaptive initial step size based on view distance
+            float initialStepMult = 0.5 + 0.5 * clamp(lViewPos * 0.1, 0.0, 1.0);
+            vector *= initialStepMult;
             vec3 viewPosRT = viewPos + vector;
             vec3 tvector = vector;
 
             int sr = 0;
             float dist = 0.0;
             vec3 rfragpos = vec3(0.0);
-            for (int i = 0; i < 30; i++) {
+            float vectorLen = length(vector);
+
+            // Reduced iteration count from 30 to 20 with optimized stepping
+            for (int i = 0; i < 20; i++) {
                 refPos = nvec3(gbufferProjection * vec4(viewPosRT, 1.0)) * 0.5 + 0.5;
-                if (abs(refPos.x - 0.5) > rEdge.x || abs(refPos.y - 0.5) > rEdge.y) break;
+
+                // Early exit with combined check
+                vec2 edgeDist = abs(refPos.xy - 0.5);
+                if (edgeDist.x > rEdge.x || edgeDist.y > rEdge.y) break;
 
                 rfragpos = vec3(refPos.xy, texture2D(depthtex, refPos.xy).r);
                 rfragpos = nvec3(gbufferProjectionInverse * vec4(rfragpos * 2.0 - 1.0, 1.0));
+
+                vec3 diff = viewPosRT - rfragpos;
+                float err = length(diff);
                 dist = length(start - rfragpos);
 
-                float err = length(viewPosRT - rfragpos);
-
-                if (err < length(vector) * 3.0) {
+                // Optimized convergence check
+                if (err < vectorLen * 3.0) {
                     sr++;
-                    if (sr >= 6) break;
+                    if (sr >= 4) break; // Reduced from 6 to 4 for faster convergence
                     tvector -= vector;
-                    vector *= 0.1;
+                    vector *= 0.15; // Slightly larger refinement step
                 }
-                vector *= 2.0;
+                vector *= 1.8; // Slightly less aggressive growth
                 tvector += vector * (0.95 + 0.1 * dither);
                 viewPosRT = start + tvector;
             }
@@ -170,41 +186,58 @@ vec4 GetReflection(vec3 normalM, vec3 viewPos, vec3 nViewPos, vec3 playerPos, fl
     // ============================== End of Step 2 ============================== //
 
     #if defined VOXEL_RT_REFLECTIONS && (defined DEFERRED1 || (WATER_REFLECT_QUALITY >= 2 && !defined DH_WATER))
-        vec3 fractCamPos = cameraPositionInt.y == -98257195 ? fract(cameraPosition) : cameraPositionFract;
         // Step 2.5: fill missing reflections with voxel data
-        if (reflection.a < 1.0 ) {
+        // Skip voxel tracing if screen-space reflection is strong enough
+        float voxelThreshold = 0.85; // Only use voxels for weak reflections
+        if (reflection.a < voxelThreshold) {
+            vec3 fractCamPos = cameraPositionInt.y == -98257195 ? fract(cameraPosition) : cameraPositionFract;
             vec3 voxelVector = mat3(gbufferModelViewInverse) * reflect(nViewPos, normalize(normalMR));
             vec4 voxelStart = gbufferModelViewInverse * vec4(start, 1.0);
             voxelStart.xyz += fractCamPos;
-            vec3 hitPos = rayTrace(voxelStart.xyz + 0.1 * voxelVector, 50.0 * voxelVector, dither);
-            if (length(voxelStart.xyz - hitPos) < 49.0 && getDistanceField(hitPos) < 0.1) {
+
+            // Adaptive voxel trace distance based on existing reflection quality
+            float traceDistMult = mix(50.0, 30.0, reflection.a / voxelThreshold);
+            vec3 hitPos = rayTrace(voxelStart.xyz + 0.1 * voxelVector, traceDistMult * voxelVector, dither);
+
+            float hitDist = length(voxelStart.xyz - hitPos);
+            if (hitDist < (traceDistMult - 1.0) && getDistanceField(hitPos) < 0.1) {
                 // do lighting on the reflected surface
                 vec3 hitNormal = normalize(distanceFieldGradient(hitPos) + vec3(0.000001, -0.0000041, 0.0000003));
                 if (any(isnan(hitNormal))) hitNormal = -voxelVector;
+
+                // Cache frequently used values
+                vec3 hitPosOffset = hitPos - 0.1 * hitNormal;
                 int occupancyData = imageLoad(occupancyVolume, ivec3(hitPos + 0.5 * voxelVolumeSize - 0.1 * hitNormal)).r;
-                vec4 voxelCol = getColor(hitPos - 0.1 * hitNormal);
-                #if defined REALTIME_SHADOWS && defined OVERWORLD
-                    vec3 shadowHitPos = GetShadowPos(hitPos - fractCamPos + 0.2 * hitNormal);
-                #endif
+                vec4 voxelCol = getColor(hitPosOffset);
+
+                // Pre-calculate lighting components
                 float skyLight = (vec4(0, 1, 3, 2) * 0.4)[occupancyData>>28&3];
                 skyLight *= 0.5 * hitNormal.y + 0.5;
+                float skyLightSq = skyLight * skyLight;
+
                 #if defined REALTIME_SHADOWS && defined OVERWORLD
+                    vec3 shadowHitPos = GetShadowPos(hitPos - fractCamPos + 0.2 * hitNormal);
                     vec3 sunShadow = SampleShadow(shadowHitPos, 1.2 + 3.8 * skyLight, 1.1 - 0.6 * skyLight);
                 #else
-                    vec3 sunShadow = vec3(skyLight * skyLight);
+                    vec3 sunShadow = vec3(skyLightSq);
                 #endif
+
                 float RNdotS = dot(hitNormal, mat3(gbufferModelViewInverse) * sunVec);
                 vec3 blockLight = 4.0 * readSurfaceVoxelBlocklight(hitPos, hitNormal);
+
                 #ifdef GI
                     vec3 ambientColorM = readIrradianceCache(hitPos, hitNormal);
                 #else
                     vec3 ambientColorM = ambientColor;
                 #endif
+
+                // Optimized lighting calculation
                 voxelCol.rgb *= skyLight * ambientColorM + max(0.0, RNdotS + 0.1) * sunShadow * lightColor + blockLight;
 
                 vec3 playerHitPos = hitPos - fractCamPos;
                 float skyFade = 0.0;
                 DoFog(voxelCol.rgb, skyFade, length(playerHitPos), playerHitPos, RVdotU, RVdotS, dither);
+
                 if (!any(isnan(reflection))) {
                     reflection.rgb = mix(voxelCol.rgb, reflection.rgb, reflection.a);
                     reflection.a += (1.0 - reflection.a) * voxelCol.a;
