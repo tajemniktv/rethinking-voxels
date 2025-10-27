@@ -70,7 +70,9 @@ void DoLighting(inout vec4 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
         #endif
     #endif
 
+    // Cache frequently used values
     float lightmapY2 = pow2(lightmap.y);
+    float lightmapY4 = pow2(lightmapY2); // Computed once instead of multiple times
     float lightmapYM = smoothstep1(lightmap.y);
     float subsurfaceHighlight = 0.0;
     float ambientMult = 1.0;
@@ -78,8 +80,10 @@ void DoLighting(inout vec4 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     vec3 ambientColorM = ambientColor;
     vec3 nViewPos = normalize(viewPos);
 
+    // Cache matrix transform
+    mat3 gbufferModelViewInverseMat = mat3(gbufferModelViewInverse);
     vec3 vxPos = playerPos + fractCamPos;
-    vec3 worldNormalM = mat3(gbufferModelViewInverse) * normalM;
+    vec3 worldNormalM = gbufferModelViewInverseMat * normalM;
     #if defined DO_PIXELATION_EFFECTS && defined PIXELATED_BLOCKLIGHT
         vxPos = TexelSnap(vxPos, pixelationOffset);
     #endif
@@ -90,7 +94,7 @@ void DoLighting(inout vec4 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     #endif
 
     #ifdef OVERWORLD
-        float skyLightShadowMult = pow2(pow2(lightmapY2));
+        float skyLightShadowMult = lightmapY4;
     #else
         float skyLightShadowMult = 1.0;
     #endif
@@ -199,9 +203,13 @@ void DoLighting(inout vec4 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
                                         // Fake Variable Penumbra Shadows
                                         // Making centerFactor also work in daylight if AO gradient is facing towards sun
                                         if (NdotU > 0.99) {
-                                            vec3 aoGradView = dFdx(glColor.a) * normalize(dFdx(playerPos.xyz))
-                                                            + dFdy(glColor.a) * normalize(dFdy(playerPos.xyz));
-                                            if (dot(normalize(aoGradView.xz), normalize(ViewToPlayer(lightVec).xz)) < 0.3 + 0.4 * dither)
+                                            vec3 dFdxPlayerPos = dFdx(playerPos.xyz);
+                                            vec3 dFdyPlayerPos = dFdy(playerPos.xyz);
+                                            vec3 aoGradView = dFdx(glColor.a) * normalize(dFdxPlayerPos)
+                                                            + dFdy(glColor.a) * normalize(dFdyPlayerPos);
+                                            vec3 aoGradViewXZNorm = normalize(aoGradView.xz);
+                                            vec3 lightVecPlayerXZNorm = normalize(ViewToPlayer(lightVec).xz);
+                                            if (dot(aoGradViewXZNorm, lightVecPlayerXZNorm) < 0.3 + 0.4 * dither)
                                                 if (dot(lightVec, upVec) < 0.99999) centerFactor = sqrt1(max0(glColor.a - 0.55) / 0.45);
                                         }
                                     #endif
@@ -305,10 +313,14 @@ void DoLighting(inout vec4 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
 
                 #ifdef CLOUDS_REIMAGINED
                     float EdotL = dot(eastVec, lightVec);
-                    float EdotLM = tan(acos(EdotL));
+                    // Optimize: atan(sqrt(1-x^2)/x) is faster than tan(acos(x))
+                    float EdotL2 = EdotL * EdotL;
+                    float EdotLM = sqrt(max(1.0 - EdotL2, 0.0)) / max(abs(EdotL), 0.0001);
 
                     #if SUN_ANGLE != 0
-                        float NVdotLM = tan(acos(dot(northVec, lightVec)));
+                        float NdotL_cloud = dot(northVec, lightVec);
+                        float NdotL2_cloud = NdotL_cloud * NdotL_cloud;
+                        float NVdotLM = sqrt(max(1.0 - NdotL2_cloud, 0.0)) / max(abs(NdotL_cloud), 0.0001);
                     #endif
 
                     float distToCloudLayer1 = cloudAlt1i - worldPos.y;
@@ -370,7 +382,8 @@ void DoLighting(inout vec4 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     // Blocklight
     float lightmapXM;
     if (!noSmoothLighting) {
-        float lightmapXMSteep = pow2(pow2(lightmap.x * lightmap.x))  * (3.8 - 0.6 * vsBrightness);
+        float lightmapX2 = pow2(lightmap.x);
+        float lightmapXMSteep = pow2(lightmapX2)  * (3.8 - 0.6 * vsBrightness);
         float lightmapXMCalm = (lightmap.x) * (1.8 + 0.6 * vsBrightness);
         lightmapXM = pow(lightmapXMSteep + lightmapXMCalm, 2.25);
     } else lightmapXM = pow2(lightmap.x) * lightmap.x * 10.0;
@@ -484,7 +497,6 @@ void DoLighting(inout vec4 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     vec2 blocklightReadCoord = gl_FragCoord.xy;
     #if defined PER_PIXEL_LIGHT && !defined GBUFFERS_WATER
         bool foundValidLoc = false;
-        float angleDither = nextFloat();
 
         // Simplified spiral search - reduces texture fetches from 10 to 6 max
         const vec2 spiralOffsets[6] = vec2[6](
@@ -516,9 +528,9 @@ void DoLighting(inout vec4 color, inout vec3 shadowMult, vec3 playerPos, vec3 vi
     #endif
     #ifdef GI
         #ifndef GBUFFERS_WATER
-            vec3 giLighting = 1.8 * readIrradianceCache(vxPos, mat3(gbufferModelViewInverse) * normalM) * GI_STRENGTH * 0.5;
+            vec3 giLighting = 1.8 * readIrradianceCache(vxPos, gbufferModelViewInverseMat * normalM) * GI_STRENGTH * 0.5;
         #else
-            vec3 giLighting = 1.8 * readIrradianceCache(vxPos, -0.5 * mat3(gbufferModelViewInverse) * normalM) * GI_STRENGTH * 0.5;
+            vec3 giLighting = 1.8 * readIrradianceCache(vxPos, -0.5 * gbufferModelViewInverseMat * normalM) * GI_STRENGTH * 0.5;
         #endif
         float lGiLighting = length(giLighting);
         if (lGiLighting > 0.01) giLighting *= log(lGiLighting + 1.0) / lGiLighting;
