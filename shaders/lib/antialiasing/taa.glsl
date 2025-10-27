@@ -84,12 +84,17 @@ void NeighbourhoodClamping(vec3 color, inout vec3 tempColor, float z0, float z1,
 
     int cc = 2;
     ivec2 texelCoordM1 = clamp(texelCoord, ivec2(cc), ivec2(view) - cc); // Fixes screen edges
+    
+    // Cache linear depth calculations
+    float z0Linear = GetLinearDepth(z0);
+    float z1Linear = GetLinearDepth(z1);
+    
     for (int i = 0; i < 8; i++) {
         ivec2 texelCoordM2 = texelCoordM1 + neighbourhoodOffsets[i];
 
         float z0Check = texelFetch(depthtex0, texelCoordM2, 0).r;
         float z1Check = texelFetch(depthtex1, texelCoordM2, 0).r;
-        if (max(abs(GetLinearDepth(z0Check) - GetLinearDepth(z0)), abs(GetLinearDepth(z1Check) - GetLinearDepth(z1))) > 0.09) {
+        if (max(abs(GetLinearDepth(z0Check) - z0Linear), abs(GetLinearDepth(z1Check) - z1Linear)) > 0.09) {
             edge = regularEdge;
 
             if (int(texelFetch(colortex6, texelCoordM2, 0).g * 255.1) == 253) // Reduced Edge TAA
