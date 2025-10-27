@@ -9,16 +9,19 @@
     #endif
 
     vec3 GetSky(float VdotU, float VdotS, float dither, bool doGlare, bool doGround) {
-        // Prepare variables
+        // Prepare variables - cache pow2 calculations
         float nightFactorSqrt2 = sqrt2(nightFactor);
         float nightFactorM = sqrt2(nightFactorSqrt2) * 0.4;
-        float VdotSM1 = pow2(max(VdotS, 0.0));
+        float VdotSMax0 = max(VdotS, 0.0);
+        float VdotSM1 = pow2(VdotSMax0);
         float VdotSM2 = pow2(VdotSM1);
-        float VdotSM3 = pow2(pow2(max(-VdotS, 0.0)));
+        float VdotSNegMax0 = max(-VdotS, 0.0);
+        float VdotSM3 = pow2(pow2(VdotSNegMax0));
         float VdotSML = sunVisibility > 0.5 ? VdotS : -VdotS;
 
         float VdotUmax0 = max(VdotU, 0.0);
-        float VdotUmax0M = 1.0 - pow2(VdotUmax0);
+        float VdotUmax0Sq = pow2(VdotUmax0);
+        float VdotUmax0M = 1.0 - VdotUmax0Sq;
 
         // Prepare colors
         vec3 upColor = mix(nightUpSkyColor * (1.5 - 0.5 * nightFactorSqrt2 + nightFactorM * VdotSM3 * 1.5), dayUpSkyColor, sunFactor);
